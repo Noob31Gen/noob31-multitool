@@ -1,9 +1,5 @@
-import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Button } from "@/components/ui/button"
-import { Menu } from "lucide-react"
 
 const TOOL_CATEGORIES = [
   {
@@ -44,7 +40,7 @@ const TOOL_CATEGORIES = [
   },
 ]
 
-function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const location = useLocation();
 
   return (
@@ -72,46 +68,6 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       ))}
     </nav>
-  )
-}
-
-export function Sidebar() {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      {/* Desktop sidebar */}
-      <div className="hidden border-r bg-muted/40 md:block w-64 h-full overflow-y-auto">
-        <div className="flex h-16 items-center border-b px-6">
-          <Link to="/" className="flex items-center gap-2 font-semibold">
-            <span className="text-xl">Noob31's MultiTool</span>
-          </Link>
-        </div>
-        <div className="flex-1 overflow-auto py-4">
-          <SidebarNav />
-        </div>
-      </div>
-
-      {/* Mobile hamburger */}
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="md:hidden fixed top-3 left-3 z-50">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
-          <div className="flex h-16 items-center border-b px-6">
-            <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-2 font-semibold">
-              <span className="text-xl">Noob31's MultiTool</span>
-            </Link>
-          </div>
-          <div className="overflow-auto py-4 h-[calc(100vh-4rem)]">
-            <SidebarNav onNavigate={() => setOpen(false)} />
-          </div>
-        </SheetContent>
-      </Sheet>
-    </>
   )
 }
 

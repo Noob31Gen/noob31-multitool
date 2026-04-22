@@ -16,6 +16,7 @@ import { SubnetCalculatorPage } from "@/components/tools/SubnetCalculatorPage"
 import { SpfGeneratorPage } from "@/components/tools/SpfGeneratorPage"
 import { DmarcGeneratorPage } from "@/components/tools/DmarcGeneratorPage"
 import { EmailDeliverabilityPage } from "@/components/tools/EmailDeliverabilityPage"
+import { SuperToolSearch } from "@/components/shared/SuperToolSearch"
 
 
 function App() {
@@ -23,7 +24,20 @@ function App() {
     <BrowserRouter>
       <AppLayout>
         <Routes>
-          <Route path="/" element={<div className="text-center py-20"><h1 className="text-4xl font-bold mb-4">Welcome to Noob31's MultiTool</h1><p className="text-muted-foreground">Select a tool from the sidebar or use the SuperTool search above.</p></div>} />
+          <Route path="/" element={
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+              <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Noob31's MultiTool</h1>
+              <p className="text-lg text-muted-foreground mb-10 max-w-2xl">
+                The ultimate toolkit for domain health, network diagnostics, and email authentication.
+              </p>
+              <div className="w-full max-w-3xl mb-8">
+                <SuperToolSearch className="relative w-full" autoFocus={true} />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Or select a specific tool from the sidebar.
+              </p>
+            </div>
+          } />
 
           {/* Part 1: Core DNS Lookups */}
           <Route path="/dns/:type" element={<DNSLookupPage />} />

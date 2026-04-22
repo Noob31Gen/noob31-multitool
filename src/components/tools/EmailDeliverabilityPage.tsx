@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "react-router-dom"
 import { runDeliverabilityCheck } from "@/lib/deliverability"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -13,15 +14,23 @@ import { DNSResultTable } from "@/components/shared/DNSResultTable"
 
 export function EmailDeliverabilityPage() {
   const { settings } = useSettings()
+  const [searchParams] = useSearchParams()
   const [domain, setDomain] = useState("")
   const [selector, setSelector] = useState("default")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-    if (!domain.trim()) return
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) {
+      setDomain(q);
+      performSearch(q);
+    }
+  }, [searchParams]);
+
+  const performSearch = async (targetDomain: string) => {
+    if (!targetDomain.trim()) return
 
     setStatus('loading')
     setErrorMsg("")
@@ -30,7 +39,7 @@ export function EmailDeliverabilityPage() {
     const startTime = performance.now();
 
     try {
-      const res = await runDeliverabilityCheck(domain, selector, settings);
+      const res = await runDeliverabilityCheck(targetDomain, selector, settings);
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ ...res, queryTime });
       setStatus('success')
@@ -39,6 +48,11 @@ export function EmailDeliverabilityPage() {
       setErrorMsg(err.message || "An error occurred during deliverability check.")
       setStatus('error')
     }
+  }
+
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    performSearch(domain)
   }
 
   return (
