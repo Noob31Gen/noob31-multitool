@@ -287,12 +287,25 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
   const startTime = performance.now();
 
   try {
-    let res = await fetch(proxyUrl, { method: 'HEAD', signal: controller.signal });
+    let res = await fetch(proxyUrl, { method: 'HEAD', redirect: 'manual', signal: controller.signal });
     if (res.status === 405) {
-      res = await fetch(proxyUrl, { method: 'GET', signal: controller.signal });
+      res = await fetch(proxyUrl, { method: 'GET', redirect: 'manual', signal: controller.signal });
     }
     clearTimeout(timeoutId);
     const responseTime = Math.round(performance.now() - startTime);
+
+    if (res.type === 'opaqueredirect') {
+      return {
+        status: 302,
+        statusText: "Redirect (Opaque)",
+        headers: [],
+        redirected: true,
+        finalUrl: res.url || targetUrl,
+        responseTime,
+        contentType: '',
+        server: '',
+      };
+    }
 
     const headers: { key: string; value: string }[] = [];
     res.headers.forEach((value, key) => {
