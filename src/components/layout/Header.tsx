@@ -34,7 +34,7 @@ export function Header() {
           <SheetContent side="left" className="w-64 p-0">
             <div className="flex h-16 items-center border-b px-6">
               <Link to="/" onClick={() => setOpen(false)} className="flex items-center">
-                <img src="/src/assets/sitelogo.png" alt="Logo" className="h-8 w-auto" />
+                <img src="/assets/sitelogo.png" alt="Logo" className="h-8 w-auto" />
               </Link>
             </div>
             <div className="overflow-auto py-4 h-[calc(100vh-4rem)]">
@@ -45,7 +45,7 @@ export function Header() {
 
         <Link to="/" className="flex items-center">
           {/* Replace src with your actual logo path, e.g., "/logo.png" */}
-          <img src="/src/assets/sitelogo.png" alt="Logo" className="h-8 w-auto hidden md:block" />
+          <img src="/assets/sitelogo.png" alt="Logo" className="h-8 w-auto hidden md:block" />
         </Link>
       </div>
 
