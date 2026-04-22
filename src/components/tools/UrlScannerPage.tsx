@@ -10,6 +10,8 @@ import { Search } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import { AlertTriangle, ArrowRight } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -83,6 +85,14 @@ export function UrlScannerPage() {
   // Handle toggle change
   const handleToggle = (checked: boolean) => {
     setVisitEnabled(checked)
+  }
+
+  const getStatusColor = (code: number) => {
+    if (code >= 200 && code < 300) return "bg-green-500 hover:bg-green-600";
+    if (code >= 300 && code < 400) return "bg-blue-500 hover:bg-blue-600";
+    if (code >= 400 && code < 500) return "bg-orange-500 hover:bg-orange-600";
+    if (code >= 500) return "bg-red-500 hover:bg-red-600";
+    return "bg-gray-500 hover:bg-gray-600";
   }
 
   return (
@@ -259,12 +269,29 @@ export function UrlScannerPage() {
           )}
 
           {visitEnabled && visitData && (
-             <ResultCard title={`Live Visit: HTTP ${visitData.status} ${visitData.statusText}`} status="success">
+             <ResultCard 
+                title={
+                  <div className="flex items-center gap-3">
+                    <span>Live Visit Results</span>
+                    <Badge className={getStatusColor(visitData.status)}>
+                      HTTP {visitData.status} {visitData.statusText}
+                    </Badge>
+                  </div>
+                } 
+                status="success"
+             >
                 <div className="space-y-6">
                   {visitData.redirected && (
-                    <div className="p-4 border rounded-md bg-muted/30">
-                      <h4 className="font-medium text-sm text-muted-foreground mb-2">Redirect Detected</h4>
-                      <p className="font-mono text-sm break-all">Final URL: {visitData.finalUrl}</p>
+                    <div className="p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10 flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+                      <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-semibold shrink-0">
+                        <AlertTriangle className="w-5 h-5" />
+                        REDIRECT DETECTED
+                      </div>
+                      <div className="flex-1 flex flex-col sm:flex-row items-start sm:items-center gap-2 text-sm text-muted-foreground w-full overflow-hidden">
+                        <span className="truncate max-w-[200px] xl:max-w-[300px]" title={parsed.original}>{parsed.original}</span>
+                        <ArrowRight className="w-4 h-4 hidden sm:block shrink-0" />
+                        <span className="font-mono truncate text-foreground bg-background px-2 py-1 rounded border w-full sm:w-auto" title={visitData.finalUrl}>{visitData.finalUrl}</span>
+                      </div>
                     </div>
                   )}
 

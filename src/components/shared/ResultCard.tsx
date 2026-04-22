@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 
 interface ResultCardProps {
-  title: string
+  title: React.ReactNode
   description?: string
   status?: 'success' | 'error' | 'loading' | 'idle'
   timeMs?: number
