@@ -6,6 +6,7 @@ import { EmailAuthPage } from "@/components/tools/EmailAuthPage"
 import { RegistrationLookupPage } from "@/components/tools/RegistrationLookupPage"
 import { MyIpPage } from "@/components/tools/MyIpPage"
 import { HttpLookupPage } from "@/components/tools/HttpLookupPage"
+import { UrlScannerPage } from "@/components/tools/UrlScannerPage"
 import { DnsCheckPage } from "@/components/tools/DnsCheckPage"
 import { DomainHealthPage } from "@/components/tools/DomainHealthPage"
 import { CertLookupPage } from "@/components/tools/CertLookupPage"
@@ -37,6 +38,7 @@ function App() {
           <Route path="/registration/:tool" element={<RegistrationLookupPage />} />
 
           {/* Part 5: Network Diagnostics */}
+          <Route path="/network/url-scanner" element={<UrlScannerPage />} />
           <Route path="/network/my-ip" element={<MyIpPage />} />
           <Route path="/network/http/:scheme" element={<HttpLookupPage />} />
 

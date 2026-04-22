@@ -28,6 +28,7 @@ const TOOL_CATEGORIES = [
   {
     title: "Network & Diagnostics",
     tools: [
+      { name: "URL Scanner", path: "/network/url-scanner" },
       { name: "HTTP Headers", path: "/network/http/http" },
       { name: "What Is My IP?", path: "/network/my-ip" },
       { name: "Email Header Analyzer", path: "/bonus/headers" },
