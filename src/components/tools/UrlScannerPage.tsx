@@ -403,8 +403,8 @@ export function UrlScannerPage() {
                 <CardTitle className="flex items-center gap-3 text-lg">
                   <Shield className="w-5 h-5 text-primary" />
                   Live Visit Results
-                  <Badge className={getStatusColor(visitData.status)}>
-                    HTTP {visitData.status} {visitData.statusText}
+                  <Badge className={visitData.redirected ? "bg-blue-500 hover:bg-blue-600" : getStatusColor(visitData.status)}>
+                    {visitData.redirected ? `HTTP 3xx Redirect → ${visitData.status} ${visitData.statusText}` : `HTTP ${visitData.status} ${visitData.statusText}`}
                   </Badge>
                   <span className="text-xs font-normal text-muted-foreground ml-auto flex items-center gap-1">
                     <Clock className="w-3 h-3" /> {visitData.responseTime}ms

@@ -36,6 +36,9 @@ function App() {
               <p className="text-sm text-muted-foreground">
                 Or select a specific tool from the sidebar.
               </p>
+              <p className="text-sm text-muted-foreground">
+                All tools here run fully in the browser.
+              </p>
             </div>
           } />
 

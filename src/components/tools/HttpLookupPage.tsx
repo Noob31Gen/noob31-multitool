@@ -138,7 +138,7 @@ export function HttpLookupPage() {
 
       {status === 'success' && result && (
         <ResultCard 
-          title={`HTTP ${result.status} ${result.statusText}`}
+          title={result.redirected ? `HTTP 3xx Redirect → ${result.status} ${result.statusText}` : `HTTP ${result.status} ${result.statusText}`}
           status="success" 
           timeMs={result.queryTime}
           action={

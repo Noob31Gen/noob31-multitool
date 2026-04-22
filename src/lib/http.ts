@@ -28,7 +28,9 @@ export async function fetchHeaders(url: string, settings: AppSettings) {
     return {
       status: res.status,
       statusText: res.statusText,
-      headers
+      headers,
+      redirected: res.redirected,
+      finalUrl: res.url
     };
   } catch (err: any) {
     throw err;
