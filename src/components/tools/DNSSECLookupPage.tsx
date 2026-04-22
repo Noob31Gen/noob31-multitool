@@ -273,14 +273,14 @@ export function DNSSECLookupPage() {
           timeMs={result.queryTime}
           description={`Resolved by ${result.provider} DNS`}
           action={
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               {isSigned !== null && (
                 <Badge variant={isSigned ? "default" : "secondary"} className={isSigned ? "bg-green-500 hover:bg-green-600 gap-1" : "gap-1"}>
                   {isSigned ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
                   {isSigned ? "DNSSEC Signed" : "Unsigned"}
                 </Badge>
               )}
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <CopyButton data={JSON.stringify(result.records, null, 2)} text="Copy JSON" />
                 <ExportButton data={result} filename={`${domain}-${recordType}-dnssec.json`} />
               </div>
