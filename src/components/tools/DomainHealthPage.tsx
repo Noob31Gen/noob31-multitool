@@ -16,19 +16,21 @@ export function DomainHealthPage() {
   const { settings } = useSettings()
   const [searchParams] = useSearchParams()
   const [domain, setDomain] = useState("")
-  const [selector, setSelector] = useState("default")
+  const [selector] = useState("default")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
 
   useEffect(() => {
     const q = searchParams.get('q');
-    if (q) setDomain(q);
+    if (q) {
+      setDomain(q);
+      performSearch(q);
+    }
   }, [searchParams]);
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-    if (!domain.trim()) return
+  const performSearch = async (targetDomain: string) => {
+    if (!targetDomain.trim()) return
 
     setStatus('loading')
     setErrorMsg("")
@@ -37,7 +39,7 @@ export function DomainHealthPage() {
     const startTime = performance.now();
 
     try {
-      const res = await runDomainHealth(domain, selector, settings);
+      const res = await runDomainHealth(targetDomain, selector, settings);
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ ...res, queryTime });
       setStatus('success')
@@ -46,6 +48,11 @@ export function DomainHealthPage() {
       setErrorMsg(err.message || "An error occurred during the health check.")
       setStatus('error')
     }
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    if (e) e.preventDefault()
+    performSearch(domain)
   }
 
   return (
@@ -57,12 +64,6 @@ export function DomainHealthPage() {
 
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
-          <Input
-            placeholder="DKIM/BIMI Selector (e.g. default)"
-            className="w-full sm:w-[220px] bg-background"
-            value={selector}
-            onChange={(e) => setSelector(e.target.value)}
-          />
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input

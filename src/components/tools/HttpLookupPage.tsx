@@ -45,12 +45,14 @@ export function HttpLookupPage() {
 
   useEffect(() => {
     const q = searchParams.get('q');
-    if (q) setDomain(q);
+    if (q) {
+      setDomain(q);
+      performSearch(q);
+    }
   }, [searchParams]);
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-    if (!domain.trim()) return
+  const performSearch = async (targetDomain: string) => {
+    if (!targetDomain.trim()) return
 
     setStatus('loading')
     setErrorMsg("")
@@ -59,7 +61,7 @@ export function HttpLookupPage() {
     const startTime = performance.now();
 
     try {
-      let targetUrl = domain.trim();
+      let targetUrl = targetDomain.trim();
       if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
         targetUrl = `${scheme}://${targetUrl}`;
       }
@@ -74,6 +76,11 @@ export function HttpLookupPage() {
       setErrorMsg(err.message || "An error occurred while fetching HTTP headers.")
       setStatus('error')
     }
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    if (e) e.preventDefault()
+    performSearch(domain)
   }
 
   return (

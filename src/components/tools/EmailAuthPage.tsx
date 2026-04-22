@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams, useNavigate, useSearchParams } from "react-router-dom"
 import { queryDNS, type DNSResponse, type DNSRecord } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -91,16 +91,24 @@ export function EmailAuthPage() {
     setFilteredRecords([])
   }, [recordType])
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-    if (!domain.trim()) return
+  const [searchParams] = useSearchParams()
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) {
+      setDomain(q);
+      performSearch(q);
+    }
+  }, [searchParams]);
+
+  const performSearch = async (targetDomain: string) => {
+    if (!targetDomain.trim()) return
 
     setStatus('loading')
     setErrorMsg("")
     setResult(null)
 
     try {
-      const queryTarget = formatEmailAuthQuery(domain, recordType, selector);
+      const queryTarget = formatEmailAuthQuery(targetDomain, recordType, selector);
       const res = await queryDNS(queryTarget, 'TXT', settings.dohProvider);
       
       setResult(res);
@@ -111,6 +119,11 @@ export function EmailAuthPage() {
       setErrorMsg(err.message || "An error occurred while fetching records.")
       setStatus('error')
     }
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    if (e) e.preventDefault()
+    performSearch(domain)
   }
 
   return (

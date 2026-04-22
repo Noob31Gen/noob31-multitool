@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams, useNavigate, useSearchParams } from "react-router-dom"
 import { queryDNS, type DNSResponse, type DNSRecord } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -172,9 +172,17 @@ export function DNSSECLookupPage() {
     setIsSigned(null)
   }, [recordType])
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-    if (!domain.trim()) return
+  const [searchParams] = useSearchParams()
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) {
+      setDomain(q);
+      performSearch(q);
+    }
+  }, [searchParams]);
+
+  const performSearch = async (targetDomain: string) => {
+    if (!targetDomain.trim()) return
 
     setStatus('loading')
     setErrorMsg("")
@@ -182,12 +190,12 @@ export function DNSSECLookupPage() {
     setIsSigned(null)
 
     try {
-      const targetDomain = domain.trim();
+      const target = targetDomain.trim();
       // Query the requested record
-      const mainQuery = queryDNS(targetDomain, recordType, settings.dohProvider);
+      const mainQuery = queryDNS(target, recordType, settings.dohProvider);
       
       // Concurrently query DNSKEY to determine if domain is DNSSEC signed
-      const dnskeyQuery = recordType === 'DNSKEY' ? mainQuery : queryDNS(targetDomain, 'DNSKEY', settings.dohProvider);
+      const dnskeyQuery = recordType === 'DNSKEY' ? mainQuery : queryDNS(target, 'DNSKEY', settings.dohProvider);
 
       const [res, dnskeyRes] = await Promise.all([mainQuery, dnskeyQuery]);
       
@@ -199,6 +207,11 @@ export function DNSSECLookupPage() {
       setErrorMsg(err.message || "An error occurred while fetching DNSSEC records.")
       setStatus('error')
     }
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    if (e) e.preventDefault()
+    performSearch(domain)
   }
 
   return (

@@ -146,7 +146,10 @@ export function RegistrationLookupPage() {
 
   useEffect(() => {
     const q = searchParams.get('q');
-    if (q) setQuery(q);
+    if (q) {
+      setQuery(q);
+      performSearch(q);
+    }
   }, [searchParams]);
 
   const getPlaceholder = () => {
@@ -158,9 +161,8 @@ export function RegistrationLookupPage() {
     }
   }
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-    if (!query.trim()) return
+  const performSearch = async (targetQuery: string) => {
+    if (!targetQuery.trim()) return
 
     setStatus('loading')
     setErrorMsg("")
@@ -171,9 +173,9 @@ export function RegistrationLookupPage() {
     try {
       let res;
       if (tool === 'ASN') {
-        res = await queryASN(query, settings);
+        res = await queryASN(targetQuery, settings);
       } else {
-        res = await queryRDAP(query, settings);
+        res = await queryRDAP(targetQuery, settings);
       }
       
       const queryTime = Math.round(performance.now() - startTime);
@@ -184,6 +186,11 @@ export function RegistrationLookupPage() {
       setErrorMsg(err.message || "An error occurred while fetching registration data.")
       setStatus('error')
     }
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    if (e) e.preventDefault()
+    performSearch(query)
   }
 
   return (

@@ -29,8 +29,19 @@ export function Header() {
       return
     }
 
+    // Extract hostname if path is included but no scheme matched (e.g. example.com/path)
+    let parsedQ = q
+    if (q.includes('/') && !isIp && !q.startsWith('http')) {
+      try {
+        const url = new URL(`https://${q}`)
+        parsedQ = url.hostname
+      } catch (e) {
+        parsedQ = q.split('/')[0]
+      }
+    }
+
     // Default: Domain Health
-    navigate(`/health/domain?q=${encodeURIComponent(q)}`)
+    navigate(`/health/domain?q=${encodeURIComponent(parsedQ)}`)
   }
 
   return (
