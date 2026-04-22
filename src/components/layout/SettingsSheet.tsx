@@ -86,6 +86,18 @@ export function SettingsSheet() {
               })}
             />
           </div>
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium">VirusTotal API Key (Optional)</h3>
+            <Input 
+              type="password"
+              placeholder="Enter VirusTotal API key" 
+              value={settings.apiKeys.virustotal}
+              onChange={(e) => setSettings({ 
+                ...settings, 
+                apiKeys: { ...settings.apiKeys, virustotal: e.target.value } 
+              })}
+            />
+          </div>
         </div>
       </SheetContent>
     </Sheet>

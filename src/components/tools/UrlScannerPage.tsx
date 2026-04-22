@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import {
   Search, Globe, Lock, Unlock, Network, FolderTree,
   HelpCircle, Hash, AlertTriangle, ArrowRight, Shield,
-  Clock, Server, FileText, KeyRound
+  Clock, Server, FileText, KeyRound, Bug
 } from "lucide-react"
 import {
   Table,
@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { parseUrl, visitUrl, type ParsedUrl, type VisitResult } from "@/lib/urlScanner"
+import { getVirusTotalReport, type VTReport } from "@/lib/virustotal"
 
 export function UrlScannerPage() {
   const { settings } = useSettings()
@@ -34,6 +35,7 @@ export function UrlScannerPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [parsed, setParsed] = useState<ParsedUrl | null>(null)
   const [visitData, setVisitData] = useState<VisitResult | null>(null)
+  const [vtData, setVtData] = useState<VTReport | null | undefined>(undefined) // undefined = not checked, null = 404
   const [errorMsg, setErrorMsg] = useState("")
 
   useEffect(() => {
@@ -50,15 +52,31 @@ export function UrlScannerPage() {
     setErrorMsg("")
     setParsed(null)
     setVisitData(null)
+    setVtData(undefined)
 
     try {
       const parsedResult = parseUrl(targetUrl);
       setParsed(parsedResult);
 
+      const promises: Promise<any>[] = [];
+
       if (doVisit) {
-        const visitRes = await visitUrl(targetUrl, settings);
-        setVisitData(visitRes);
+        promises.push(visitUrl(targetUrl, settings).then(res => setVisitData(res)));
       }
+
+      if (settings.apiKeys.virustotal) {
+        promises.push(
+          getVirusTotalReport(targetUrl, settings)
+            .then(res => setVtData(res))
+            .catch(err => {
+              console.error("VirusTotal error:", err);
+              // Don't fail the whole scan just because VT failed
+            })
+        );
+      }
+
+      await Promise.all(promises);
+
       setStatus('success')
     } catch (err: any) {
       console.error(err)
@@ -395,6 +413,63 @@ export function UrlScannerPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* VirusTotal Section */}
+          {settings.apiKeys.virustotal ? (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-3 text-lg">
+                  <Bug className="w-5 h-5 text-primary" />
+                  VirusTotal Analysis
+                  {vtData && (
+                    <Badge className={vtData.data.attributes.last_analysis_stats.malicious > 0 ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}>
+                      {vtData.data.attributes.last_analysis_stats.malicious > 0 ? "Malicious" : "Clean"}
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {vtData === undefined ? (
+                  <div className="text-sm text-muted-foreground">Checking VirusTotal...</div>
+                ) : vtData === null ? (
+                  <div className="text-sm text-muted-foreground italic">No analysis report found for this URL on VirusTotal.</div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="p-3 rounded-md border bg-red-500/10 border-red-500/20 text-center">
+                        <div className="text-2xl font-bold text-red-600 dark:text-red-400">{vtData.data.attributes.last_analysis_stats.malicious}</div>
+                        <div className="text-xs uppercase text-red-600/80 dark:text-red-400/80 font-semibold">Malicious</div>
+                      </div>
+                      <div className="p-3 rounded-md border bg-orange-500/10 border-orange-500/20 text-center">
+                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{vtData.data.attributes.last_analysis_stats.suspicious}</div>
+                        <div className="text-xs uppercase text-orange-600/80 dark:text-orange-400/80 font-semibold">Suspicious</div>
+                      </div>
+                      <div className="p-3 rounded-md border bg-green-500/10 border-green-500/20 text-center">
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">{vtData.data.attributes.last_analysis_stats.harmless}</div>
+                        <div className="text-xs uppercase text-green-600/80 dark:text-green-400/80 font-semibold">Harmless</div>
+                      </div>
+                      <div className="p-3 rounded-md border bg-muted/20 text-center">
+                        <div className="text-2xl font-bold">{vtData.data.attributes.last_analysis_stats.undetected}</div>
+                        <div className="text-xs uppercase text-muted-foreground font-semibold">Undetected</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-muted/20 border-dashed">
+              <CardContent className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <Bug className="w-5 h-5" />
+                  <span className="text-sm">VirusTotal integration is available.</span>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Configure API Key in Settings
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Live Visit Section */}
           {visitEnabled && visitData && (

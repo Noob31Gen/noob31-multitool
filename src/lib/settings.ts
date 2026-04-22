@@ -8,6 +8,7 @@ export interface AppSettings {
   apiKeys: {
     ipinfo: string;
     spamhausDqs: string;
+    virustotal: string;
   };
   theme: 'light' | 'dark' | 'system';
 }
@@ -18,6 +19,7 @@ const defaultSettings: AppSettings = {
   apiKeys: {
     ipinfo: '',
     spamhausDqs: '',
+    virustotal: '',
   },
   theme: 'system',
 };
