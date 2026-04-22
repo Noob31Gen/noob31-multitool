@@ -36,7 +36,7 @@ function RDAPRegistrationCard({ data }: { data: any }) {
   const parsed = parseRDAP(data);
   return (
     <div className="space-y-6">
-      <div className="rounded-md border overflow-hidden">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableBody>
             <TableRow>
@@ -196,7 +196,7 @@ export function RegistrationLookupPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{info.title}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{info.title}</h1>
         <p className="text-muted-foreground mt-2">{info.desc}</p>
       </div>
 
@@ -257,7 +257,7 @@ export function RegistrationLookupPage() {
           {tool === 'ASN' && result.data.org && (
             <div className="mb-4 p-4 rounded-md border bg-muted/20">
               <h3 className="font-semibold text-lg">{result.data.org}</h3>
-              <div className="grid grid-cols-2 gap-4 mt-2 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 text-sm">
                 <div><span className="text-muted-foreground">IP:</span> {result.data.ip}</div>
                 <div><span className="text-muted-foreground">Hostname:</span> {result.data.hostname || 'N/A'}</div>
                 <div><span className="text-muted-foreground">City:</span> {result.data.city}</div>

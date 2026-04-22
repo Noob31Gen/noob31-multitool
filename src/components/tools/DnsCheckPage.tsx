@@ -43,7 +43,7 @@ export function DnsCheckPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">DNS Check</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">DNS Check</h1>
         <p className="text-muted-foreground mt-2">Runs a parallel query for all core DNS records associated with a domain.</p>
       </div>
 

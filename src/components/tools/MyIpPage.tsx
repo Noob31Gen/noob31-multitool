@@ -35,7 +35,7 @@ export function MyIpPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">What Is My IP?</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">What Is My IP?</h1>
         <p className="text-muted-foreground mt-2">Check your public IP address and network information.</p>
       </div>
 

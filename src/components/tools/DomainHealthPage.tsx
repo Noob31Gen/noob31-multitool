@@ -58,7 +58,7 @@ export function DomainHealthPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Domain Health Check</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Domain Health Check</h1>
         <p className="text-muted-foreground mt-2">Aggregates DNS and Email Auth records to compute a health grade.</p>
       </div>
 
@@ -95,7 +95,7 @@ export function DomainHealthPage() {
 
       {status === 'success' && result && (
         <div className="grid gap-6 md:grid-cols-[1fr_300px] items-start">
-          <div className="space-y-6">
+          <div className="order-2 md:order-1 space-y-6">
              <ResultCard title="Core DNS Health" status="success">
                 {result.dnsResults.map((r: any) => {
                    const count = r.data?.records?.length || 0;
@@ -128,10 +128,10 @@ export function DomainHealthPage() {
                 })}
              </ResultCard>
           </div>
-          <div className="sticky top-20">
+          <div className="order-1 md:order-2 md:sticky md:top-20">
             <Card className="p-6 flex flex-col items-center justify-center text-center">
               <h3 className="font-semibold text-lg text-muted-foreground mb-4">Overall Grade</h3>
-              <div className={`text-8xl font-black mb-4 
+              <div className={`text-7xl sm:text-8xl font-black mb-4 
                 ${result.grade === 'A' ? 'text-green-500' : ''}
                 ${result.grade === 'B' ? 'text-green-400' : ''}
                 ${result.grade === 'C' ? 'text-amber-500' : ''}

@@ -49,7 +49,7 @@ export function CertLookupPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Certificate (crt.sh) Lookup</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Certificate (crt.sh) Lookup</h1>
         <p className="text-muted-foreground mt-2">Find historical SSL/TLS certificates for a domain using Certificate Transparency logs.</p>
       </div>
 

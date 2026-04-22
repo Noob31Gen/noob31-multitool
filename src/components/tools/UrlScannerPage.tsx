@@ -108,7 +108,7 @@ export function UrlScannerPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">URL Scanner</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">URL Scanner</h1>
         <p className="text-muted-foreground mt-2">Decompose and analyze every component of a URL according to RFC 3986.</p>
       </div>
 
@@ -166,12 +166,12 @@ export function UrlScannerPage() {
           {/* Visual URL Breakdown */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <span className="flex items-center gap-2 text-lg">
                   <Globe className="w-5 h-5 text-primary" />
                   Full URL Breakdown
                 </span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <CopyButton data={JSON.stringify(parsed, null, 2)} text="Copy JSON" />
                   <ExportButton data={{ parsed, visitData }} filename="url-scan.json" />
                 </div>
@@ -459,7 +459,7 @@ export function UrlScannerPage() {
             </Card>
           ) : (
             <Card className="bg-muted/20 border-dashed">
-              <CardContent className="flex items-center justify-between p-4">
+              <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-4">
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <Bug className="w-5 h-5" />
                   <span className="text-sm">VirusTotal integration is available.</span>
@@ -475,13 +475,13 @@ export function UrlScannerPage() {
           {visitEnabled && visitData && (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-3 text-lg">
-                  <Shield className="w-5 h-5 text-primary" />
-                  Live Visit Results
+                <CardTitle className="flex flex-wrap items-center gap-2 sm:gap-3 text-lg">
+                  <Shield className="w-5 h-5 text-primary shrink-0" />
+                  <span>Live Visit Results</span>
                   <Badge className={visitData.redirected ? "bg-blue-500 hover:bg-blue-600" : getStatusColor(visitData.status)}>
-                    {visitData.redirected ? `HTTP 3xx Redirect → ${visitData.status} ${visitData.statusText}` : `HTTP ${visitData.status} ${visitData.statusText}`}
+                    {visitData.redirected ? `HTTP 3xx → ${visitData.status}` : `HTTP ${visitData.status} ${visitData.statusText}`}
                   </Badge>
-                  <span className="text-xs font-normal text-muted-foreground ml-auto flex items-center gap-1">
+                  <span className="text-xs font-normal text-muted-foreground sm:ml-auto flex items-center gap-1">
                     <Clock className="w-3 h-3" /> {visitData.responseTime}ms
                   </span>
                 </CardTitle>

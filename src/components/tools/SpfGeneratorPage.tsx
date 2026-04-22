@@ -34,7 +34,7 @@ export function SpfGeneratorPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">SPF Generator</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">SPF Generator</h1>
         <p className="text-muted-foreground mt-2">Generate a valid Sender Policy Framework (SPF) TXT record.</p>
       </div>
 
@@ -94,7 +94,7 @@ export function SpfGeneratorPage() {
         </Card>
 
         <div>
-          <Card className="p-6 sticky top-20 bg-primary/5 border-primary/20">
+          <Card className="p-6 md:sticky md:top-20 bg-primary/5 border-primary/20">
             <h3 className="font-semibold text-lg mb-4">Generated SPF Record</h3>
             <div className="p-4 bg-background rounded-md border font-mono text-sm break-all mb-4">
               {result}

@@ -15,7 +15,7 @@ export function Header() {
   const isLandingPage = location.pathname === '/';
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 w-full items-center justify-between border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 flex h-16 w-full items-center justify-between border-b bg-background/95 px-3 sm:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 
       <div className="flex items-center gap-2 font-semibold md:w-auto">
         <Sheet open={open} onOpenChange={setOpen}>
@@ -50,7 +50,7 @@ export function Header() {
         </Link>
       </div>
 
-      <div className="flex-1 flex justify-center max-w-2xl px-4">
+      <div className="flex-1 flex justify-center max-w-2xl px-2 sm:px-4 min-w-0">
         {!isLandingPage && <SuperToolSearch className="relative w-full" />}
       </div>
 

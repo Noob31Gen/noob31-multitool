@@ -13,7 +13,7 @@ interface ResultCardProps {
 export function ResultCard({ title, description, status, timeMs, children, action }: ResultCardProps) {
   return (
     <Card className="w-full">
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-4">
         <div className="space-y-1.5">
           <CardTitle className="flex items-center gap-2">
             {title}

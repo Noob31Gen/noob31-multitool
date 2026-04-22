@@ -58,7 +58,7 @@ export function EmailDeliverabilityPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Email Deliverability</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Email Deliverability</h1>
         <p className="text-muted-foreground mt-2">Checks all DNS-based email authentication records and computes a deliverability score.</p>
       </div>
 
@@ -101,7 +101,7 @@ export function EmailDeliverabilityPage() {
 
       {status === 'success' && result && (
         <div className="grid gap-6 md:grid-cols-[1fr_350px] items-start">
-          <div className="space-y-6">
+          <div className="order-2 md:order-1 space-y-6">
             
              <ResultCard title="Recommendations & Issues" status="success">
                 <div className="space-y-3">
@@ -150,10 +150,10 @@ export function EmailDeliverabilityPage() {
              </ResultCard>
           </div>
           
-          <div className="sticky top-20">
+          <div className="order-1 md:order-2 md:sticky md:top-20">
             <Card className="p-6 flex flex-col items-center justify-center text-center">
               <h3 className="font-semibold text-lg text-muted-foreground mb-4">Deliverability Grade</h3>
-              <div className={`text-8xl font-black mb-4 
+              <div className={`text-7xl sm:text-8xl font-black mb-4 
                 ${result.grade.includes('A') ? 'text-green-500' : ''}
                 ${result.grade === 'B' ? 'text-green-400' : ''}
                 ${result.grade === 'C' ? 'text-amber-500' : ''}
@@ -169,7 +169,7 @@ export function EmailDeliverabilityPage() {
                 <strong>Disclaimer:</strong> This checks DNS-based email authentication only. SMTP connectivity testing requires a server-side tool.
               </div>
 
-              <div className="flex gap-2 w-full justify-center">
+              <div className="flex gap-2 w-full justify-center flex-wrap">
                  <CopyButton data={JSON.stringify(result, null, 2)} text="JSON" />
                  <ExportButton data={result} filename={`${domain}-deliverability.json`} />
               </div>
