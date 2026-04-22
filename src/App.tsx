@@ -37,7 +37,7 @@ function App() {
                 Or select a specific tool from the sidebar.
               </p>
               <p className="text-sm text-muted-foreground">
-                All tools here run fully in the browser.
+                All tools here run fully in the browser. No tracking or metrics info is collected.
               </p>
             </div>
           } />
