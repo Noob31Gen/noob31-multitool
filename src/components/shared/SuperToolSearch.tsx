@@ -11,6 +11,7 @@ interface SuperToolSearchProps {
 
 export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoFocus = false }: SuperToolSearchProps) {
   const [query, setQuery] = useState("")
+  const [isFocused, setIsFocused] = useState(false)
   const navigate = useNavigate()
 
   const handleSearch = (e: React.FormEvent) => {
@@ -59,16 +60,25 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
 
   return (
     <form onSubmit={handleSearch} className={className}>
-      <div className="relative flex items-center w-full">
-        <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground" />
+      <div className="relative flex items-center w-full overflow-hidden rounded-md">
+        <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground z-10" />
         <Input
           type="search"
-          placeholder="MultiTool: Enter a domain, IP, URL, or Email..."
-          className="w-full bg-background pl-8 pr-20 shadow-none h-10"
+          placeholder=""
+          className="w-full bg-background pl-8 pr-20 shadow-none h-10 relative z-0"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           autoFocus={autoFocus}
         />
+        {!query && !isFocused && (
+          <div className="absolute inset-y-0 left-8 right-20 flex items-center pointer-events-none overflow-hidden text-sm text-muted-foreground whitespace-nowrap z-10 select-none mask-image-fade">
+             <div className="animate-marquee">
+                 MultiTool: Enter a domain, IP, URL, or Email...
+             </div>
+          </div>
+        )}
         <Button
           type="submit"
           className="absolute right-1 h-8 px-3 text-xs font-medium bg-white text-black hover:bg-gray-100 border border-gray-200"
