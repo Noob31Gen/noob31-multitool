@@ -14,6 +14,8 @@ import { EmailHeaderAnalyzerPage } from "@/components/tools/EmailHeaderAnalyzerP
 import { SubnetCalculatorPage } from "@/components/tools/SubnetCalculatorPage"
 import { SpfGeneratorPage } from "@/components/tools/SpfGeneratorPage"
 import { DmarcGeneratorPage } from "@/components/tools/DmarcGeneratorPage"
+import { EmailDeliverabilityPage } from "@/components/tools/EmailDeliverabilityPage"
+
 
 function App() {
   return (
@@ -60,9 +62,10 @@ function App() {
           <Route path="/network/https" element={<HttpLookupPage scheme="https" />} />
           <Route path="/network/ipseckey" element={<DNSLookupPage defaultType="IPSECKEY" title="IPSECKEY Lookup" description="Check IPSECKEY records for opportunistic encryption." />} />
 
-          {/* Part 5: DNS & Domain Health */}
+          {/* Part 5 & 9: DNS, Domain Health, Deliverability */}
           <Route path="/health/dns" element={<DnsCheckPage />} />
           <Route path="/health/domain" element={<DomainHealthPage />} />
+          <Route path="/health/deliverability" element={<EmailDeliverabilityPage />} />
 
           {/* Part 7: Security & Blacklist */}
           <Route path="/security/cert" element={<CertLookupPage />} />

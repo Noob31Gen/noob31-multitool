@@ -204,36 +204,36 @@
 
 > The DNS-verifiable portion of Email Deliverability, without SMTP testing.
 
-- [ ] **9.1** Build "Email Auth Check" composite tool:
+- [x] **9.1** Build "Email Auth Check" composite tool:
   - Run SPF + DKIM + DMARC + BIMI + MTA-STS + TLSRPT + MX checks in parallel
   - Aggregate into a deliverability score/grade
   - Flag specific issues: missing SPF, DMARC set to `p=none`, no DKIM, no BIMI, etc.
   - Provide actionable recommendations for each issue
-- [ ] **9.2** Build `<DeliverabilityReport>` component with:
+- [x] **9.2** Build `<DeliverabilityReport>` component with:
   - Overall grade card (A+ through F)
   - Section-by-section breakdown with expand/collapse
   - "What to fix" recommendations panel
-- [ ] **9.3** Add disclaimer: "This checks DNS-based email authentication only. SMTP connectivity testing requires a server-side tool."
-- [ ] **9.4** Test against 5+ domains with varying levels of email auth configuration
+- [x] **9.3** Add disclaimer: "This checks DNS-based email authentication only. SMTP connectivity testing requires a server-side tool."
+- [x] **9.4** Test against 5+ domains with varying levels of email auth configuration
 
 ---
 
 ## Part 10: Polish & Final Integration
 
-- [ ] **10.1** Build the **SuperTool** — a unified search bar that auto-detects input type:
+- [x] **10.1** Build the **SuperTool** — a unified search bar that auto-detects input type:
   - Domain → DNS Check
   - IP address → Reverse Lookup + ARIN/ASN
   - Email header (multi-line) → Header Analyzer
   - URL → HTTP/HTTPS Lookup
-- [ ] **10.2** Add **search history** (localStorage) with recent queries
-- [ ] **10.3** Add **dark/light mode toggle** (shadcn built-in theming)
-- [ ] **10.4** Add **keyboard shortcuts** (Cmd/Ctrl+K for tool search, Enter to run query)
-- [ ] **10.5** Add **responsive design** — mobile-friendly sidebar collapse
-- [ ] **10.6** Add **export all results** — JSON download of full query results
-- [ ] **10.7** Add **tab-based navigation** — open multiple tools side by side or in tabs
-- [ ] **10.8** Final UI polish: loading states, error states, empty states, micro-animations
-- [ ] **10.9** Cross-browser testing (Chrome, Firefox, Edge)
-- [ ] **10.10** Performance review — ensure parallel queries don't overwhelm the DoH API
+- [x] **10.2** Add **search history** (localStorage) with recent queries
+- [x] **10.3** Add **dark/light mode toggle** (shadcn built-in theming)
+- [x] **10.4** Add **keyboard shortcuts** (Cmd/Ctrl+K for tool search, Enter to run query)
+- [x] **10.5** Add **responsive design** — mobile-friendly sidebar collapse
+- [x] **10.6** Add **export all results** — JSON download of full query results
+- [x] **10.7** Add **tab-based navigation** — open multiple tools side by side or in tabs
+- [x] **10.8** Final UI polish: loading states, error states, empty states, micro-animations
+- [x] **10.9** Cross-browser testing (Chrome, Firefox, Edge)
+- [x] **10.10** Performance review — ensure parallel queries don't overwhelm the DoH API
 
 ---
 

@@ -39,12 +39,44 @@ const TOOL_CATEGORIES = [
     ],
   },
   {
+    title: "Health & Deliverability",
+    tools: [
+      { name: "DNS Check", path: "/health/dns" },
+      { name: "Domain Health", path: "/health/domain" },
+      { name: "Email Deliverability", path: "/health/deliverability" },
+    ],
+  },
+  {
+    title: "Registration",
+    tools: [
+      { name: "WHOIS Lookup", path: "/registration/whois" },
+      { name: "ARIN Lookup", path: "/registration/arin" },
+      { name: "ASN Lookup", path: "/registration/asn" },
+    ],
+  },
+  {
+    title: "Security & Blacklist",
+    tools: [
+      { name: "Blacklist Check", path: "/security/blacklist" },
+      { name: "CERT Lookup", path: "/security/cert" },
+    ],
+  },
+  {
     title: "Network",
     tools: [
       { name: "What Is My IP?", path: "/network/my-ip" },
       { name: "HTTP Lookup", path: "/network/http" },
       { name: "HTTPS Lookup", path: "/network/https" },
       { name: "IPSECKEY Lookup", path: "/network/ipseckey" },
+    ],
+  },
+  {
+    title: "Bonus Tools",
+    tools: [
+      { name: "Email Header Analyzer", path: "/bonus/headers" },
+      { name: "Subnet Calculator", path: "/bonus/subnet" },
+      { name: "SPF Generator", path: "/bonus/spf-generator" },
+      { name: "DMARC Generator", path: "/bonus/dmarc-generator" },
     ],
   },
 ]
