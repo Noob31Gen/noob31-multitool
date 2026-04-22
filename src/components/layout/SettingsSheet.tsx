@@ -36,12 +36,12 @@ export function SettingsSheet() {
             Configure API keys and preferences. Keys are stored locally in your browser.
           </SheetDescription>
         </SheetHeader>
-        <div className="grid gap-6 py-6">
-          <div className="space-y-2">
+        <div className="grid gap-8 py-8 px-2">
+          <div className="space-y-3">
             <h3 className="text-sm font-medium">DoH Provider</h3>
             <Select 
               value={settings.dohProvider} 
-              onValueChange={(val: 'google' | 'cloudflare') => setSettings({ ...settings, dohProvider: val })}
+              onValueChange={(val: 'google' | 'cloudflare' | 'alidns' | 'adguard') => setSettings({ ...settings, dohProvider: val })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select provider" />
@@ -49,10 +49,12 @@ export function SettingsSheet() {
               <SelectContent>
                 <SelectItem value="google">Google Public DNS</SelectItem>
                 <SelectItem value="cloudflare">Cloudflare DNS</SelectItem>
+                <SelectItem value="alidns">AliDNS</SelectItem>
+                <SelectItem value="adguard">AdGuard DNS</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h3 className="text-sm font-medium">CORS Proxy URL</h3>
             <Input 
               placeholder="https://corsproxy.io/?" 
@@ -60,7 +62,7 @@ export function SettingsSheet() {
               onChange={(e) => setSettings({ ...settings, corsProxyUrl: e.target.value })}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h3 className="text-sm font-medium">IPinfo Token (Optional)</h3>
             <Input 
               type="password"
@@ -72,7 +74,7 @@ export function SettingsSheet() {
               })}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h3 className="text-sm font-medium">Spamhaus DQS Key (Optional)</h3>
             <Input 
               type="password"

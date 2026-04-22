@@ -11,7 +11,7 @@ export interface DNSResponse {
   records: DNSRecord[];
   authority?: DNSRecord[];
   queryTime: number;
-  provider: 'google' | 'cloudflare';
+  provider: 'google' | 'cloudflare' | 'alidns' | 'adguard';
 }
 
 const TYPE_MAP: Record<number, string> = {
@@ -42,7 +42,7 @@ export function getTypeName(typeCode: number): string {
 export async function queryDNS(
   domain: string,
   type: string,
-  provider: 'google' | 'cloudflare' = 'google'
+  provider: 'google' | 'cloudflare' | 'alidns' | 'adguard' = 'google'
 ): Promise<DNSResponse> {
   const startTime = performance.now();
   
@@ -51,9 +51,13 @@ export async function queryDNS(
 
   if (provider === 'google') {
     url = `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`;
-  } else {
+  } else if (provider === 'cloudflare') {
     url = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`;
     headers = { 'accept': 'application/dns-json' };
+  } else if (provider === 'alidns') {
+    url = `https://dns.alidns.com/resolve?name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`;
+  } else if (provider === 'adguard') {
+    url = `https://dns.adguard-dns.com/resolve?name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`;
   }
 
   const controller = new AbortController();

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export type DoHProvider = 'google' | 'cloudflare';
+export type DoHProvider = 'google' | 'cloudflare' | 'alidns' | 'adguard';
 
 export interface AppSettings {
   dohProvider: DoHProvider;
