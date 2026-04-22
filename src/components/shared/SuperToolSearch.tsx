@@ -18,7 +18,7 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
     if (!query.trim()) return
 
     const q = query.trim()
-    
+
     // Auto-detect IP
     const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(q)
     if (isIp) {
@@ -63,14 +63,14 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
         <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="SuperTool: Enter a domain, IP, URL, or Email..."
+          placeholder="MultiTool: Enter a domain, IP, URL, or Email..."
           className="w-full bg-background pl-8 pr-20 shadow-none h-10"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           autoFocus={autoFocus}
         />
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           className="absolute right-1 h-8 px-3 text-xs font-medium bg-white text-black hover:bg-gray-100 border border-gray-200"
         >
           Lookup
