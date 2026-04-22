@@ -7,6 +7,7 @@ import { SidebarNav } from "./Sidebar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
+import SiteLogo from "@/assets/sitelogo.png"
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -34,7 +35,7 @@ export function Header() {
           <SheetContent side="left" className="w-64 p-0">
             <div className="flex h-16 items-center border-b px-6">
               <Link to="/" onClick={() => setOpen(false)} className="flex items-center">
-                <img src="/assets/sitelogo.png" alt="Logo" className="h-8 w-auto" />
+                <img src={SiteLogo} alt="Logo" className="h-8 w-auto" />
               </Link>
             </div>
             <div className="overflow-auto py-4 h-[calc(100vh-4rem)]">
@@ -45,7 +46,7 @@ export function Header() {
 
         <Link to="/" className="flex items-center">
           {/* Replace src with your actual logo path, e.g., "/logo.png" */}
-          <img src="/assets/sitelogo.png" alt="Logo" className="h-8 w-auto hidden md:block" />
+          <img src={SiteLogo} alt="Logo" className="h-8 w-auto hidden md:block" />
         </Link>
       </div>
 
