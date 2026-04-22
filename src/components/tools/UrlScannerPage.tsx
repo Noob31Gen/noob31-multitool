@@ -83,9 +83,6 @@ export function UrlScannerPage() {
   // Handle toggle change
   const handleToggle = (checked: boolean) => {
     setVisitEnabled(checked)
-    if (url.trim()) {
-      performSearch(url, checked)
-    }
   }
 
   return (
@@ -159,13 +156,33 @@ export function UrlScannerPage() {
               <Table>
                 <TableBody>
                   <TableRow>
-                    <TableCell className="font-medium bg-muted/50 w-[150px]">Protocol</TableCell>
+                    <TableCell className="font-medium bg-muted/50 w-[170px]">Base URL</TableCell>
+                    <TableCell>{parsed.baseUrl}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium bg-muted/50">Protocol</TableCell>
                     <TableCell>{parsed.protocol || '-'}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium bg-muted/50">Hostname</TableCell>
                     <TableCell>{parsed.hostname || '-'}</TableCell>
                   </TableRow>
+                  {!parsed.isIp && (
+                    <>
+                      <TableRow>
+                        <TableCell className="font-medium bg-muted/50">Top-Level Domain (TLD)</TableCell>
+                        <TableCell>{parsed.tld || '-'}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium bg-muted/50">Second-Level Domain</TableCell>
+                        <TableCell>{parsed.sld || '-'}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium bg-muted/50">Subdomain</TableCell>
+                        <TableCell>{parsed.subdomain || '-'}</TableCell>
+                      </TableRow>
+                    </>
+                  )}
                   <TableRow>
                     <TableCell className="font-medium bg-muted/50">Port</TableCell>
                     <TableCell>{parsed.port || 'Default'}</TableCell>
@@ -175,8 +192,39 @@ export function UrlScannerPage() {
                     <TableCell>{parsed.pathname || '-'}</TableCell>
                   </TableRow>
                   <TableRow>
+                    <TableCell className="font-medium bg-muted/50">Path Segments</TableCell>
+                    <TableCell>
+                      {parsed.pathSegments.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {parsed.pathSegments.map((seg, i) => (
+                            <span key={i} className="px-2 py-0.5 bg-muted rounded-md text-xs font-mono">{seg}</span>
+                          ))}
+                        </div>
+                      ) : '-'}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium bg-muted/50">File Extension</TableCell>
+                    <TableCell>{parsed.fileExtension || '-'}</TableCell>
+                  </TableRow>
+                  <TableRow>
                     <TableCell className="font-medium bg-muted/50">Hash / Fragment</TableCell>
                     <TableCell>{parsed.hash || '-'}</TableCell>
+                  </TableRow>
+                  {(parsed.username || parsed.password) && (
+                    <TableRow>
+                      <TableCell className="font-medium bg-muted/50">Credentials</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2 text-sm">
+                          {parsed.username && <span>User: <code className="bg-muted px-1 rounded">{parsed.username}</code></span>}
+                          {parsed.password && <span>Pass: <code className="bg-muted px-1 rounded">{parsed.password}</code></span>}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  <TableRow>
+                    <TableCell className="font-medium bg-muted/50">Total Length</TableCell>
+                    <TableCell>{parsed.length} characters</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium bg-muted/50">Is IP Address?</TableCell>
