@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 
 interface SuperToolSearchProps {
   className?: string;
@@ -58,15 +59,23 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
 
   return (
     <form onSubmit={handleSearch} className={className}>
-      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-      <Input
-        type="search"
-        placeholder="SuperTool: Enter a domain, IP, URL, or Email..."
-        className="w-full bg-background pl-8 shadow-none"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        autoFocus={autoFocus}
-      />
+      <div className="relative flex items-center w-full">
+        <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="search"
+          placeholder="SuperTool: Enter a domain, IP, URL, or Email..."
+          className="w-full bg-background pl-8 pr-20 shadow-none h-10"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          autoFocus={autoFocus}
+        />
+        <Button 
+          type="submit" 
+          className="absolute right-1 h-8 px-3 text-xs font-medium bg-white text-black hover:bg-gray-100 border border-gray-200"
+        >
+          Lookup
+        </Button>
+      </div>
     </form>
   )
 }
