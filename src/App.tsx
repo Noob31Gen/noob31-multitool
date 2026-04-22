@@ -22,8 +22,8 @@ function App() {
     <BrowserRouter>
       <AppLayout>
         <Routes>
-          <Route path="/" element={<div className="text-center py-20"><h1 className="text-4xl font-bold mb-4">Welcome to URL Scanner</h1><p className="text-muted-foreground">Select a tool from the sidebar or use the SuperTool search above.</p></div>} />
-          
+          <Route path="/" element={<div className="text-center py-20"><h1 className="text-4xl font-bold mb-4">Welcome to Noob31's MultiTool</h1><p className="text-muted-foreground">Select a tool from the sidebar or use the SuperTool search above.</p></div>} />
+
           {/* Part 1: Core DNS Lookups */}
           <Route path="/dns/:type" element={<DNSLookupPage />} />
 

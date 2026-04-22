@@ -83,7 +83,7 @@ export function Sidebar() {
       <div className="hidden border-r bg-muted/40 md:block w-64 h-full overflow-y-auto">
         <div className="flex h-16 items-center border-b px-6">
           <Link to="/" className="flex items-center gap-2 font-semibold">
-            <span className="text-xl">URL Scanner</span>
+            <span className="text-xl">Noob31's MultiTool</span>
           </Link>
         </div>
         <div className="flex-1 overflow-auto py-4">
@@ -102,7 +102,7 @@ export function Sidebar() {
         <SheetContent side="left" className="w-64 p-0">
           <div className="flex h-16 items-center border-b px-6">
             <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-2 font-semibold">
-              <span className="text-xl">URL Scanner</span>
+              <span className="text-xl">Noob31's MultiTool</span>
             </Link>
           </div>
           <div className="overflow-auto py-4 h-[calc(100vh-4rem)]">
