@@ -177,7 +177,7 @@ export function RegistrationLookupPage() {
       } else {
         res = await queryRDAP(targetQuery, settings);
       }
-      
+
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ data: res, queryTime });
       setStatus('success')
@@ -212,9 +212,9 @@ export function RegistrationLookupPage() {
               <SelectItem value="ASN">ASN</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={getPlaceholder()}
               className="pl-9 bg-background"
@@ -243,9 +243,9 @@ export function RegistrationLookupPage() {
       )}
 
       {status === 'success' && result && (
-        <ResultCard 
-          title={`${tool} Results`} 
-          status="success" 
+        <ResultCard
+          title={`${tool} Results`}
+          status="success"
           timeMs={result.queryTime}
           action={
             <div className="flex gap-2">
@@ -264,7 +264,7 @@ export function RegistrationLookupPage() {
                 <div><span className="text-muted-foreground">Region:</span> {result.data.region}, {result.data.country}</div>
                 {result.data.asn && <div><span className="text-muted-foreground">ASN:</span> {result.data.asn.asn}</div>}
               </div>
-              
+
               <div className="mt-6">
                 <h4 className="font-medium mb-2 text-sm text-muted-foreground">Raw Data:</h4>
                 <ScrollArea className="h-[300px] w-full rounded-md border bg-muted/30 p-4">
@@ -277,7 +277,7 @@ export function RegistrationLookupPage() {
           )}
 
           {tool !== 'ASN' && (
-             <RDAPRegistrationCard data={result.data} />
+            <RDAPRegistrationCard data={result.data} />
           )}
 
         </ResultCard>

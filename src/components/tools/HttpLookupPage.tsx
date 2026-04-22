@@ -30,9 +30,9 @@ export function HttpLookupPage() {
   const navigate = useNavigate()
   const { settings } = useSettings()
   const [searchParams] = useSearchParams()
-  
+
   const scheme = (paramScheme || 'http').toLowerCase()
-  
+
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
@@ -68,7 +68,7 @@ export function HttpLookupPage() {
 
       const res = await fetchHeaders(targetUrl, settings);
       const queryTime = Math.round(performance.now() - startTime);
-      
+
       setResult({ ...res, queryTime });
       setStatus('success')
     } catch (err: any) {
@@ -102,7 +102,7 @@ export function HttpLookupPage() {
             </SelectContent>
           </Select>
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="example.com"
               className="pl-9 bg-background"
@@ -130,16 +130,16 @@ export function HttpLookupPage() {
 
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
-           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
+          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
             Ensure the domain is correct and the server is reachable. If you are getting a network error, check your CORS Proxy URL in Settings.
           </div>
         </ResultCard>
       )}
 
       {status === 'success' && result && (
-        <ResultCard 
+        <ResultCard
           title={result.redirected ? `HTTP 3xx Redirect → ${result.status} ${result.statusText}` : `HTTP ${result.status} ${result.statusText}`}
-          status="success" 
+          status="success"
           timeMs={result.queryTime}
           action={
             <div className="flex gap-2">

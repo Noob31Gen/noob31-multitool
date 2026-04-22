@@ -193,12 +193,12 @@ export function DNSSECLookupPage() {
       const target = targetDomain.trim();
       // Query the requested record
       const mainQuery = queryDNS(target, recordType, settings.dohProvider);
-      
+
       // Concurrently query DNSKEY to determine if domain is DNSSEC signed
       const dnskeyQuery = recordType === 'DNSKEY' ? mainQuery : queryDNS(target, 'DNSKEY', settings.dohProvider);
 
       const [res, dnskeyRes] = await Promise.all([mainQuery, dnskeyQuery]);
-      
+
       setResult(res);
       setIsSigned(dnskeyRes.records && dnskeyRes.records.length > 0);
       setStatus('success')
@@ -235,9 +235,9 @@ export function DNSSECLookupPage() {
               <SelectItem value="RRSIG">RRSIG</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Enter domain name..."
               className="pl-9 bg-background"
@@ -245,7 +245,7 @@ export function DNSSECLookupPage() {
               onChange={(e) => setDomain(e.target.value)}
             />
           </div>
-          
+
           <Button type="submit" disabled={status === 'loading'} className="w-full sm:w-auto">
             {status === 'loading' ? 'Checking...' : `${recordType} Lookup`}
           </Button>
@@ -267,9 +267,9 @@ export function DNSSECLookupPage() {
       )}
 
       {status === 'success' && result && (
-        <ResultCard 
-          title="DNSSEC Records" 
-          status="success" 
+        <ResultCard
+          title="DNSSEC Records"
+          status="success"
           timeMs={result.queryTime}
           description={`Resolved by ${result.provider} DNS`}
           action={
@@ -290,16 +290,16 @@ export function DNSSECLookupPage() {
           <div className="space-y-6">
             {result.records.length > 0 ? (
               ['DNSKEY', 'DS', 'NSEC3PARAM', 'RRSIG'].includes(recordType) ? (
-                 <ParsedDNSSECTable records={result.records} type={recordType} />
+                <ParsedDNSSECTable records={result.records} type={recordType} />
               ) : (
                 <DNSResultTable records={result.records} />
               )
             ) : (
-               <div className="text-sm text-muted-foreground p-4 text-center border rounded-md">
-                 No {recordType} records found.
-               </div>
+              <div className="text-sm text-muted-foreground p-4 text-center border rounded-md">
+                No {recordType} records found.
+              </div>
             )}
-            
+
             {result.authority && result.authority.length > 0 && (
               <div className="mt-6">
                 <h3 className="text-lg font-medium mb-3">Authority Records</h3>

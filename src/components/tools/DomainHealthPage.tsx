@@ -65,7 +65,7 @@ export function DomainHealthPage() {
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="example.com"
               className="pl-9 bg-background"
@@ -87,7 +87,7 @@ export function DomainHealthPage() {
 
       {status === 'error' && (
         <ResultCard title="Analysis Failed" status="error" description={errorMsg}>
-           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
+          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
             Ensure the domain is correct.
           </div>
         </ResultCard>
@@ -96,37 +96,37 @@ export function DomainHealthPage() {
       {status === 'success' && result && (
         <div className="grid gap-6 md:grid-cols-[1fr_300px] items-start">
           <div className="order-2 md:order-1 space-y-6">
-             <ResultCard title="Core DNS Health" status="success">
-                {result.dnsResults.map((r: any) => {
-                   const count = r.data?.records?.length || 0;
-                   const pass = count > 0;
-                   return (
-                     <HealthItem 
-                        key={r.type}
-                        title={`${r.type} Records`}
-                        status={pass ? 'pass' : (['SOA', 'NS'].includes(r.type) ? 'fail' : 'warn')}
-                        message={pass ? `Found ${count} records` : `No records found`}
-                        details={pass ? <DNSResultTable records={r.data.records} /> : null}
-                     />
-                   )
-                })}
-             </ResultCard>
-             <ResultCard title="Email Authentication" status="success">
-                {result.emailResults.map((r: any) => {
-                   const count = r.records?.length || 0;
-                   const pass = count > 0;
-                   const isCritical = ['SPF', 'DMARC'].includes(r.type);
-                   return (
-                     <HealthItem 
-                        key={r.type}
-                        title={`${r.type} Record`}
-                        status={pass ? 'pass' : (isCritical ? 'fail' : 'info')}
-                        message={pass ? `Found valid ${r.type}` : `Missing ${r.type} record`}
-                        details={pass ? <DNSResultTable records={r.records} /> : null}
-                     />
-                   )
-                })}
-             </ResultCard>
+            <ResultCard title="Core DNS Health" status="success">
+              {result.dnsResults.map((r: any) => {
+                const count = r.data?.records?.length || 0;
+                const pass = count > 0;
+                return (
+                  <HealthItem
+                    key={r.type}
+                    title={`${r.type} Records`}
+                    status={pass ? 'pass' : (['SOA', 'NS'].includes(r.type) ? 'fail' : 'warn')}
+                    message={pass ? `Found ${count} records` : `No records found`}
+                    details={pass ? <DNSResultTable records={r.data.records} /> : null}
+                  />
+                )
+              })}
+            </ResultCard>
+            <ResultCard title="Email Authentication" status="success">
+              {result.emailResults.map((r: any) => {
+                const count = r.records?.length || 0;
+                const pass = count > 0;
+                const isCritical = ['SPF', 'DMARC'].includes(r.type);
+                return (
+                  <HealthItem
+                    key={r.type}
+                    title={`${r.type} Record`}
+                    status={pass ? 'pass' : (isCritical ? 'fail' : 'info')}
+                    message={pass ? `Found valid ${r.type}` : `Missing ${r.type} record`}
+                    details={pass ? <DNSResultTable records={r.records} /> : null}
+                  />
+                )
+              })}
+            </ResultCard>
           </div>
           <div className="order-1 md:order-2 md:sticky md:top-20">
             <Card className="p-6 flex flex-col items-center justify-center text-center">
@@ -142,7 +142,7 @@ export function DomainHealthPage() {
               </div>
               <div className="text-2xl font-bold mb-1">{result.score} / 100</div>
               <p className="text-sm text-muted-foreground mb-6">Computed in {result.queryTime}ms</p>
-              
+
               <CopyButton data={JSON.stringify(result, null, 2)} text="Copy Full Report JSON" />
             </Card>
           </div>

@@ -46,10 +46,10 @@ export function DNSLookupPage() {
   const { type } = useParams<{ type: string }>()
   const navigate = useNavigate()
   const { settings } = useSettings()
-  
+
   const recordType = (type || 'a').toUpperCase()
   const info = DNS_INFO[recordType] || { title: `${recordType} Lookup`, desc: `Check ${recordType} records for a domain.` }
-  
+
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<DNSResponse | null>(null)
@@ -80,7 +80,7 @@ export function DNSLookupPage() {
     try {
       let queryTarget = targetDomain.trim()
       if (recordType === 'PTR') {
-         queryTarget = formatPtrQuery(queryTarget)
+        queryTarget = formatPtrQuery(queryTarget)
       }
       const res = await queryDNS(queryTarget, recordType, settings.dohProvider)
       setResult(res)
@@ -123,9 +123,9 @@ export function DNSLookupPage() {
               <SelectItem value="PTR">PTR</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={recordType === 'PTR' ? "Enter IP address (e.g. 8.8.8.8)" : "Enter domain name..."}
               className="pl-9 bg-background"
@@ -133,7 +133,7 @@ export function DNSLookupPage() {
               onChange={(e) => setDomain(e.target.value)}
             />
           </div>
-          
+
           <Button type="submit" disabled={status === 'loading'} className="w-full sm:w-auto">
             {status === 'loading' ? 'Checking...' : `${recordType} Lookup`}
           </Button>
@@ -155,9 +155,9 @@ export function DNSLookupPage() {
       )}
 
       {status === 'success' && result && (
-        <ResultCard 
-          title="DNS Records" 
-          status="success" 
+        <ResultCard
+          title="DNS Records"
+          status="success"
           timeMs={result.queryTime}
           description={`Resolved by ${result.provider} DNS`}
           action={
@@ -169,14 +169,14 @@ export function DNSLookupPage() {
         >
           <div className="space-y-6">
             <DNSResultTable records={result.records} />
-            
+
             {result.authority && result.authority.length > 0 && (
               <div className="mt-6">
                 <h3 className="text-lg font-medium mb-3">Authority Records</h3>
                 <DNSResultTable records={result.authority} />
               </div>
             )}
-            
+
             {result.status !== 0 && result.records.length === 0 && (
               <div className="text-sm text-amber-600 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10">
                 DNS query returned status {result.status}. The domain may not exist or has no records of this type.

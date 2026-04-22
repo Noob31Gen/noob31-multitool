@@ -56,7 +56,7 @@ export function CertLookupPage() {
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="example.com"
               className="pl-9 bg-background"
@@ -84,16 +84,16 @@ export function CertLookupPage() {
 
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
-           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
+          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
             Check the domain and your CORS proxy.
           </div>
         </ResultCard>
       )}
 
       {status === 'success' && result && (
-        <ResultCard 
-          title="Certificate Transparency Logs" 
-          status="success" 
+        <ResultCard
+          title="Certificate Transparency Logs"
+          status="success"
           timeMs={result.queryTime}
           action={
             <div className="flex gap-2">

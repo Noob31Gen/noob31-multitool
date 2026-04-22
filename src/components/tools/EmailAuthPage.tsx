@@ -110,7 +110,7 @@ export function EmailAuthPage() {
     try {
       const queryTarget = formatEmailAuthQuery(targetDomain, recordType, selector);
       const res = await queryDNS(queryTarget, 'TXT', settings.dohProvider);
-      
+
       setResult(res);
       setFilteredRecords(filterEmailAuthRecords(res.records, recordType));
       setStatus('success')
@@ -148,7 +148,7 @@ export function EmailAuthPage() {
               <SelectItem value="TLSRPT">TLSRPT</SelectItem>
             </SelectContent>
           </Select>
-          
+
           {needsSelector && (
             <Input
               placeholder="Selector (e.g. default)"
@@ -159,7 +159,7 @@ export function EmailAuthPage() {
           )}
 
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Enter domain name..."
               className="pl-9 bg-background"
@@ -167,7 +167,7 @@ export function EmailAuthPage() {
               onChange={(e) => setDomain(e.target.value)}
             />
           </div>
-          
+
           <Button type="submit" disabled={status === 'loading'} className="w-full sm:w-auto">
             {status === 'loading' ? 'Checking...' : `${recordType} Lookup`}
           </Button>
@@ -189,9 +189,9 @@ export function EmailAuthPage() {
       )}
 
       {status === 'success' && result && (
-        <ResultCard 
-          title={`${recordType} Records`} 
-          status="success" 
+        <ResultCard
+          title={`${recordType} Records`}
+          status="success"
           timeMs={result.queryTime}
           description={`Resolved by ${result.provider} DNS`}
           action={
@@ -207,10 +207,10 @@ export function EmailAuthPage() {
                 <ParsedAuthTable key={i} record={record} type={recordType} />
               ))
             ) : (
-               <div className="text-sm text-amber-600 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10 text-center">
-                 No valid {recordType} records found for this domain. 
-                 {result.records.length > 0 && " There are other TXT records, but none matched the required prefix."}
-               </div>
+              <div className="text-sm text-amber-600 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10 text-center">
+                No valid {recordType} records found for this domain.
+                {result.records.length > 0 && " There are other TXT records, but none matched the required prefix."}
+              </div>
             )}
           </div>
         </ResultCard>

@@ -50,7 +50,7 @@ export function DnsCheckPage() {
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="example.com"
               className="pl-9 bg-background"
@@ -72,32 +72,32 @@ export function DnsCheckPage() {
 
       {status === 'error' && (
         <ResultCard title="Analysis Failed" status="error" description={errorMsg}>
-           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
+          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
             Ensure the domain is correct.
           </div>
         </ResultCard>
       )}
 
       {status === 'success' && result && (
-        <ResultCard 
-           title="Consolidated DNS Health" 
-           status="success"
-           timeMs={result.queryTime}
-           action={<CopyButton data={JSON.stringify(result.results, null, 2)} text="Copy JSON" />}
+        <ResultCard
+          title="Consolidated DNS Health"
+          status="success"
+          timeMs={result.queryTime}
+          action={<CopyButton data={JSON.stringify(result.results, null, 2)} text="Copy JSON" />}
         >
           <div className="space-y-2">
             {result.results.map((r: any) => {
-               const count = r.data?.records?.length || 0;
-               const pass = count > 0;
-               return (
-                 <HealthItem 
-                    key={r.type}
-                    title={`${r.type} Records`}
-                    status={pass ? 'pass' : (['SOA', 'NS'].includes(r.type) ? 'fail' : 'warn')}
-                    message={pass ? `Found ${count} records` : `No records found`}
-                    details={pass ? <DNSResultTable records={r.data.records} /> : null}
-                 />
-               )
+              const count = r.data?.records?.length || 0;
+              const pass = count > 0;
+              return (
+                <HealthItem
+                  key={r.type}
+                  title={`${r.type} Records`}
+                  status={pass ? 'pass' : (['SOA', 'NS'].includes(r.type) ? 'fail' : 'warn')}
+                  message={pass ? `Found ${count} records` : `No records found`}
+                  details={pass ? <DNSResultTable records={r.data.records} /> : null}
+                />
+              )
             })}
           </div>
         </ResultCard>

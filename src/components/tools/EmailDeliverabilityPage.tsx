@@ -71,7 +71,7 @@ export function EmailDeliverabilityPage() {
             onChange={(e) => setSelector(e.target.value)}
           />
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="example.com"
               className="pl-9 bg-background"
@@ -93,7 +93,7 @@ export function EmailDeliverabilityPage() {
 
       {status === 'error' && (
         <ResultCard title="Analysis Failed" status="error" description={errorMsg}>
-           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
+          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
             Ensure the domain is correct.
           </div>
         </ResultCard>
@@ -102,54 +102,54 @@ export function EmailDeliverabilityPage() {
       {status === 'success' && result && (
         <div className="grid gap-6 md:grid-cols-[1fr_350px] items-start">
           <div className="order-2 md:order-1 space-y-6">
-            
-             <ResultCard title="Recommendations & Issues" status="success">
-                <div className="space-y-3">
-                  {result.recommendations.map((rec: any, i: number) => {
-                     let icon = <Info className="w-5 h-5 text-blue-500" />;
-                     let bgClass = "bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-900/50";
-                     if (rec.level === 'critical') {
-                        icon = <XCircle className="w-5 h-5 text-destructive" />;
-                        bgClass = "bg-destructive/10 border-destructive/30";
-                     } else if (rec.level === 'high') {
-                        icon = <AlertTriangle className="w-5 h-5 text-orange-500" />;
-                        bgClass = "bg-orange-50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-900/50";
-                     } else if (rec.level === 'medium') {
-                        icon = <AlertTriangle className="w-5 h-5 text-amber-500" />;
-                        bgClass = "bg-amber-50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-900/50";
-                     } else if (rec.level === 'good') {
-                        icon = <CheckCircle className="w-5 h-5 text-green-500" />;
-                        bgClass = "bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-900/50";
-                     }
 
-                     return (
-                       <div key={i} className={`flex items-start gap-3 p-3 rounded-md border ${bgClass}`}>
-                          <div className="mt-0.5 shrink-0">{icon}</div>
-                          <div className="text-sm">{rec.msg}</div>
-                       </div>
-                     )
-                  })}
-                </div>
-             </ResultCard>
+            <ResultCard title="Recommendations & Issues" status="success">
+              <div className="space-y-3">
+                {result.recommendations.map((rec: any, i: number) => {
+                  let icon = <Info className="w-5 h-5 text-blue-500" />;
+                  let bgClass = "bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-900/50";
+                  if (rec.level === 'critical') {
+                    icon = <XCircle className="w-5 h-5 text-destructive" />;
+                    bgClass = "bg-destructive/10 border-destructive/30";
+                  } else if (rec.level === 'high') {
+                    icon = <AlertTriangle className="w-5 h-5 text-orange-500" />;
+                    bgClass = "bg-orange-50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-900/50";
+                  } else if (rec.level === 'medium') {
+                    icon = <AlertTriangle className="w-5 h-5 text-amber-500" />;
+                    bgClass = "bg-amber-50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-900/50";
+                  } else if (rec.level === 'good') {
+                    icon = <CheckCircle className="w-5 h-5 text-green-500" />;
+                    bgClass = "bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-900/50";
+                  }
 
-             <ResultCard title="Authentication Records" status="success">
-                {result.results.map((r: any) => {
-                   const count = r.records?.length || 0;
-                   const pass = count > 0;
-                   const isCritical = ['MX', 'SPF', 'DMARC'].includes(r.type);
-                   return (
-                     <HealthItem 
-                        key={r.type}
-                        title={`${r.type} Record`}
-                        status={pass ? 'pass' : (isCritical ? 'fail' : 'info')}
-                        message={pass ? `Found valid ${r.type}` : `Missing ${r.type} record`}
-                        details={pass ? <DNSResultTable records={r.records} /> : null}
-                     />
-                   )
+                  return (
+                    <div key={i} className={`flex items-start gap-3 p-3 rounded-md border ${bgClass}`}>
+                      <div className="mt-0.5 shrink-0">{icon}</div>
+                      <div className="text-sm">{rec.msg}</div>
+                    </div>
+                  )
                 })}
-             </ResultCard>
+              </div>
+            </ResultCard>
+
+            <ResultCard title="Authentication Records" status="success">
+              {result.results.map((r: any) => {
+                const count = r.records?.length || 0;
+                const pass = count > 0;
+                const isCritical = ['MX', 'SPF', 'DMARC'].includes(r.type);
+                return (
+                  <HealthItem
+                    key={r.type}
+                    title={`${r.type} Record`}
+                    status={pass ? 'pass' : (isCritical ? 'fail' : 'info')}
+                    message={pass ? `Found valid ${r.type}` : `Missing ${r.type} record`}
+                    details={pass ? <DNSResultTable records={r.records} /> : null}
+                  />
+                )
+              })}
+            </ResultCard>
           </div>
-          
+
           <div className="order-1 md:order-2 md:sticky md:top-20">
             <Card className="p-6 flex flex-col items-center justify-center text-center">
               <h3 className="font-semibold text-lg text-muted-foreground mb-4">Deliverability Grade</h3>
@@ -164,14 +164,14 @@ export function EmailDeliverabilityPage() {
               </div>
               <div className="text-2xl font-bold mb-1">{result.score} / 100</div>
               <p className="text-sm text-muted-foreground mb-6">Computed in {result.queryTime}ms</p>
-              
+
               <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-md border mb-6 text-left">
                 <strong>Disclaimer:</strong> This checks DNS-based email authentication only. SMTP connectivity testing requires a server-side tool.
               </div>
 
               <div className="flex gap-2 w-full justify-center flex-wrap">
-                 <CopyButton data={JSON.stringify(result, null, 2)} text="JSON" />
-                 <ExportButton data={result} filename={`${domain}-deliverability.json`} />
+                <CopyButton data={JSON.stringify(result, null, 2)} text="JSON" />
+                <ExportButton data={result} filename={`${domain}-deliverability.json`} />
               </div>
             </Card>
           </div>
