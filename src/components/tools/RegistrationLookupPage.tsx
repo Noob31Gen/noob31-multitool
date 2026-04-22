@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useSearchParams } from "react-router-dom"
+import { useParams, useNavigate, useSearchParams } from "react-router-dom"
 import { queryRDAP } from "@/lib/rdap"
 import { queryASN } from "@/lib/asn"
 import { useSettings } from "@/lib/settings"
@@ -13,16 +13,23 @@ import { Card } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { parseRDAP } from "@/lib/rdapParser"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Table,
   TableBody,
   TableCell,
   TableRow,
 } from "@/components/ui/table"
 
-interface RegistrationLookupPageProps {
-  tool: 'WHOIS' | 'ARIN' | 'ASN'
-  title: string
-  description: string
+const REGISTRATION_INFO: Record<string, { title: string, desc: string }> = {
+  WHOIS: { title: "WHOIS Lookup", desc: "Check domain registration details via RDAP." },
+  ARIN: { title: "ARIN Lookup", desc: "Check IP address registration details via RDAP." },
+  ASN: { title: "ASN Lookup", desc: "Check Autonomous System Number and IP geolocation details." }
 }
 
 function RDAPRegistrationCard({ data }: { data: any }) {
@@ -118,13 +125,24 @@ function RDAPRegistrationCard({ data }: { data: any }) {
   )
 }
 
-export function RegistrationLookupPage({ tool, title, description }: RegistrationLookupPageProps) {
+export function RegistrationLookupPage() {
+  const { tool: paramTool } = useParams<{ tool: string }>()
+  const navigate = useNavigate()
   const { settings } = useSettings()
   const [searchParams] = useSearchParams()
+
+  const tool = (paramTool || 'whois').toUpperCase()
+  const info = REGISTRATION_INFO[tool] || { title: `${tool} Lookup`, desc: `Check ${tool} details.` }
+
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
+
+  useEffect(() => {
+    setStatus('idle')
+    setResult(null)
+  }, [tool])
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -171,12 +189,23 @@ export function RegistrationLookupPage({ tool, title, description }: Registratio
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-        <p className="text-muted-foreground mt-2">{description}</p>
+        <h1 className="text-3xl font-bold tracking-tight">{info.title}</h1>
+        <p className="text-muted-foreground mt-2">{info.desc}</p>
       </div>
 
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+          <Select value={tool} onValueChange={(val) => navigate(`/registration/${val.toLowerCase()}`)}>
+            <SelectTrigger className="w-full sm:w-[150px] bg-background">
+              <SelectValue placeholder="Tool" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="WHOIS">WHOIS</SelectItem>
+              <SelectItem value="ARIN">ARIN</SelectItem>
+              <SelectItem value="ASN">ASN</SelectItem>
+            </SelectContent>
+          </Select>
+          
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input

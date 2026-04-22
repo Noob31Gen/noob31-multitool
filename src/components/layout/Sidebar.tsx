@@ -7,78 +7,36 @@ import { Menu } from "lucide-react"
 
 const TOOL_CATEGORIES = [
   {
-    title: "DNS Lookups",
+    title: "Core Lookups",
     tools: [
-      { name: "A Lookup", path: "/dns/a" },
-      { name: "AAAA Lookup", path: "/dns/aaaa" },
-      { name: "CNAME Lookup", path: "/dns/cname" },
-      { name: "MX Lookup", path: "/dns/mx" },
-      { name: "TXT Lookup", path: "/dns/txt" },
-      { name: "SOA Lookup", path: "/dns/soa" },
-      { name: "NS Lookup", path: "/dns/ns" },
-      { name: "SRV Lookup", path: "/dns/srv" },
-      { name: "LOC Lookup", path: "/dns/loc" },
-      { name: "Reverse Lookup", path: "/dns/ptr" },
+      { name: "DNS Lookup", path: "/dns/a" },
+      { name: "DNSSEC Lookup", path: "/dnssec/dnskey" },
+      { name: "Email Auth Lookup", path: "/email/spf" },
+      { name: "Registration Lookup", path: "/registration/whois" },
     ],
   },
   {
-    title: "DNSSEC",
-    tools: [
-      { name: "DNSKEY Lookup", path: "/dnssec/dnskey" },
-      { name: "DS Lookup", path: "/dnssec/ds" },
-      { name: "NSEC Lookup", path: "/dnssec/nsec" },
-      { name: "NSEC3PARAM Lookup", path: "/dnssec/nsec3param" },
-      { name: "RRSIG Lookup", path: "/dnssec/rrsig" },
-    ],
-  },
-  {
-    title: "Email Auth",
-    tools: [
-      { name: "SPF Lookup", path: "/email/spf" },
-      { name: "DKIM Lookup", path: "/email/dkim" },
-      { name: "DMARC Lookup", path: "/email/dmarc" },
-      { name: "BIMI Lookup", path: "/email/bimi" },
-      { name: "MTA-STS Lookup", path: "/email/mta-sts" },
-      { name: "TLSRPT Lookup", path: "/email/tlsrpt" },
-    ],
-  },
-  {
-    title: "Health & Deliverability",
+    title: "Health & Security",
     tools: [
       { name: "DNS Check", path: "/health/dns" },
       { name: "Domain Health", path: "/health/domain" },
       { name: "Email Deliverability", path: "/health/deliverability" },
-    ],
-  },
-  {
-    title: "Registration",
-    tools: [
-      { name: "WHOIS Lookup", path: "/registration/whois" },
-      { name: "ARIN Lookup", path: "/registration/arin" },
-      { name: "ASN Lookup", path: "/registration/asn" },
-    ],
-  },
-  {
-    title: "Security & Blacklist",
-    tools: [
       { name: "Blacklist Check", path: "/security/blacklist" },
       { name: "CERT Lookup", path: "/security/cert" },
     ],
   },
   {
-    title: "Network",
+    title: "Network & Diagnostics",
     tools: [
+      { name: "HTTP Headers", path: "/network/http/http" },
       { name: "What Is My IP?", path: "/network/my-ip" },
-      { name: "HTTP Lookup", path: "/network/http" },
-      { name: "HTTPS Lookup", path: "/network/https" },
-      { name: "IPSECKEY Lookup", path: "/network/ipseckey" },
+      { name: "Email Header Analyzer", path: "/bonus/headers" },
+      { name: "Subnet Calculator", path: "/bonus/subnet" },
     ],
   },
   {
-    title: "Bonus Tools",
+    title: "Generators",
     tools: [
-      { name: "Email Header Analyzer", path: "/bonus/headers" },
-      { name: "Subnet Calculator", path: "/bonus/subnet" },
       { name: "SPF Generator", path: "/bonus/spf-generator" },
       { name: "DMARC Generator", path: "/bonus/dmarc-generator" },
     ],

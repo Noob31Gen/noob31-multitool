@@ -25,7 +25,7 @@ export function Header() {
     // Auto-detect URL
     if (q.startsWith('http://') || q.startsWith('https://')) {
       const scheme = q.startsWith('https://') ? 'https' : 'http'
-      navigate(`/network/${scheme}?q=${encodeURIComponent(q)}`)
+      navigate(`/network/http/${scheme}?q=${encodeURIComponent(q)}`)
       return
     }
 

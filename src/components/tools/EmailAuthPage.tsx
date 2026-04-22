@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useParams, useNavigate } from "react-router-dom"
 import { queryDNS, type DNSResponse, type DNSRecord } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -25,10 +26,13 @@ import {
 } from "@/components/ui/table"
 import { parseSPF, parseKeyValue, formatEmailAuthQuery, filterEmailAuthRecords } from "@/lib/emailAuthParsers"
 
-interface EmailAuthPageProps {
-  defaultType: string
-  title: string
-  description: string
+const EMAIL_AUTH_INFO: Record<string, { title: string, desc: string }> = {
+  SPF: { title: "SPF Record Lookup", desc: "Check Sender Policy Framework (SPF) records." },
+  DKIM: { title: "DKIM Record Lookup", desc: "Check DomainKeys Identified Mail (DKIM) records." },
+  DMARC: { title: "DMARC Record Lookup", desc: "Check Domain-based Message Authentication (DMARC) records." },
+  BIMI: { title: "BIMI Record Lookup", desc: "Check Brand Indicators for Message Identification (BIMI) records." },
+  "MTA-STS": { title: "MTA-STS Record Lookup", desc: "Check Mail Transfer Agent Strict Transport Security records." },
+  TLSRPT: { title: "TLSRPT Record Lookup", desc: "Check TLS Reporting (TLSRPT) records." }
 }
 
 function ParsedAuthTable({ record, type }: { record: DNSRecord, type: string }) {
@@ -64,17 +68,28 @@ function ParsedAuthTable({ record, type }: { record: DNSRecord, type: string }) 
   )
 }
 
-export function EmailAuthPage({ defaultType, title, description }: EmailAuthPageProps) {
+export function EmailAuthPage() {
+  const { type } = useParams<{ type: string }>()
+  const navigate = useNavigate()
   const { settings } = useSettings()
+
+  const recordType = (type || 'spf').toUpperCase()
+  const info = EMAIL_AUTH_INFO[recordType] || { title: `${recordType} Lookup`, desc: `Check ${recordType} records.` }
+
   const [domain, setDomain] = useState("")
   const [selector, setSelector] = useState("default")
-  const [recordType, setRecordType] = useState(defaultType)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<DNSResponse | null>(null)
   const [filteredRecords, setFilteredRecords] = useState<DNSRecord[]>([])
   const [errorMsg, setErrorMsg] = useState("")
 
   const needsSelector = ['DKIM', 'BIMI'].includes(recordType);
+
+  useEffect(() => {
+    setStatus('idle')
+    setResult(null)
+    setFilteredRecords([])
+  }, [recordType])
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
@@ -101,13 +116,13 @@ export function EmailAuthPage({ defaultType, title, description }: EmailAuthPage
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-        <p className="text-muted-foreground mt-2">{description}</p>
+        <h1 className="text-3xl font-bold tracking-tight">{info.title}</h1>
+        <p className="text-muted-foreground mt-2">{info.desc}</p>
       </div>
 
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
-          <Select value={recordType} onValueChange={setRecordType}>
+          <Select value={recordType} onValueChange={(val) => navigate(`/email/${val.toLowerCase()}`)}>
             <SelectTrigger className="w-full sm:w-[150px] bg-background">
               <SelectValue placeholder="Type" />
             </SelectTrigger>

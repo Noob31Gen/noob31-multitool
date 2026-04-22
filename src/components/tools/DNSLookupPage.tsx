@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useParams, useNavigate } from "react-router-dom"
 import { queryDNS, type DNSResponse } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -17,11 +18,18 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-interface DNSLookupPageProps {
-  defaultType: string
-  title: string
-  description: string
-  placeholder?: string
+const DNS_INFO: Record<string, { title: string, desc: string }> = {
+  A: { title: "A Record Lookup", desc: "Check IPv4 address (A records) for a domain." },
+  AAAA: { title: "AAAA Record Lookup", desc: "Check IPv6 address (AAAA records) for a domain." },
+  CNAME: { title: "CNAME Lookup", desc: "Check canonical name (alias) records for a domain." },
+  MX: { title: "MX Lookup", desc: "Check Mail Exchange (MX) records to see where email is routed." },
+  TXT: { title: "TXT Lookup", desc: "Check Text (TXT) records used for SPF, verification, and more." },
+  SOA: { title: "SOA Lookup", desc: "Check Start of Authority (SOA) records." },
+  NS: { title: "NS Lookup", desc: "Check Name Server (NS) records for a domain." },
+  SRV: { title: "SRV Lookup", desc: "Check Service locator (SRV) records." },
+  LOC: { title: "LOC Lookup", desc: "Check Location (LOC) records." },
+  PTR: { title: "Reverse Lookup (PTR)", desc: "Check the hostname associated with an IP address." },
+  IPSECKEY: { title: "IPSECKEY Lookup", desc: "Check IPSECKEY records for opportunistic encryption." }
 }
 
 // Utility to convert IP to PTR arpa format
@@ -31,25 +39,27 @@ function formatPtrQuery(input: string): string {
   if (/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(input)) {
     return input.split('.').reverse().join('.') + '.in-addr.arpa'
   }
-  // IPv6 check (very basic, expanding compressed v6 is complex, 
-  // but if it has colons, we assume it's IPv6. In a full app we'd use an ip library)
-  // For now, if they enter a raw IPv6, we pass it as-is or let the user format it if it's complex, 
-  // but let's try a simple approach for uncompressed:
-  if (input.includes(':') && !input.includes('arpa')) {
-     // A proper IPv6 reversal would expand the :: and reverse nibbles.
-     // For simplicity in this clone, we'll try to reverse if it's full 32 nibbles, 
-     // or just query what they typed.
-  }
   return input
 }
 
-export function DNSLookupPage({ defaultType, title, description, placeholder = "Enter domain name..." }: DNSLookupPageProps) {
+export function DNSLookupPage() {
+  const { type } = useParams<{ type: string }>()
+  const navigate = useNavigate()
   const { settings } = useSettings()
+  
+  const recordType = (type || 'a').toUpperCase()
+  const info = DNS_INFO[recordType] || { title: `${recordType} Lookup`, desc: `Check ${recordType} records for a domain.` }
+  
   const [domain, setDomain] = useState("")
-  const [recordType, setRecordType] = useState(defaultType)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<DNSResponse | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
+
+  // Clear results when switching tool types
+  useEffect(() => {
+    setStatus('idle')
+    setResult(null)
+  }, [recordType])
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
@@ -74,13 +84,13 @@ export function DNSLookupPage({ defaultType, title, description, placeholder = "
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-        <p className="text-muted-foreground mt-2">{description}</p>
+        <h1 className="text-3xl font-bold tracking-tight">{info.title}</h1>
+        <p className="text-muted-foreground mt-2">{info.desc}</p>
       </div>
 
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
-          <Select value={recordType} onValueChange={setRecordType}>
+          <Select value={recordType} onValueChange={(val) => navigate(`/dns/${val.toLowerCase()}`)}>
             <SelectTrigger className="w-full sm:w-[120px] bg-background">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
@@ -101,7 +111,7 @@ export function DNSLookupPage({ defaultType, title, description, placeholder = "
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={recordType === 'PTR' ? "Enter IP address (e.g. 8.8.8.8)" : placeholder}
+              placeholder={recordType === 'PTR' ? "Enter IP address (e.g. 8.8.8.8)" : "Enter domain name..."}
               className="pl-9 bg-background"
               value={domain}
               onChange={(e) => setDomain(e.target.value)}

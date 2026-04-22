@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useParams, useNavigate } from "react-router-dom"
 import { queryDNS, type DNSResponse, type DNSRecord } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -26,10 +27,12 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-interface DNSSECLookupPageProps {
-  defaultType: string
-  title: string
-  description: string
+const DNSSEC_INFO: Record<string, { title: string, desc: string }> = {
+  DNSKEY: { title: "DNSKEY Lookup", desc: "View the public keys used to verify DNSSEC signatures." },
+  DS: { title: "DS Record Lookup", desc: "Check Delegation Signer (DS) records for a domain." },
+  NSEC: { title: "NSEC Record Lookup", desc: "Check Next Secure (NSEC) records." },
+  NSEC3PARAM: { title: "NSEC3PARAM Lookup", desc: "Check NSEC3 parameters for a domain." },
+  RRSIG: { title: "RRSIG Record Lookup", desc: "View the cryptographic signatures of DNS records." }
 }
 
 // Helper to parse DNSSEC specific fields from raw data string
@@ -149,14 +152,25 @@ function ParsedDNSSECTable({ records, type }: { records: DNSRecord[], type: stri
 }
 
 
-export function DNSSECLookupPage({ defaultType, title, description }: DNSSECLookupPageProps) {
+export function DNSSECLookupPage() {
+  const { type } = useParams<{ type: string }>()
+  const navigate = useNavigate()
   const { settings } = useSettings()
+
+  const recordType = (type || 'dnskey').toUpperCase()
+  const info = DNSSEC_INFO[recordType] || { title: `${recordType} Lookup`, desc: `Check ${recordType} records.` }
+
   const [domain, setDomain] = useState("")
-  const [recordType, setRecordType] = useState(defaultType)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<DNSResponse | null>(null)
   const [isSigned, setIsSigned] = useState<boolean | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
+
+  useEffect(() => {
+    setStatus('idle')
+    setResult(null)
+    setIsSigned(null)
+  }, [recordType])
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
@@ -190,13 +204,13 @@ export function DNSSECLookupPage({ defaultType, title, description }: DNSSECLook
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-        <p className="text-muted-foreground mt-2">{description}</p>
+        <h1 className="text-3xl font-bold tracking-tight">{info.title}</h1>
+        <p className="text-muted-foreground mt-2">{info.desc}</p>
       </div>
 
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
-          <Select value={recordType} onValueChange={setRecordType}>
+          <Select value={recordType} onValueChange={(val) => navigate(`/dnssec/${val.toLowerCase()}`)}>
             <SelectTrigger className="w-full sm:w-[150px] bg-background">
               <SelectValue placeholder="Type" />
             </SelectTrigger>

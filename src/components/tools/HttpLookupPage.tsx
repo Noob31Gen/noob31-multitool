@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useSearchParams } from "react-router-dom"
+import { useParams, useNavigate, useSearchParams } from "react-router-dom"
 import { fetchHeaders } from "@/lib/http"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -10,6 +10,13 @@ import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Table,
   TableBody,
   TableCell,
@@ -18,17 +25,23 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-interface HttpLookupPageProps {
-  scheme: 'http' | 'https'
-}
-
-export function HttpLookupPage({ scheme }: HttpLookupPageProps) {
+export function HttpLookupPage() {
+  const { scheme: paramScheme } = useParams<{ scheme: string }>()
+  const navigate = useNavigate()
   const { settings } = useSettings()
   const [searchParams] = useSearchParams()
+  
+  const scheme = (paramScheme || 'http').toLowerCase()
+  
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
+
+  useEffect(() => {
+    setStatus('idle')
+    setResult(null)
+  }, [scheme])
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -72,9 +85,15 @@ export function HttpLookupPage({ scheme }: HttpLookupPageProps) {
 
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
-          <div className="flex items-center justify-center px-4 bg-muted border rounded-md text-sm font-medium text-muted-foreground">
-            {scheme}://
-          </div>
+          <Select value={scheme} onValueChange={(val) => navigate(`/network/http/${val}`)}>
+            <SelectTrigger className="w-full sm:w-[100px] bg-background">
+              <SelectValue placeholder="Scheme" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="http">http://</SelectItem>
+              <SelectItem value="https">https://</SelectItem>
+            </SelectContent>
+          </Select>
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
