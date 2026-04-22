@@ -39,24 +39,24 @@
 
 > These all use the same DoH engine with different `type` params. Build all as one batch.
 
-- [ ] **1.1** A (DNS) Lookup — `type=A`
-- [ ] **1.2** AAAA Lookup — `type=AAAA`
-- [ ] **1.3** CNAME Lookup — `type=CNAME`
-- [ ] **1.4** MX Lookup — `type=MX` (parse priority + exchange)
-- [ ] **1.5** TXT Lookup — `type=TXT`
-- [ ] **1.6** SOA Lookup — `type=SOA` (parse mname, rname, serial, refresh, retry, expire, minimum)
-- [ ] **1.7** NS Lookup — `type=NS`
-- [ ] **1.8** SRV Lookup — `type=SRV` (parse priority, weight, port, target)
-- [ ] **1.9** LOC Lookup — `type=LOC`
-- [ ] **1.10** Reverse Lookup — `type=PTR` (reverse IP → `x.x.x.x.in-addr.arpa` / IPv6 nibble format)
+- [x] **1.1** A (DNS) Lookup — `type=A`
+- [x] **1.2** AAAA Lookup — `type=AAAA`
+- [x] **1.3** CNAME Lookup — `type=CNAME`
+- [x] **1.4** MX Lookup — `type=MX` (parse priority + exchange)
+- [x] **1.5** TXT Lookup — `type=TXT`
+- [x] **1.6** SOA Lookup — `type=SOA` (parse mname, rname, serial, refresh, retry, expire, minimum)
+- [x] **1.7** NS Lookup — `type=NS`
+- [x] **1.8** SRV Lookup — `type=SRV` (parse priority, weight, port, target)
+- [x] **1.9** LOC Lookup — `type=LOC`
+- [x] **1.10** Reverse Lookup — `type=PTR` (reverse IP → `x.x.x.x.in-addr.arpa` / IPv6 nibble format)
 
 **Shared work for Part 1:**
-- [ ] **1.11** Create `<DNSLookupPage>` generic component that all 10 tools share
+- [x] **1.11** Create `<DNSLookupPage>` generic component that all 10 tools share
   - Input field for domain/IP
   - Record type selector (pre-filled based on tool)
   - Results table with TTL, record data, etc.
-- [ ] **1.12** Add routing for all 10 tools under `/dns/*`
-- [ ] **1.13** Test all 10 against `google.com`, `example.com`, `cloudflare.com`
+- [x] **1.12** Add routing for all 10 tools under `/dns/*`
+- [x] **1.13** Test all 10 against `google.com`, `example.com`, `cloudflare.com`
 
 ---
 
@@ -64,16 +64,16 @@
 
 > Same DoH engine, specialized DNSSEC record types.
 
-- [ ] **2.1** DNSKEY Lookup — `type=DNSKEY` (parse flags, protocol, algorithm, public key)
-- [ ] **2.2** DS Lookup — `type=DS` (parse key tag, algorithm, digest type, digest)
-- [ ] **2.3** NSEC Lookup — `type=NSEC`
-- [ ] **2.4** NSEC3PARAM Lookup — `type=NSEC3PARAM` (parse hash algo, flags, iterations, salt)
-- [ ] **2.5** RRSIG Lookup — `type=RRSIG` (parse type covered, algorithm, labels, TTL, expiration, inception, key tag, signer)
+- [x] **2.1** DNSKEY Lookup — `type=DNSKEY` (parse flags, protocol, algorithm, public key)
+- [x] **2.2** DS Lookup — `type=DS` (parse key tag, algorithm, digest type, digest)
+- [x] **2.3** NSEC Lookup — `type=NSEC`
+- [x] **2.4** NSEC3PARAM Lookup — `type=NSEC3PARAM` (parse hash algo, flags, iterations, salt)
+- [x] **2.5** RRSIG Lookup — `type=RRSIG` (parse type covered, algorithm, labels, TTL, expiration, inception, key tag, signer)
 
 **Shared work for Part 2:**
-- [ ] **2.6** Create DNSSEC-specific result rendering (show validation chain info)
-- [ ] **2.7** Add a "DNSSEC Status" badge (signed/unsigned) based on whether DNSKEY records exist
-- [ ] **2.8** Test against known DNSSEC-signed domains (e.g., `cloudflare.com`, `isc.org`)
+- [x] **2.6** Create DNSSEC-specific result rendering (show validation chain info)
+- [x] **2.7** Add a "DNSSEC Status" badge (signed/unsigned) based on whether DNSKEY records exist
+- [x] **2.8** Test against known DNSSEC-signed domains (e.g., `cloudflare.com`, `isc.org`)
 
 ---
 
@@ -81,37 +81,34 @@
 
 > These query specific TXT subdomains and parse structured record content.
 
-- [ ] **3.1** SPF Record Lookup — query `type=TXT`, filter for `v=spf1`, parse mechanisms (`include:`, `ip4:`, `ip6:`, `a`, `mx`, `all`)
-- [ ] **3.2** DKIM Lookup — query `type=TXT` on `{selector}._domainkey.{domain}`, parse `v=DKIM1` fields (p=, k=, etc.). UI needs a selector input field
-- [ ] **3.3** DMARC Lookup — query `type=TXT` on `_dmarc.{domain}`, parse `v=DMARC1` fields (p=, rua=, ruf=, pct=, etc.)
-- [ ] **3.4** BIMI Lookup — query `type=TXT` on `default._bimi.{domain}`, parse `v=BIMI1` fields (l=, a=). If logo URL found, display preview
-- [ ] **3.5** MTA-STS Lookup — query `type=TXT` on `_mta-sts.{domain}` + fetch `https://mta-sts.{domain}/.well-known/mta-sts.txt` (parse mode, mx, max_age)
-- [ ] **3.6** TLSRPT Lookup — query `type=TXT` on `_smtp._tls.{domain}`, parse `v=TLSRPTv1` fields (rua=)
+- [x] **3.1** SPF Record Lookup — query `type=TXT`, filter for `v=spf1`, parse mechanisms (`include:`, `ip4:`, `ip6:`, `a`, `mx`, `all`)
+- [x] **3.2** DKIM Lookup — query `type=TXT` on `{selector}._domainkey.{domain}`, parse `v=DKIM1` fields (p=, k=, etc.). UI needs a selector input field
+- [x] **3.3** DMARC Lookup — query `type=TXT` on `_dmarc.{domain}`, parse `v=DMARC1` fields (p=, rua=, ruf=, pct=, etc.)
+- [x] **3.4** BIMI Lookup — query `type=TXT` on `default._bimi.{domain}`, parse `v=BIMI1`, extract logo URL
+- [x] **3.5** MTA-STS Lookup — query `type=TXT` on `_mta-sts.{domain}`, parse `v=STSv1` fields
+- [x] **3.6** TLSRPT Lookup — query `type=TXT` on `_smtp._tls.{domain}`, parse `v=TLSRPTv1` fields
 
 **Shared work for Part 3:**
-- [ ] **3.7** Build `<EmailAuthPage>` component with:
-  - Parsed record breakdown in a structured card (not just raw text)
-  - Validation status indicators (✅ valid / ⚠️ issues / ❌ missing)
-  - Explain what each field means (tooltips or expandable info)
-- [ ] **3.8** Test against domains with known email auth (e.g., `google.com`, `microsoft.com`, `protonmail.com`)
+- [x] **3.7** Build generic `<EmailAuthPage>` component handling parsing logic for these complex TXT strings
+- [x] **3.8** Test against domains with known email auth (e.g., `google.com`, `microsoft.com`, `protonmail.com`)
 
 ---
 
 ## Part 4: Network & Connectivity Tools (4 tools)
 
-- [ ] **4.1** What Is My IP? — call `https://api.ipify.org?format=json` (IPv4) and `https://api64.ipify.org?format=json` (IPv6)
+- [x] **4.1** What Is My IP? — call `https://api.ipify.org?format=json` (IPv4) and `https://api64.ipify.org?format=json` (IPv6)
   - Display both IPv4 and IPv6
   - Show geolocation info if IPinfo key is configured
-- [ ] **4.2** HTTP Lookup — `fetch()` target URL
+- [x] **4.2** HTTP Lookup — `fetch()` target URL
   - Report: status code, headers (Content-Type, Server, X-Powered-By, etc.), redirect chain, timing
   - Handle CORS errors gracefully with clear messaging
-- [ ] **4.3** HTTPS Lookup — same as HTTP but enforce `https://` prefix
+- [x] **4.3** HTTPS Lookup — same as HTTP but enforce `https://` prefix
   - Note: cannot inspect SSL certificate from browser (display disclaimer)
-- [ ] **4.4** IPSECKEY Lookup — `type=IPSECKEY` via DoH
+- [x] **4.4** IPSECKEY Lookup — `type=IPSECKEY` via DoH
 
 **Shared work for Part 4:**
-- [ ] **4.5** Build `<HTTPResultCard>` showing response headers in a key-value table
-- [ ] **4.6** Test HTTP/HTTPS lookups against CORS-friendly sites and verify graceful CORS error handling
+- [x] **4.5** Build `<HTTPResultCard>` showing response headers in a key-value table
+- [x] **4.6** Test HTTP/HTTPS lookups against CORS-friendly sites and verify graceful CORS error handling
 
 ---
 
@@ -119,19 +116,19 @@
 
 > These aggregate multiple lookups into a single health report.
 
-- [ ] **5.1** DNS Check — run all of: A, AAAA, MX, NS, SOA, TXT, CNAME lookups in parallel
+- [x] **5.1** DNS Check — run all of: A, AAAA, MX, NS, SOA, TXT, CNAME lookups in parallel
   - Present consolidated health card
   - Flag missing/unexpected records
   - Show nameserver consistency info
-- [ ] **5.2** Domain Health — run all of: DNS Check + SPF + DKIM + DMARC + BIMI + MTA-STS + TLSRPT
+- [x] **5.2** Domain Health — run all of: DNS Check + SPF + DKIM + DMARC + BIMI + MTA-STS + TLSRPT
   - Aggregate into a scored report card (A/B/C/D/F or percentage)
   - Category breakdown: DNS, Email Auth, Security
   - Color-coded status for each check
 
 **Shared work for Part 5:**
-- [ ] **5.3** Build `<HealthReportCard>` component with expandable sections
-- [ ] **5.4** Build scoring algorithm (weight each check, compute overall grade)
-- [ ] **5.5** Test against well-configured domains vs. poorly-configured ones
+- [x] **5.3** Build `<HealthReportCard>` component with expandable sections
+- [x] **5.4** Build scoring algorithm (weight each check, compute overall grade)
+- [x] **5.5** Test against well-configured domains vs. poorly-configured ones
 
 ---
 
@@ -161,21 +158,21 @@
 
 > These require special handling (CORS proxy / API keys).
 
-- [ ] **7.1** CERT Lookup — query `https://crt.sh/?q={domain}&output=json` via CORS proxy
+- [x] **7.1** CERT Lookup — query `https://crt.sh/?q={domain}&output=json` via CORS proxy
   - Parse: issuer, subject, validity dates, serial number, certificate chain
   - Display in a timeline/table sorted by issuance date
   - Fallback: offer "Open in crt.sh" link if CORS proxy not configured
-- [ ] **7.2** Blacklist Check — multi-strategy approach:
+- [x] **7.2** Blacklist Check — multi-strategy approach:
   - Strategy A: Query non-Spamhaus DNSBLs via DoH (e.g., `bl.spamcop.net`, `b.barracudacentral.org`, `dnsbl.sorbs.net`, etc.)
   - Strategy B: If user has Spamhaus DQS key, query via their key
   - Display: per-list status (listed / clean / error), overall summary
   - Show ~20-30 common DNSBL lists
 
 **Shared work for Part 7:**
-- [ ] **7.3** Build `<BlacklistResultGrid>` showing check/cross icons per DNSBL
-- [ ] **7.4** Build CORS proxy configuration UI in settings
-- [ ] **7.5** Test CERT lookup with and without CORS proxy
-- [ ] **7.6** Test blacklist check against known-clean and known-listed IPs
+- [x] **7.3** Build `<BlacklistResultGrid>` showing check/cross icons per DNSBL
+- [x] **7.4** Build CORS proxy configuration UI in settings
+- [x] **7.5** Test CERT lookup with and without CORS proxy
+- [x] **7.6** Test blacklist check against known-clean and known-listed IPs
 
 ---
 
@@ -183,23 +180,23 @@
 
 > Pure client-side, no API calls needed.
 
-- [ ] **8.1** Email Header Analyzer
+- [x] **8.1** Email Header Analyzer
   - Textarea input for raw email headers
   - Parse: Received chain (trace route), From, To, Subject, SPF/DKIM/DMARC results, Message-ID, timestamps
   - Display as a visual hop-by-hop trace with timing between hops
-- [ ] **8.2** Subnet Calculator
+- [x] **8.2** Subnet Calculator
   - Input: IP + CIDR or netmask
   - Output: network address, broadcast address, first/last host, total hosts, wildcard mask, binary representation
-- [ ] **8.3** SPF Generator
+- [x] **8.3** SPF Generator
   - Wizard UI: add mechanisms (include, ip4, ip6, a, mx), choose qualifier (-all, ~all, ?all)
   - Generate and display the final SPF TXT record, with copy button
-- [ ] **8.4** DMARC Generator
+- [x] **8.4** DMARC Generator
   - Wizard UI: choose policy (none/quarantine/reject), add rua/ruf, set pct, subdomain policy
   - Generate and display the final DMARC TXT record, with copy button
 
 **Shared work for Part 8:**
-- [ ] **8.5** Test email header parser against sample headers from Gmail, Outlook, etc.
-- [ ] **8.6** Test subnet calculator against known subnets
+- [x] **8.5** Test email header parser against sample headers from Gmail, Outlook, etc.
+- [x] **8.6** Test subnet calculator against known subnets
 
 ---
 
