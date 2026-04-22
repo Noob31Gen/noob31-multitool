@@ -13,7 +13,11 @@ export async function fetchHeaders(url: string, settings: AppSettings) {
   const timeoutId = setTimeout(() => controller.abort(), 10000);
   
   try {
-    const res = await fetch(proxyUrl, { method: 'HEAD', signal: controller.signal });
+    let res = await fetch(proxyUrl, { method: 'HEAD', signal: controller.signal });
+    // Some CORS proxies don't support HEAD; fall back to GET
+    if (res.status === 405) {
+      res = await fetch(proxyUrl, { method: 'GET', signal: controller.signal });
+    }
     clearTimeout(timeoutId);
     
     const headers: { key: string, value: string }[] = [];

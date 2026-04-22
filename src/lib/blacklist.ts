@@ -37,9 +37,11 @@ export async function checkBlacklist(ip: string, settings: AppSettings) {
     const target = `${reversedIp}.${targetZone}`;
     try {
       const res = await queryDNS(target, 'A', settings.dohProvider);
-      const isListed = res.records.length > 0;
-      // Some blocklists return 127.0.0.2 to indicate listed
-      return { zone, listed: isListed, records: res.records, error: false };
+      // Status 3 = NXDOMAIN = not listed
+      if (res.status === 3 || res.records.length === 0) {
+        return { zone, listed: false, records: [], error: false };
+      }
+      return { zone, listed: true, records: res.records, error: false };
     } catch (err) {
       return { zone, listed: false, records: [], error: true };
     }

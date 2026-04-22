@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "react-router-dom"
 import { queryRDAP } from "@/lib/rdap"
 import { queryASN } from "@/lib/asn"
 import { useSettings } from "@/lib/settings"
@@ -119,10 +120,16 @@ function RDAPRegistrationCard({ data }: { data: any }) {
 
 export function RegistrationLookupPage({ tool, title, description }: RegistrationLookupPageProps) {
   const { settings } = useSettings()
+  const [searchParams] = useSearchParams()
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
+
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) setQuery(q);
+  }, [searchParams]);
 
   const getPlaceholder = () => {
     switch (tool) {

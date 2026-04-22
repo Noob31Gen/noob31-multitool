@@ -42,7 +42,7 @@ export function HealthItem({ title, status, message, details }: HealthReportItem
       </div>
       {details && (
         <CollapsibleContent>
-          <div className="px-4 pb-4 pt-0 border-t mt-2 pt-2">
+          <div className="px-4 pb-4 pt-2 border-t mt-2">
             {details}
           </div>
         </CollapsibleContent>

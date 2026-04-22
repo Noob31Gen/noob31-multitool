@@ -8,6 +8,7 @@ import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
+import { Card } from "@/components/ui/card"
 import {
   Select,
   SelectContent,
@@ -162,5 +163,3 @@ export function DNSLookupPage({ defaultType, title, description, placeholder = "
   )
 }
 
-// We need to import Card here because it's used directly in the page layout
-import { Card } from "@/components/ui/card"

@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "react-router-dom"
 import { fetchHeaders } from "@/lib/http"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -23,10 +24,16 @@ interface HttpLookupPageProps {
 
 export function HttpLookupPage({ scheme }: HttpLookupPageProps) {
   const { settings } = useSettings()
+  const [searchParams] = useSearchParams()
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
+
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) setDomain(q);
+  }, [searchParams]);
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()

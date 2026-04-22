@@ -3,10 +3,12 @@ import type { AppSettings } from "./settings"
 export async function queryASN(ipOrAsn: string, settings: AppSettings) {
   ipOrAsn = ipOrAsn.trim().toUpperCase();
   
-  // Format AS12345 to just 12345 for ipinfo, or keep as is if IP
-  const target = ipOrAsn.startsWith('AS') ? ipOrAsn : ipOrAsn;
-  
-  let url = `https://ipinfo.io/${target}/json`;
+  let url: string;
+  if (ipOrAsn === '') {
+    url = `https://ipinfo.io/json`;
+  } else {
+    url = `https://ipinfo.io/${ipOrAsn}/json`;
+  }
   if (settings.apiKeys.ipinfo) {
     url += `?token=${settings.apiKeys.ipinfo}`;
   }
