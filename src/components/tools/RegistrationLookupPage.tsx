@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useParams, useNavigate, useSearchParams } from "react-router-dom"
+import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { queryRDAP } from "@/lib/rdap"
 import { queryASN } from "@/lib/asn"
 import { useSettings } from "@/lib/settings"
@@ -129,7 +129,7 @@ export function RegistrationLookupPage() {
   const { tool: paramTool } = useParams<{ tool: string }>()
   const navigate = useNavigate()
   const { settings } = useSettings()
-  const [searchParams] = useSearchParams()
+  const location = useLocation();
 
   const tool = (paramTool || 'whois').toUpperCase()
   const info = REGISTRATION_INFO[tool] || { title: `${tool} Lookup`, desc: `Check ${tool} details.` }
@@ -145,12 +145,12 @@ export function RegistrationLookupPage() {
   }, [tool])
 
   useEffect(() => {
-    const q = searchParams.get('q');
+    const q = location.state?.target;
     if (q) {
       setQuery(q);
       performSearch(q);
     }
-  }, [searchParams]);
+  }, [location.state]);
 
   const getPlaceholder = () => {
     switch (tool) {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useSearchParams } from "react-router-dom"
+import { useLocation } from "react-router-dom"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
@@ -28,7 +28,7 @@ import { getVirusTotalReport, type VTReport } from "@/lib/virustotal"
 
 export function UrlScannerPage() {
   const { settings } = useSettings()
-  const [searchParams] = useSearchParams()
+  const location = useLocation();
 
   const [url, setUrl] = useState("")
   const [visitEnabled, setVisitEnabled] = useState(false)
@@ -39,12 +39,12 @@ export function UrlScannerPage() {
   const [errorMsg, setErrorMsg] = useState("")
 
   useEffect(() => {
-    const q = searchParams.get('q');
+    const q = location.state?.target;
     if (q) {
       setUrl(q);
       performSearch(q, visitEnabled);
     }
-  }, [searchParams]);
+  }, [location.state]);
 
   const performSearch = async (targetUrl: string, doVisit: boolean) => {
     if (!targetUrl.trim()) return

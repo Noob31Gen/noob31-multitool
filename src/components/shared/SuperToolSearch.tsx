@@ -23,13 +23,13 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
     // Auto-detect IP
     const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(q)
     if (isIp) {
-      navigate(`/registration/arin?q=${encodeURIComponent(q)}`)
+      navigate(`/registration/arin`, { state: { target: q } })
       return
     }
 
     // Auto-detect URL
     if (q.startsWith('http://') || q.startsWith('https://')) {
-      navigate(`/network/url-scanner?q=${encodeURIComponent(q)}`)
+      navigate(`/network/url-scanner`, { state: { target: q } })
       return
     }
 
@@ -38,7 +38,7 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
       const parts = q.split('@');
       const domain = parts[parts.length - 1];
       if (domain) {
-        navigate(`/health/deliverability?q=${encodeURIComponent(domain)}`)
+        navigate(`/health/deliverability`, { state: { target: domain } })
         return
       }
     }
@@ -55,7 +55,7 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
     }
 
     // Default: Domain Health
-    navigate(`/health/domain?q=${encodeURIComponent(parsedQ)}`)
+    navigate(`/health/domain`, { state: { target: parsedQ } })
   }
 
   return (
@@ -74,9 +74,9 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
         />
         {!query && !isFocused && (
           <div className="absolute inset-y-0 left-8 right-20 flex items-center pointer-events-none overflow-hidden text-sm text-muted-foreground whitespace-nowrap z-10 select-none mask-image-fade">
-             <div className="animate-marquee">
-                 MultiTool: Enter a domain, IP, URL, or Email...
-             </div>
+            <div className="animate-marquee">
+              MultiTool: Enter a domain, IP, URL, or Email...
+            </div>
           </div>
         )}
         <Button

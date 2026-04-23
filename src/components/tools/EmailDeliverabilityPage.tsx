@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useSearchParams } from "react-router-dom"
+import { useLocation } from "react-router-dom"
 import { runDeliverabilityCheck } from "@/lib/deliverability"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -14,7 +14,7 @@ import { DNSResultTable } from "@/components/shared/DNSResultTable"
 
 export function EmailDeliverabilityPage() {
   const { settings } = useSettings()
-  const [searchParams] = useSearchParams()
+  const location = useLocation();
   const [domain, setDomain] = useState("")
   const [selector, setSelector] = useState("default")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -22,12 +22,12 @@ export function EmailDeliverabilityPage() {
   const [errorMsg, setErrorMsg] = useState("")
 
   useEffect(() => {
-    const q = searchParams.get('q');
+    const q = location.state?.target;
     if (q) {
       setDomain(q);
       performSearch(q);
     }
-  }, [searchParams]);
+  }, [location.state]);
 
   const performSearch = async (targetDomain: string) => {
     if (!targetDomain.trim()) return

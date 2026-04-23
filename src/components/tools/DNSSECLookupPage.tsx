@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useParams, useNavigate, useSearchParams } from "react-router-dom"
+import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { queryDNS, type DNSResponse, type DNSRecord } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -172,14 +172,14 @@ export function DNSSECLookupPage() {
     setIsSigned(null)
   }, [recordType])
 
-  const [searchParams] = useSearchParams()
+  const location = useLocation();
   useEffect(() => {
-    const q = searchParams.get('q');
+    const q = location.state?.target;
     if (q) {
       setDomain(q);
       performSearch(q);
     }
-  }, [searchParams]);
+  }, [location.state]);
 
   const performSearch = async (targetDomain: string) => {
     if (!targetDomain.trim()) return

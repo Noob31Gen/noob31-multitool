@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useParams, useNavigate, useSearchParams } from "react-router-dom"
+import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { fetchHeaders } from "@/lib/http"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -29,7 +29,7 @@ export function HttpLookupPage() {
   const { scheme: paramScheme } = useParams<{ scheme: string }>()
   const navigate = useNavigate()
   const { settings } = useSettings()
-  const [searchParams] = useSearchParams()
+  const location = useLocation();
 
   const scheme = (paramScheme || 'http').toLowerCase()
 
@@ -44,12 +44,12 @@ export function HttpLookupPage() {
   }, [scheme])
 
   useEffect(() => {
-    const q = searchParams.get('q');
+    const q = location.state?.target;
     if (q) {
       setDomain(q);
       performSearch(q);
     }
-  }, [searchParams]);
+  }, [location.state]);
 
   const performSearch = async (targetDomain: string) => {
     if (!targetDomain.trim()) return
