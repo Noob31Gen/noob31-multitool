@@ -57,7 +57,7 @@ export function SettingsSheet() {
             <Button variant="destructive" size="sm" onClick={handleReset}>Reset Defaults</Button>
           </div>
           <SheetDescription>
-            Configure API keys and preferences. Keys are stored locally in your browser.
+            Configure API keys and preferences. Keys are stored locally in your browser. Do not forget to click 'Apply' to save changes.
           </SheetDescription>
         </SheetHeader>
         <div className="grid gap-8 py-8 px-2">
