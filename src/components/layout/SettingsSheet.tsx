@@ -82,7 +82,7 @@ export function SettingsSheet() {
           <div className="space-y-3">
             <h3 className="text-sm font-medium">Custom DNS URL</h3>
             <Input
-              placeholder="https://dns.example.com/dns-query"
+              placeholder="https://dns.google/resolve"
               value={localSettings.customDnsUrl}
               onChange={(e) => setLocalSettings({ ...localSettings, customDnsUrl: e.target.value })}
               disabled={localSettings.dohProvider !== 'custom'}
@@ -100,11 +100,11 @@ export function SettingsSheet() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">None (Direct Request)</SelectItem>
+                <SelectItem value="corsproxy">CORSProxy</SelectItem>
                 <SelectItem value="allorigins">AllOrigins</SelectItem>
                 <SelectItem value="codetabs">CodeTabs</SelectItem>
                 <SelectItem value="thingproxy">ThingProxy</SelectItem>
                 <SelectItem value="corsanywhere">CORS Anywhere</SelectItem>
-                <SelectItem value="corsproxy">CORS Proxy</SelectItem>
                 <SelectItem value="custom">Custom CORS Proxy</SelectItem>
               </SelectContent>
             </Select>
@@ -112,7 +112,7 @@ export function SettingsSheet() {
           <div className="space-y-3">
             <h3 className="text-sm font-medium">Custom CORS URL</h3>
             <Input
-              placeholder="https://your-proxy.com/?url="
+              placeholder="https://corsproxy.io/?"
               value={localSettings.customCorsUrl}
               onChange={(e) => setLocalSettings({ ...localSettings, customCorsUrl: e.target.value })}
               disabled={localSettings.corsProvider !== 'custom'}
