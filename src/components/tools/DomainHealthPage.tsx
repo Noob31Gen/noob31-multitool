@@ -7,7 +7,7 @@ import { CopyButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search } from "lucide-react"
+import { Search, AlertTriangle, CheckCircle, HelpCircle, XCircle } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { HealthItem } from "@/components/shared/HealthReportCard"
 import { DNSResultTable } from "@/components/shared/DNSResultTable"
@@ -96,6 +96,44 @@ export function DomainHealthPage() {
       {status === 'success' && result && (
         <div className="grid gap-6 md:grid-cols-[1fr_300px] items-start">
           <div className="order-2 md:order-1 space-y-6">
+
+            {result.recommendations && result.recommendations.length > 0 && (
+              <ResultCard title="Actionable Insights" status="success">
+                <div className="space-y-3">
+                  {result.recommendations.map((rec: any, idx: number) => {
+
+                    // Explicitly typed maps prevent TS7022 and TS7053 errors
+                    const bgMap: Record<string, string> = {
+                      critical: 'bg-destructive/10 border-destructive/20 text-destructive',
+                      high: 'bg-orange-500/10 border-orange-500/20 text-orange-600 dark:text-orange-400',
+                      medium: 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400',
+                      low: 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400',
+                      good: 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400'
+                    };
+
+                    const IconMap: Record<string, any> = {
+                      critical: XCircle,
+                      high: AlertTriangle,
+                      medium: AlertTriangle,
+                      low: HelpCircle,
+                      good: CheckCircle
+                    };
+
+                    const level = String(rec.level);
+                    const bg = bgMap[level] || bgMap.low;
+                    const Icon = IconMap[level] || HelpCircle;
+
+                    return (
+                      <div key={idx} className={`flex items-start gap-3 p-3 rounded-md border ${bg}`}>
+                        <Icon className="w-5 h-5 shrink-0 mt-0.5" />
+                        <span className="text-sm font-medium">{rec.msg}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </ResultCard>
+            )}
+
             <ResultCard title="Core DNS Health" status="success">
               {result.dnsResults.map((r: any) => {
                 const count = r.data?.records?.length || 0;
@@ -111,6 +149,7 @@ export function DomainHealthPage() {
                 )
               })}
             </ResultCard>
+
             <ResultCard title="Email Authentication" status="success">
               {result.emailResults.map((r: any) => {
                 const count = r.records?.length || 0;
@@ -128,6 +167,7 @@ export function DomainHealthPage() {
               })}
             </ResultCard>
           </div>
+
           <div className="order-1 md:order-2 md:sticky md:top-20">
             <Card className="p-6 flex flex-col items-center justify-center text-center">
               <h3 className="font-semibold text-lg text-muted-foreground mb-4">Overall Grade</h3>
