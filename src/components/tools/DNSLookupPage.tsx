@@ -82,7 +82,7 @@ export function DNSLookupPage() {
       if (recordType === 'PTR') {
         queryTarget = formatPtrQuery(queryTarget)
       }
-      const res = await queryDNS(queryTarget, recordType, settings.dohProvider)
+      const res = await queryDNS(queryTarget, recordType, settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl)
       setResult(res)
       setStatus('success')
     } catch (err: any) {

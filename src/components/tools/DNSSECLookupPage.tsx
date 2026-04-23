@@ -192,10 +192,10 @@ export function DNSSECLookupPage() {
     try {
       const target = targetDomain.trim();
       // Query the requested record
-      const mainQuery = queryDNS(target, recordType, settings.dohProvider);
+      const mainQuery = queryDNS(target, recordType, settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
 
       // Concurrently query DNSKEY to determine if domain is DNSSEC signed
-      const dnskeyQuery = recordType === 'DNSKEY' ? mainQuery : queryDNS(target, 'DNSKEY', settings.dohProvider);
+      const dnskeyQuery = recordType === 'DNSKEY' ? mainQuery : queryDNS(target, 'DNSKEY', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
 
       const [res, dnskeyRes] = await Promise.all([mainQuery, dnskeyQuery]);
 

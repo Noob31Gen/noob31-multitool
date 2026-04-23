@@ -116,7 +116,7 @@ export function HttpLookupPage() {
         </form>
       </Card>
 
-      {!settings.corsProxyUrl && (
+      {!settings.corsProvider && (
         <div className="text-sm text-amber-600 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10">
           <strong>Warning:</strong> You must configure a CORS Proxy URL in Settings for this tool to work in the browser.
         </div>

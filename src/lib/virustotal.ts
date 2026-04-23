@@ -31,15 +31,15 @@ export async function getVirusTotalReport(url: string, settings: AppSettings): P
   }
 
   const urlId = btoa(url).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  
+
   // Try directly first; VT v3 allows CORS for GET requests from browser
   // If we get a CORS error, we might fallback to proxy, but VT API requires API key so proxy might not be needed if they allow it.
   // Actually, VT API does NOT allow CORS. We must use the proxy.
   const targetUrl = `https://www.virustotal.com/api/v3/urls/${urlId}`;
-  
+
   let fetchUrl = targetUrl;
-  if (settings.corsProxyUrl) {
-    fetchUrl = `${settings.corsProxyUrl}${encodeURIComponent(targetUrl)}`;
+  if (settings.corsProvider) {
+    fetchUrl = `${settings.corsProvider}${encodeURIComponent(targetUrl)}`;
   }
 
   try {

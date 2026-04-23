@@ -272,7 +272,7 @@ export function parseUrl(input: string): ParsedUrl {
 // ---- Visit function ----
 
 export async function visitUrl(url: string, settings: AppSettings): Promise<VisitResult> {
-  if (!settings.corsProxyUrl) {
+  if (!settings.corsProvider) {
     throw new Error("CORS Proxy URL is required to visit URLs. Please configure it in Settings.");
   }
 
@@ -281,7 +281,7 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
     targetUrl = 'https://' + targetUrl;
   }
 
-  const proxyUrl = `${settings.corsProxyUrl}${encodeURIComponent(targetUrl)}`;
+  const proxyUrl = `${settings.corsProvider}${encodeURIComponent(targetUrl)}`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
   const startTime = performance.now();

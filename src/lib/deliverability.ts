@@ -7,20 +7,20 @@ export async function runDeliverabilityCheck(domain: string, selector: string, s
   selector = selector || 'default';
 
   const types = ['SPF', 'DKIM', 'DMARC', 'BIMI', 'MTA-STS', 'TLSRPT'];
-  
+
   const promises = types.map(type => {
     const target = formatEmailAuthQuery(domain, type, selector);
-    return queryDNS(target, 'TXT', settings.dohProvider)
+    return queryDNS(target, 'TXT', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl)
       .then(res => ({ type, records: filterEmailAuthRecords(res.records, type), raw: res.records }))
       .catch(() => ({ type, records: [], raw: [] }));
   });
 
-  const mxPromise = queryDNS(domain, 'MX', settings.dohProvider)
+  const mxPromise = queryDNS(domain, 'MX', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl)
     .then(res => ({ type: 'MX', records: res.records, raw: res.records }))
     .catch(() => ({ type: 'MX', records: [], raw: [] }));
 
   const results = await Promise.all([...promises, mxPromise]);
-  
+
   const recommendations: { level: 'critical' | 'high' | 'medium' | 'low' | 'good', msg: string }[] = [];
   let score = 100;
 

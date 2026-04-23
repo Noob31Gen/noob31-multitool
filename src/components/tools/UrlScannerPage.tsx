@@ -140,7 +140,7 @@ export function UrlScannerPage() {
         </form>
       </Card>
 
-      {!settings.corsProxyUrl && visitEnabled && (
+      {!settings.corsProvider && visitEnabled && (
         <div className="text-sm text-amber-600 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10">
           <strong>Warning:</strong> Configure a CORS Proxy URL in Settings for the Live Visit to work.
         </div>

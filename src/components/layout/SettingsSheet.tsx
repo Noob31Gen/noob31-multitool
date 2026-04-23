@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -9,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Settings } from "lucide-react"
-import { useSettings } from "@/lib/settings"
+import { useSettings, defaultSettings, type AppSettings } from "@/lib/settings"
 import {
   Select,
   SelectContent,
@@ -20,18 +21,41 @@ import {
 
 export function SettingsSheet() {
   const { settings, setSettings } = useSettings();
+  const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setLocalSettings(settings);
+    }
+  }, [isOpen, settings]);
+
+  const handleApply = () => {
+    setSettings(localSettings);
+    localStorage.setItem('url-scanner-settings', JSON.stringify(localSettings));
+    window.location.reload();
+  };
+
+  const handleReset = () => {
+    setSettings(defaultSettings);
+    localStorage.setItem('url-scanner-settings', JSON.stringify(defaultSettings));
+    window.location.reload();
+  };
 
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon">
           <Settings className="h-5 w-5" />
           <span className="sr-only">Settings</span>
         </Button>
       </SheetTrigger>
-      <SheetContent>
+      <SheetContent className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Settings</SheetTitle>
+          <div className="flex justify-between items-center pr-6">
+            <SheetTitle>Settings</SheetTitle>
+            <Button variant="destructive" size="sm" onClick={handleReset}>Reset Defaults</Button>
+          </div>
           <SheetDescription>
             Configure API keys and preferences. Keys are stored locally in your browser.
           </SheetDescription>
@@ -39,9 +63,9 @@ export function SettingsSheet() {
         <div className="grid gap-8 py-8 px-2">
           <div className="space-y-3">
             <h3 className="text-sm font-medium">DoH Provider</h3>
-            <Select 
-              value={settings.dohProvider} 
-              onValueChange={(val: 'google' | 'cloudflare' | 'alidns' | 'adguard') => setSettings({ ...settings, dohProvider: val })}
+            <Select
+              value={localSettings.dohProvider}
+              onValueChange={(val: any) => setLocalSettings({ ...localSettings, dohProvider: val })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select provider" />
@@ -51,53 +75,87 @@ export function SettingsSheet() {
                 <SelectItem value="cloudflare">Cloudflare DNS</SelectItem>
                 <SelectItem value="alidns">AliDNS</SelectItem>
                 <SelectItem value="adguard">AdGuard DNS</SelectItem>
+                <SelectItem value="custom">Custom DNS</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-3">
-            <h3 className="text-sm font-medium">CORS Proxy URL</h3>
-            <Input 
-              placeholder="https://corsproxy.io/?" 
-              value={settings.corsProxyUrl}
-              onChange={(e) => setSettings({ ...settings, corsProxyUrl: e.target.value })}
+            <h3 className="text-sm font-medium">Custom DNS URL</h3>
+            <Input
+              placeholder="https://dns.example.com/dns-query"
+              value={localSettings.customDnsUrl}
+              onChange={(e) => setLocalSettings({ ...localSettings, customDnsUrl: e.target.value })}
+              disabled={localSettings.dohProvider !== 'custom'}
             />
           </div>
+
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium">CORS Proxy Provider</h3>
+            <Select
+              value={localSettings.corsProvider}
+              onValueChange={(val: any) => setLocalSettings({ ...localSettings, corsProvider: val })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select proxy" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None (Direct Request)</SelectItem>
+                <SelectItem value="allorigins">AllOrigins</SelectItem>
+                <SelectItem value="codetabs">CodeTabs</SelectItem>
+                <SelectItem value="thingproxy">ThingProxy</SelectItem>
+                <SelectItem value="corsanywhere">CORS Anywhere</SelectItem>
+                <SelectItem value="corsproxy">CORS Proxy</SelectItem>
+                <SelectItem value="custom">Custom CORS Proxy</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium">Custom CORS URL</h3>
+            <Input
+              placeholder="https://your-proxy.com/?url="
+              value={localSettings.customCorsUrl}
+              onChange={(e) => setLocalSettings({ ...localSettings, customCorsUrl: e.target.value })}
+              disabled={localSettings.corsProvider !== 'custom'}
+            />
+          </div>
+
           <div className="space-y-3">
             <h3 className="text-sm font-medium">IPinfo Token (Optional)</h3>
-            <Input 
+            <Input
               type="password"
-              placeholder="Enter API token" 
-              value={settings.apiKeys.ipinfo}
-              onChange={(e) => setSettings({ 
-                ...settings, 
-                apiKeys: { ...settings.apiKeys, ipinfo: e.target.value } 
+              placeholder="Enter API token"
+              value={localSettings.apiKeys.ipinfo}
+              onChange={(e) => setLocalSettings({
+                ...localSettings,
+                apiKeys: { ...localSettings.apiKeys, ipinfo: e.target.value }
               })}
             />
           </div>
           <div className="space-y-3">
             <h3 className="text-sm font-medium">Spamhaus DQS Key (Optional)</h3>
-            <Input 
+            <Input
               type="password"
-              placeholder="Enter DQS key" 
-              value={settings.apiKeys.spamhausDqs}
-              onChange={(e) => setSettings({ 
-                ...settings, 
-                apiKeys: { ...settings.apiKeys, spamhausDqs: e.target.value } 
+              placeholder="Enter DQS key"
+              value={localSettings.apiKeys.spamhausDqs}
+              onChange={(e) => setLocalSettings({
+                ...localSettings,
+                apiKeys: { ...localSettings.apiKeys, spamhausDqs: e.target.value }
               })}
             />
           </div>
           <div className="space-y-3">
             <h3 className="text-sm font-medium">VirusTotal API Key (Optional)</h3>
-            <Input 
+            <Input
               type="password"
-              placeholder="Enter VirusTotal API key" 
-              value={settings.apiKeys.virustotal}
-              onChange={(e) => setSettings({ 
-                ...settings, 
-                apiKeys: { ...settings.apiKeys, virustotal: e.target.value } 
+              placeholder="Enter VirusTotal API key"
+              value={localSettings.apiKeys.virustotal}
+              onChange={(e) => setLocalSettings({
+                ...localSettings,
+                apiKeys: { ...localSettings.apiKeys, virustotal: e.target.value }
               })}
             />
           </div>
+          <Button onClick={handleApply} className="w-full mt-4">Apply</Button>
         </div>
       </SheetContent>
     </Sheet>

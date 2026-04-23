@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
+import type { CorsProvider } from './cors';
 
-export type DoHProvider = 'google' | 'cloudflare' | 'alidns' | 'adguard';
+export type DoHProvider = 'google' | 'cloudflare' | 'alidns' | 'adguard' | 'custom';
 
 export interface AppSettings {
   dohProvider: DoHProvider;
-  corsProxyUrl: string;
+  customDnsUrl: string;
+  corsProvider: CorsProvider;
+  customCorsUrl: string;
   apiKeys: {
     ipinfo: string;
     spamhausDqs: string;
@@ -13,9 +16,11 @@ export interface AppSettings {
   theme: 'light' | 'dark' | 'system';
 }
 
-const defaultSettings: AppSettings = {
+export const defaultSettings: AppSettings = {
   dohProvider: 'google',
-  corsProxyUrl: 'https://corsproxy.io/?',
+  customDnsUrl: '',
+  corsProvider: 'corsproxy',
+  customCorsUrl: '',
   apiKeys: {
     ipinfo: '',
     spamhausDqs: '',

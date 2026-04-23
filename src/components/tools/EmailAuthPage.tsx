@@ -109,7 +109,7 @@ export function EmailAuthPage() {
 
     try {
       const queryTarget = formatEmailAuthQuery(targetDomain, recordType, selector);
-      const res = await queryDNS(queryTarget, 'TXT', settings.dohProvider);
+      const res = await queryDNS(queryTarget, 'TXT', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
 
       setResult(res);
       setFilteredRecords(filterEmailAuthRecords(res.records, recordType));

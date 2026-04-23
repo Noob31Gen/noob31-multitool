@@ -21,7 +21,7 @@ export const DNSBL_ZONES = [
 
 export async function checkBlacklist(ip: string, settings: AppSettings) {
   ip = ip.trim();
-  
+
   const isIPv4 = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip);
   if (!isIPv4) throw new Error("Blacklist check currently requires a valid IPv4 address.");
 
@@ -36,7 +36,7 @@ export async function checkBlacklist(ip: string, settings: AppSettings) {
 
     const target = `${reversedIp}.${targetZone}`;
     try {
-      const res = await queryDNS(target, 'A', settings.dohProvider);
+      const res = await queryDNS(target, 'A', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
       // Status 3 = NXDOMAIN = not listed
       if (res.status === 3 || res.records.length === 0) {
         return { zone, listed: false, records: [], error: false };
