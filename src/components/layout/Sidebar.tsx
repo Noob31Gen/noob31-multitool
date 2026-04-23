@@ -8,7 +8,7 @@ const TOOL_CATEGORIES = [
       { name: "DNS Lookup", path: "/dns/a" },
       { name: "DNSSEC Lookup", path: "/dnssec/dnskey" },
       { name: "Email Auth Lookup", path: "/email/spf" },
-      { name: "Registration Lookup", path: "/registration/whois" },
+      { name: "IP and Registration Lookup", path: "/registration/whois" },
     ],
   },
   {

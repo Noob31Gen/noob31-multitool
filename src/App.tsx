@@ -25,19 +25,31 @@ function App() {
       <AppLayout>
         <Routes>
           <Route path="/" element={
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 tracking-tight">Noob31's MultiTool</h1>
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] text-center px-4">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 tracking-tight">Hi, I'm Liyan Aiyappa. This is my ToolSet.</h1>
               <p className="text-lg text-muted-foreground mb-10 max-w-2xl">
-                The ultimate toolkit for domain health, network diagnostics, and email authentication.
+                This is my toolkit for domain health, network diagnostics, and email authentication.
               </p>
               <div className="w-full max-w-3xl mb-8">
                 <SuperToolSearch className="relative w-full" autoFocus={true} />
               </div>
               <p className="text-sm text-muted-foreground">
-                Or select a specific tool from the sidebar.
+                Or select a specific tool from the sidebar. Clicking on the logo brings you back here.
               </p>
               <p className="text-sm text-muted-foreground">
                 All tools here run fully in the browser. No tracking or metrics info is collected.
+              </p>
+              <br></br>
+              <br></br>
+              <p className="text-lg text-muted-foreground mb-10 max-w-2xl">
+                Hi, I'm Noob31. I have a lot of windows and web tools in my website too. Check them out too. Also if something doesn't work, please let me know.
+              </p>
+              <p className="text-lg text-muted-foreground mb-10 max-w-2xl">
+                Contact: <a className="underline" href="mailto:welcome@noob31.com">welcome@noob31.com</a> |
+                Website: <a className="underline" href="https://noob31.com/" target="_blank">noob31.com</a>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                This project is built with React.js, Vite, and Tailwind CSS.
               </p>
             </div>
           } />
