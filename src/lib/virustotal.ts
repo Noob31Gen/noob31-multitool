@@ -31,15 +31,23 @@ export async function getVirusTotalReport(url: string, settings: AppSettings): P
   }
 
   const urlId = btoa(url).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-
-  // Try directly first; VT v3 allows CORS for GET requests from browser
-  // If we get a CORS error, we might fallback to proxy, but VT API requires API key so proxy might not be needed if they allow it.
-  // Actually, VT API does NOT allow CORS. We must use the proxy.
   const targetUrl = `https://www.virustotal.com/api/v3/urls/${urlId}`;
 
   let fetchUrl = targetUrl;
-  if (settings.corsProvider) {
-    fetchUrl = `${settings.corsProvider}${encodeURIComponent(targetUrl)}`;
+
+  // Map the provider name to the actual URL
+  if ('corsProvider' in settings && settings.corsProvider !== 'none') {
+    let proxyBase = '';
+    if (settings.corsProvider === 'allorigins') proxyBase = 'https://api.allorigins.win/raw?url=';
+    else if (settings.corsProvider === 'codetabs') proxyBase = 'https://api.codetabs.com/v1/proxy?quest=';
+    else if (settings.corsProvider === 'thingproxy') proxyBase = 'https://thingproxy.freeboard.io/fetch/';
+    else if (settings.corsProvider === 'corsanywhere') proxyBase = 'https://cors-anywhere.herokuapp.com/';
+    else if (settings.corsProvider === 'custom') proxyBase = settings.customCorsUrl;
+
+    if (proxyBase) fetchUrl = `${proxyBase}${encodeURIComponent(targetUrl)}`;
+  } else if ((settings as any).corsProxyUrl) {
+    // Fallback just in case you are still using the old settings format
+    fetchUrl = `${(settings as any).corsProxyUrl}${encodeURIComponent(targetUrl)}`;
   }
 
   try {
@@ -51,8 +59,15 @@ export async function getVirusTotalReport(url: string, settings: AppSettings): P
       }
     });
 
+    // Prevent HTML parsing crash
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      console.error("Non-JSON response:", await response.text());
+      throw new Error(`The CORS proxy returned an HTML page instead of data. It likely stripped the API key or blocked the request.`);
+    }
+
     if (response.status === 404) {
-      return null; // No report found
+      return null;
     }
 
     if (!response.ok) {
