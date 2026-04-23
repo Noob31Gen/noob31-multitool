@@ -26,7 +26,7 @@ function App() {
         <Routes>
           <Route path="/" element={
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] text-center px-4">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 tracking-tight">Hi, I'm Noob31. This is my MultiTool</h1>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 tracking-tight">Noob31's MultiTools.</h1>
               <p className="text-lg text-muted-foreground mb-10 max-w-2xl">
                 This is my toolkit for domain health, network diagnostics, and email authentication.
               </p>
