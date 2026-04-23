@@ -44,8 +44,6 @@ export async function queryDNS(
   let body: BodyInit | null = null;
   let method = 'GET';
 
-  console.log(`[DoH] Starting query for ${domain} (${type}) using provider: ${provider}`);
-
   if (provider === 'google') {
     url = `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`;
   } else if (provider === 'cloudflare') {
@@ -72,21 +70,14 @@ export async function queryDNS(
     url = getProxiedUrl(targetUrl, corsProvider, customCorsUrl);
     method = 'GET';
     headers = { 'Accept': 'application/dns-message' };
-
-    console.log(`[DoH] Custom provider encoded Base64URL: ${base64Url}`);
   }
-
-  console.log(`[DoH] Fetch URL: ${url}`);
-  console.log(`[DoH] Fetch Method: ${method}`);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
     const response = await fetch(url, { method, headers, body, signal: controller.signal });
-    clearTimeout(timeoutId);
-
-    console.log(`[DoH] Response Status: ${response.status} ${response.statusText}`);
+    clearTimeout(timeoutId);;
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
