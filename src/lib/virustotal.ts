@@ -1,4 +1,5 @@
-import type { AppSettings } from "./settings"
+import type { AppSettings } from "./settings";
+import { getProxiedUrl } from "./cors"; // Add this import
 
 export interface VTReport {
   data: {
@@ -47,18 +48,11 @@ export async function getVirusTotalReport(url: string, settings: AppSettings): P
 
   let fetchUrl = targetUrl;
 
-  // Map the provider name to the actual URL
-  if ('corsProvider' in settings && settings.corsProvider !== 'none') {
-    let proxyBase = '';
-    if (settings.corsProvider === 'allorigins') proxyBase = 'https://api.allorigins.win/raw?url=';
-    else if (settings.corsProvider === 'codetabs') proxyBase = 'https://api.codetabs.com/v1/proxy?quest=';
-    else if (settings.corsProvider === 'thingproxy') proxyBase = 'https://thingproxy.freeboard.io/fetch/';
-    else if (settings.corsProvider === 'corsanywhere') proxyBase = 'https://cors-anywhere.herokuapp.com/';
-    else if (settings.corsProvider === 'custom') proxyBase = settings.customCorsUrl;
-
-    if (proxyBase) fetchUrl = `${proxyBase}${encodeURIComponent(targetUrl)}`;
+  // Use the imported function instead of duplicating logic
+  if ('corsProvider' in settings && settings.corsProvider) {
+    fetchUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
   } else if ((settings as any).corsProxyUrl) {
-    // Fallback just in case you are still using the old settings format
+    // Fallback for older settings formats
     fetchUrl = `${(settings as any).corsProxyUrl}${encodeURIComponent(targetUrl)}`;
   }
 
@@ -71,7 +65,6 @@ export async function getVirusTotalReport(url: string, settings: AppSettings): P
       }
     });
 
-    // Prevent HTML parsing crash
     const contentType = response.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) {
       console.error("Non-JSON response:", await response.text());
