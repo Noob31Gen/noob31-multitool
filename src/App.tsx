@@ -16,6 +16,7 @@ import { SubnetCalculatorPage } from "@/components/tools/SubnetCalculatorPage"
 import { SpfGeneratorPage } from "@/components/tools/SpfGeneratorPage"
 import { DmarcGeneratorPage } from "@/components/tools/DmarcGeneratorPage"
 import { EmailDeliverabilityPage } from "@/components/tools/EmailDeliverabilityPage"
+import { SubdomainScannerPage } from "@/components/tools/SubdomainScannerPage"
 import { SuperToolSearch } from "@/components/shared/SuperToolSearch"
 
 
@@ -68,6 +69,7 @@ function App() {
 
           {/* Part 5: Network Diagnostics */}
           <Route path="/network/url-scanner" element={<UrlScannerPage />} />
+          <Route path="/network/subdomains" element={<SubdomainScannerPage />} />
           <Route path="/network/my-ip" element={<MyIpPage />} />
           <Route path="/network/http/:scheme" element={<HttpLookupPage />} />
 
