@@ -379,7 +379,7 @@ export function RegistrationLookupPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 {/* 2. Identity & Registration */}
-                <Card className="p-4 space-y-4 border-t-4 border-t-zinc-600">
+                <Card className="p-4 space-y-4 border-t-4">
                   <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-zinc-400">
                     <Info className="h-4 w-4" /> Identity & Registration
                   </h4>
@@ -408,7 +408,7 @@ export function RegistrationLookupPage() {
                 </Card>
 
                 {/* 3. Security & Abuse */}
-                <Card className="p-4 space-y-4 border-t-4 border-t-destructive">
+                <Card className="p-4 space-y-4 border-t-4">
                   <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-destructive">
                     <ShieldAlert className="h-4 w-4" /> Security & Abuse
                   </h4>
@@ -442,7 +442,7 @@ export function RegistrationLookupPage() {
                 </Card>
 
                 {/* 4. Geographic Location */}
-                <Card className="p-4 space-y-4 border-t-4 border-t-blue-600">
+                <Card className="p-4 space-y-4 border-t-4">
                   <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-blue-500">
                     <Globe className="h-4 w-4" /> Geographic Location
                   </h4>
@@ -475,7 +475,7 @@ export function RegistrationLookupPage() {
                 </Card>
 
                 {/* 5. Operations & PeeringDB */}
-                <Card className="p-4 space-y-4 border-t-4 border-t-purple-600">
+                <Card className="p-4 space-y-4 border-t-4">
                   <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-purple-500">
                     <Activity className="h-4 w-4" /> Operations (Peering)
                   </h4>
