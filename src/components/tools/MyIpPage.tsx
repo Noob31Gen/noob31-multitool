@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react"
 import { queryASN } from "@/lib/asn"
-import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
@@ -9,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 
 export function MyIpPage() {
-  const { settings } = useSettings()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
@@ -34,7 +32,7 @@ export function MyIpPage() {
     }
     fetchMyIp();
     return () => { isMounted = false; };
-  }, [settings.apiKeys]);
+  }, []);
 
   // Helper references for the normalized data
   const parsed = result?.parsed;

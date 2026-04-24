@@ -8,10 +8,6 @@ export interface AppSettings {
   customDnsUrl: string;
   corsProvider: CorsProvider;
   customCorsUrl: string;
-  apiKeys: {
-    spamhausDqs: string;
-    virustotal: string;
-  };
   theme: 'light' | 'dark' | 'system';
 }
 
@@ -20,10 +16,6 @@ export const defaultSettings: AppSettings = {
   customDnsUrl: '',
   corsProvider: 'corsproxy',
   customCorsUrl: '',
-  apiKeys: {
-    spamhausDqs: '',
-    virustotal: '',
-  },
   theme: 'system',
 };
 

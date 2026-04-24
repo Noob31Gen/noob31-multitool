@@ -4,7 +4,6 @@ import type { AppSettings } from "./settings"
 export const DNSBL_ZONES = [
   "bl.spamcop.net",
   "b.barracudacentral.org",
-  "zen.spamhaus.org",
   "cbl.abuseat.org",
   "dnsbl.sorbs.net",
   "spam.spamrats.com",
@@ -19,15 +18,6 @@ export const DNSBL_ZONES = [
   "list.dnswl.org"
 ];
 
-// Map standard DNSBL return codes to human-readable threats
-const getSpamhausReason = (ip: string) => {
-  if (ip === '127.0.0.2') return 'SBL (Known Spam Operation)';
-  if (ip === '127.0.0.3') return 'CSS (Snowshoe Spam)';
-  if (ip === '127.0.0.4' || ip === '127.0.0.5' || ip === '127.0.0.6' || ip === '127.0.0.7') return 'XBL (Malware / Botnet / Open Proxy)';
-  if (ip === '127.0.0.9' || ip === '127.0.0.10' || ip === '127.0.0.11') return 'PBL (End-User IP Policy Violation)';
-  return 'Blacklisted';
-};
-
 export async function checkBlacklist(ip: string, settings: AppSettings) {
   ip = ip.trim();
 
@@ -37,13 +27,7 @@ export async function checkBlacklist(ip: string, settings: AppSettings) {
   const reversedIp = ip.split('.').reverse().join('.');
 
   const promises = DNSBL_ZONES.map(async (zone) => {
-    let targetZone = zone;
-    // If they provided a DQS key and this is spamhaus, format correctly
-    if (zone.includes('spamhaus.org') && settings.apiKeys.spamhausDqs) {
-      targetZone = `${settings.apiKeys.spamhausDqs}.${zone}`;
-    }
-
-    const target = `${reversedIp}.${targetZone}`;
+    const target = `${reversedIp}.${zone}`;
 
     try {
       // 1. Query A Record to check if listed
@@ -56,11 +40,6 @@ export async function checkBlacklist(ip: string, settings: AppSettings) {
       // 2. Identify the specific block reason
       const returnIps = resA.records.map((r: any) => r.data);
       let classification = returnIps.join(', ');
-
-      // If it's Spamhaus, translate the loopback IPs into actual threat intelligence
-      if (zone.includes('spamhaus.org')) {
-        classification = returnIps.map((retIp: string) => getSpamhausReason(retIp)).join(' | ');
-      }
 
       // 3. Query TXT Record to get the incident URL and text details
       let txtDetails = null;

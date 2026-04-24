@@ -57,7 +57,7 @@ export function SettingsSheet() {
             <Button variant="destructive" size="sm" onClick={handleReset}>Reset Defaults</Button>
           </div>
           <SheetDescription>
-            Configure API keys and preferences. Keys are stored locally in your browser. Do not forget to click 'Apply' to save changes. BEWARE: Using a CORS Proxy means the proxy will see your API Keys.
+            Configure DNS and CORS settings.Do not forget to click 'Apply' to save changes. BEWARE: Using a CORS Proxy means the proxy will see your queries.
           </SheetDescription>
         </SheetHeader>
         <div className="grid gap-8 py-8 px-2">
@@ -116,30 +116,6 @@ export function SettingsSheet() {
               value={localSettings.customCorsUrl}
               onChange={(e) => setLocalSettings({ ...localSettings, customCorsUrl: e.target.value })}
               disabled={localSettings.corsProvider !== 'custom'}
-            />
-          </div>
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">Spamhaus DQS Key (Optional)</h3>
-            <Input
-              type="password"
-              placeholder="Enter DQS key"
-              value={localSettings.apiKeys.spamhausDqs}
-              onChange={(e) => setLocalSettings({
-                ...localSettings,
-                apiKeys: { ...localSettings.apiKeys, spamhausDqs: e.target.value }
-              })}
-            />
-          </div>
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">VirusTotal API Key (Optional)</h3>
-            <Input
-              type="password"
-              placeholder="Enter VirusTotal API key"
-              value={localSettings.apiKeys.virustotal}
-              onChange={(e) => setLocalSettings({
-                ...localSettings,
-                apiKeys: { ...localSettings.apiKeys, virustotal: e.target.value }
-              })}
             />
           </div>
           <Button onClick={handleApply} className="w-full mt-4">Apply</Button>

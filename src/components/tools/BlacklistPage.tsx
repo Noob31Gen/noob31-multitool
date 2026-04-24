@@ -99,7 +99,13 @@ export function BlacklistPage() {
           status="success"
           timeMs={result.queryTime}
           action={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 items-center">
+              <Button
+                variant="outline"
+                onClick={() => window.open(`https://check.spamhaus.org/results/?query=${encodeURIComponent(ip)}`, '_blank', 'noopener,noreferrer')}
+              >
+                Check on Spamhaus
+              </Button>
               <CopyButton data={JSON.stringify(result.data, null, 2)} text="Copy JSON" />
               <ExportButton data={result.data} filename={`${ip}-blacklist.json`} />
             </div>
@@ -120,8 +126,8 @@ export function BlacklistPage() {
               <div
                 key={i}
                 className={`flex items-start gap-3 p-3 rounded-md border transition-colors ${item.listed
-                    ? 'bg-destructive/5 border-destructive/30 md:col-span-full'
-                    : 'bg-card items-center'
+                  ? 'bg-destructive/5 border-destructive/30 md:col-span-full'
+                  : 'bg-card items-center'
                   }`}
               >
                 <div className={`${item.listed ? 'mt-0.5' : ''} shrink-0`}>
