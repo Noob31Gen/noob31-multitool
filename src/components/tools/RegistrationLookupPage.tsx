@@ -8,9 +8,9 @@ import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Badge } from "@/components/ui/badge"
 import { parseRDAP } from "@/lib/rdapParser"
 import {
   Select,
@@ -25,6 +25,18 @@ import {
   TableCell,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Search,
+  ShieldAlert,
+  Activity,
+  Globe,
+  List,
+  Database,
+  Info,
+  Server,
+  MapPin,
+  Clock
+} from "lucide-react"
 
 const REGISTRATION_INFO: Record<string, { title: string, desc: string }> = {
   WHOIS: { title: "WHOIS Lookup", desc: "Check domain registration details via RDAP." },
@@ -68,7 +80,6 @@ function RDAPRegistrationCard({ data }: { data: any }) {
               </TableRow>
             )}
 
-            {/* New Contact Information */}
             {parsed.abuseContact && (
               <TableRow>
                 <TableCell className="font-medium bg-muted/50">Abuse Contact</TableCell>
@@ -194,28 +205,23 @@ export function RegistrationLookupPage() {
     const q = targetQuery.trim();
     if (!q) return;
 
-    // IP Validation RegEx
     const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
     const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
     const isIP = ipv4Regex.test(q) || ipv6Regex.test(q);
 
-    // Private IP Identification
     const isPrivateIP = (ip: string) => {
       if (ipv4Regex.test(ip)) {
         const parts = ip.split('.');
         const p1 = parseInt(parts[0], 10);
         const p2 = parseInt(parts[1], 10);
-        // Checks: 10.x.x.x, 127.x.x.x, 169.254.x.x, 192.168.x.x, 172.16.x.x - 172.31.x.x
         if (p1 === 10 || p1 === 127 || (p1 === 169 && p2 === 254) || (p1 === 192 && p2 === 168) || (p1 === 172 && p2 >= 16 && p2 <= 31)) return true;
       } else if (ip.includes(':')) {
         const lower = ip.toLowerCase();
-        // Checks: Unique Local, Link Local, Loopback
         if (lower.startsWith('fc') || lower.startsWith('fd') || lower.startsWith('fe8') || lower.startsWith('fe9') || lower.startsWith('fea') || lower.startsWith('feb') || lower === '::1') return true;
       }
       return false;
     };
 
-    // Pre-flight validation checks
     if (tool === 'ARIN' && !isIP) {
       setErrorMsg("Invalid IP address format.");
       setStatus('error');
@@ -247,7 +253,7 @@ export function RegistrationLookupPage() {
     try {
       let res;
       if (tool === 'ASN') {
-        res = await queryASN(q, settings);
+        res = await queryASN(q);
       } else {
         res = await queryRDAP(q, settings);
       }
@@ -266,6 +272,9 @@ export function RegistrationLookupPage() {
     if (e) e.preventDefault()
     performSearch(query)
   }
+
+  // Helper variable for cleaner ASN rendering
+  const parsed = result?.data?.parsed;
 
   return (
     <div className="space-y-6">
@@ -330,21 +339,233 @@ export function RegistrationLookupPage() {
             </div>
           }
         >
-          {tool === 'ASN' && result.data.org && (
-            <div className="mb-4 p-4 rounded-md border bg-muted/20">
-              <h3 className="font-semibold text-lg">{result.data.org}</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 text-sm">
-                <div><span className="text-muted-foreground">IP:</span> {result.data.ip}</div>
-                <div><span className="text-muted-foreground">Hostname:</span> {result.data.hostname || 'N/A'}</div>
-                <div><span className="text-muted-foreground">City:</span> {result.data.city}</div>
-                <div><span className="text-muted-foreground">Region:</span> {result.data.region}, {result.data.country}</div>
-                {result.data.asn && <div><span className="text-muted-foreground">ASN:</span> {result.data.asn.asn}</div>}
+
+          {tool === 'ASN' && parsed && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+
+              {/* 1. Primary Identity Header */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 rounded-xl border bg-card shadow-sm gap-4">
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-bold tracking-tight">
+                    {parsed.org || "Unknown Entity"}
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {parsed.is_datacenter && <Badge variant="destructive">Datacenter</Badge>}
+                    {parsed.is_vpn && <Badge variant="destructive">VPN</Badge>}
+                    {parsed.is_proxy && <Badge variant="destructive">Proxy</Badge>}
+                    {parsed.is_tor && <Badge variant="destructive">Tor</Badge>}
+                    {parsed.is_abuser && <Badge variant="destructive">Abuser</Badge>}
+                    {parsed.is_bogon && <Badge variant="destructive">Bogon</Badge>}
+                    {parsed.is_crawler && <Badge variant="secondary">Crawler</Badge>}
+                    {parsed.is_satellite && <Badge variant="secondary">Satellite</Badge>}
+                    {parsed.is_mobile && <Badge variant="secondary">Mobile</Badge>}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-4xl font-black font-mono leading-none">
+                    {parsed.asn}
+                  </div>
+                  <div className="flex gap-2 justify-end mt-2">
+                    <span className="text-xs border px-2 py-0.5 rounded bg-primary/10 text-primary uppercase font-bold">
+                      {parsed.rir || "NO RIR"}
+                    </span>
+                    <span className="text-xs border px-2 py-0.5 rounded bg-muted uppercase font-bold">
+                      {parsed.type || "Consumer"}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-6">
-                <h4 className="font-medium mb-2 text-sm text-muted-foreground">Raw Data:</h4>
-                <ScrollArea className="h-[300px] w-full rounded-md border bg-muted/30 p-4">
-                  <pre className="text-xs font-mono whitespace-pre-wrap break-all">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                {/* 2. Identity & Registration */}
+                <Card className="p-4 space-y-4 border-t-4 border-t-zinc-600">
+                  <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-zinc-400">
+                    <Info className="h-4 w-4" /> Identity & Registration
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Description</span>
+                      <span className="text-right max-w-[200px] truncate" title={parsed.description}>{parsed.description || "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Domain</span>
+                      <span>{parsed.domain || "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Route</span>
+                      <span className="font-mono">{parsed.route || "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Created</span>
+                      <span>{parsed.created || "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Updated</span>
+                      <span>{parsed.updated || "N/A"}</span>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 3. Security & Abuse */}
+                <Card className="p-4 space-y-4 border-t-4 border-t-destructive">
+                  <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-destructive">
+                    <ShieldAlert className="h-4 w-4" /> Security & Abuse
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Abuser Score</span>
+                      <span className={`font-bold ${parsed.is_abuser ? 'text-destructive' : 'text-green-600'}`}>
+                        {parsed.abuser_score || "N/A"}
+                      </span>
+                    </div>
+                    {(parsed.dc_name || parsed.dc_network) && (
+                      <div className="flex justify-between border-b border-border/50 pb-1">
+                        <span className="text-muted-foreground flex items-center gap-1"><Server className="w-3 h-3" /> Datacenter</span>
+                        <span className="text-right">
+                          {parsed.dc_name} <span className="font-mono text-xs block text-muted-foreground">{parsed.dc_network}</span>
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex flex-col border-b border-border/50 pb-1 pt-1">
+                      <span className="text-muted-foreground text-xs uppercase font-bold mb-1">Abuse Contact</span>
+                      <span className="font-mono text-xs break-all">{parsed.abuse_email || "N/A"}</span>
+                      {parsed.abuse_phone && <span className="text-xs mt-0.5 text-muted-foreground">{parsed.abuse_phone}</span>}
+                    </div>
+                    {parsed.abuse_address && (
+                      <div className="flex flex-col pt-1">
+                        <span className="text-muted-foreground text-xs uppercase font-bold mb-1">Abuse Address</span>
+                        <span className="text-xs leading-tight">{parsed.abuse_address}</span>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+
+                {/* 4. Geographic Location */}
+                <Card className="p-4 space-y-4 border-t-4 border-t-blue-600">
+                  <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-blue-500">
+                    <Globe className="h-4 w-4" /> Geographic Location
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Country / Continent</span>
+                      <span className="uppercase font-bold tracking-wider">
+                        {parsed.country || "N/A"} {parsed.continent ? `(${parsed.continent})` : ''}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">City / State</span>
+                      <span>
+                        {parsed.city ? `${parsed.city}, ` : ''}{parsed.state || "Global"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Zip Code</span>
+                      <span>{parsed.zip || "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" /> Coordinates</span>
+                      <span className="font-mono text-xs">{parsed.lat && parsed.lon ? `${parsed.lat}, ${parsed.lon}` : "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Timezone</span>
+                      <span className="text-xs">{parsed.timezone || "N/A"}</span>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 5. Operations & PeeringDB */}
+                <Card className="p-4 space-y-4 border-t-4 border-t-purple-600">
+                  <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-purple-500">
+                    <Activity className="h-4 w-4" /> Operations (Peering)
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Website</span>
+                      {parsed.website ? (
+                        <a href={parsed.website} target="_blank" className="text-primary hover:underline truncate max-w-[180px]">{parsed.website}</a>
+                      ) : <span>N/A</span>}
+                    </div>
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Traffic Ratio</span>
+                      <span>{parsed.traffic_ratio || "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">Scope</span>
+                      <span>{parsed.scope || "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-border/50 pb-1">
+                      <span className="text-muted-foreground">IRR AS-SET</span>
+                      <span className="font-mono text-xs">{parsed.irr_as_set || "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">IX / Facilities</span>
+                      <span>
+                        {parsed.ix_count !== undefined ? `${parsed.ix_count} IXs` : "N/A"} / {parsed.fac_count !== undefined ? `${parsed.fac_count} Facs` : "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              {/* 6. Subnet/Prefix Explorer */}
+              {(parsed.prefixes_v4?.length > 0 || parsed.prefixes_v6?.length > 0) && (
+                <Card className="p-0 overflow-hidden">
+                  <div className="bg-muted/50 px-4 py-3 border-b flex justify-between items-center">
+                    <h4 className="text-sm font-bold uppercase flex items-center gap-2">
+                      <List className="h-4 w-4" /> Announced Prefix Explorer
+                    </h4>
+                    <div className="flex gap-2">
+                      <Badge variant="outline">{parsed.prefixes_v4.length} IPv4</Badge>
+                      <Badge variant="outline">{parsed.prefixes_v6.length} IPv6</Badge>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2">
+                    <div className="p-4 border-r">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase mb-2">IPv4 Subnets</p>
+                      <ScrollArea className="h-48 w-full rounded border bg-zinc-950 p-2">
+                        <div className="grid grid-cols-2 gap-1">
+                          {parsed.prefixes_v4.map((p: string, i: number) => (
+                            <div key={i} className="text-[10px] font-mono text-zinc-400 hover:text-primary transition-colors cursor-default">
+                              {p}
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                    <div className="p-4">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase mb-2">IPv6 Subnets</p>
+                      <ScrollArea className="h-48 w-full rounded border bg-zinc-950 p-2">
+                        <div className="space-y-1">
+                          {parsed.prefixes_v6.map((p: string, i: number) => (
+                            <div key={i} className="text-[10px] font-mono text-zinc-400 hover:text-primary transition-colors cursor-default">
+                              {p}
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
+              {/* 7. Operational Notes */}
+              {parsed.notes && (
+                <Card className="p-4 bg-yellow-50/10 border-yellow-500/20">
+                  <h4 className="text-xs font-bold uppercase text-yellow-600 mb-2">Operational Documentation</h4>
+                  <p className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap italic">
+                    {parsed.notes}
+                  </p>
+                </Card>
+              )}
+
+              {/* 8. Raw JSON for Full Context */}
+              <div className="mt-8">
+                <h4 className="font-medium mb-2 text-sm text-muted-foreground flex items-center gap-2">
+                  <Database className="h-4 w-4" /> Complete Data Artifact
+                </h4>
+                <ScrollArea className="h-[400px] w-full rounded-lg border bg-zinc-950 p-4 shadow-inner">
+                  <pre className="text-[10px] font-mono text-zinc-500 leading-tight">
                     {JSON.stringify(result.data, null, 2)}
                   </pre>
                 </ScrollArea>
