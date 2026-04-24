@@ -85,7 +85,7 @@ export function CertLookupPage() {
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            Check the domain and your CORS proxy.
+            Both crt.sh and the fallback API failed to resolve the query. Verify the domain exists and check your CORS proxy configuration.
           </div>
         </ResultCard>
       )}
