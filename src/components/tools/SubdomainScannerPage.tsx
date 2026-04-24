@@ -99,7 +99,7 @@ export function SubdomainScannerPage() {
       {status === 'error' && (
         <ResultCard title="Scan Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            If you get this message, try changing your CORS Proxy in Settings. Note that some sources like HackerTarget may rate limit based on the proxy's IP.
+            If you get this message, try changing your CORS Proxy in Settings. CodeTabs should work. Note that some sources like HackerTarget may rate limit based on the proxy's IP.
           </div>
         </ResultCard>
       )}
