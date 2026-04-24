@@ -118,19 +118,6 @@ export function SettingsSheet() {
               disabled={localSettings.corsProvider !== 'custom'}
             />
           </div>
-
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">IPinfo Token (Optional)</h3>
-            <Input
-              type="password"
-              placeholder="Enter API token"
-              value={localSettings.apiKeys.ipinfo}
-              onChange={(e) => setLocalSettings({
-                ...localSettings,
-                apiKeys: { ...localSettings.apiKeys, ipinfo: e.target.value }
-              })}
-            />
-          </div>
           <div className="space-y-3">
             <h3 className="text-sm font-medium">Spamhaus DQS Key (Optional)</h3>
             <Input

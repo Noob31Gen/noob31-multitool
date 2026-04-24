@@ -23,4 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 detect.cjs
-refector.cjs
+refactor.cjs
+asn_test_results.json
+asn_ip_test_results.json
+vt_full_report.json
+vt-asn-test.py
+vtscan.py

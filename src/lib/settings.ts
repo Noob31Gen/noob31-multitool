@@ -9,7 +9,6 @@ export interface AppSettings {
   corsProvider: CorsProvider;
   customCorsUrl: string;
   apiKeys: {
-    ipinfo: string;
     spamhausDqs: string;
     virustotal: string;
   };
@@ -22,7 +21,6 @@ export const defaultSettings: AppSettings = {
   corsProvider: 'corsproxy',
   customCorsUrl: '',
   apiKeys: {
-    ipinfo: '',
     spamhausDqs: '',
     virustotal: '',
   },

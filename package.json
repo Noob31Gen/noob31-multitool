@@ -1,7 +1,7 @@
 {
   "name": "Noob31's MultiTool",
   "private": true,
-  "version": "0.4.6",
+  "version": "0.5.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
