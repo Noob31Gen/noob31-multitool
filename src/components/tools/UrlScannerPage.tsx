@@ -158,12 +158,7 @@ export function UrlScannerPage() {
                   Full URL Breakdown
                 </span>
                 <div className="flex gap-2 flex-wrap items-center">
-                  <Button
-                    variant="outline"
-                    onClick={() => window.open(`http://virustotal.com/gui/search?query=${encodeURIComponent(parsed.original)}`, '_blank', 'noopener,noreferrer')}
-                  >
-                    View on Virustotal
-                  </Button>
+                  <Button onClick={() => window.open(`http://virustotal.com/gui/search?query=${encodeURIComponent(parsed.original)}`, '_blank', 'noopener,noreferrer')}>View on Virustotal</Button>
                   <CopyButton data={JSON.stringify(parsed, null, 2)} text="Copy JSON" />
                   <ExportButton data={{ parsed, visitData }} filename="url-scan.json" />
                 </div>
