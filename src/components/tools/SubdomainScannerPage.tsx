@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useLocation } from "react-router-dom"
 import { querySubdomains, type SubdomainResult } from "@/lib/subdomains"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -19,6 +20,7 @@ import {
 
 export function SubdomainScannerPage() {
   const { settings } = useSettings()
+  const location = useLocation()
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
@@ -26,9 +28,16 @@ export function SubdomainScannerPage() {
   const [currentSource, setCurrentSource] = useState("")
   const [scanErrors, setScanErrors] = useState<string[]>([])
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-    if (!domain.trim()) return
+  useEffect(() => {
+    const target = location.state?.target;
+    if (target) {
+      setDomain(target);
+      performSearch(target);
+    }
+  }, [location.state]);
+
+  const performSearch = async (targetDomain: string) => {
+    if (!targetDomain.trim()) return
 
     setStatus('loading')
     setErrorMsg("")
@@ -39,7 +48,7 @@ export function SubdomainScannerPage() {
     const startTime = performance.now();
 
     try {
-      await querySubdomains(domain, settings, (res, errs, sourceName) => {
+      await querySubdomains(targetDomain, settings, (res, errs, sourceName) => {
         setResult({ data: res, queryTime: Math.round(performance.now() - startTime) });
         setScanErrors([...errs]);
         setCurrentSource(`Queried ${sourceName}...`);
@@ -50,6 +59,11 @@ export function SubdomainScannerPage() {
       setErrorMsg(err.message || "An error occurred while scanning for subdomains.")
       setStatus('error')
     }
+  }
+
+  const handleSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    performSearch(domain)
   }
 
   return (
