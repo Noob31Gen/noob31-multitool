@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useLocation } from "react-router-dom"
 import { runDnsCheck } from "@/lib/health"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -13,14 +14,22 @@ import { DNSResultTable } from "@/components/shared/DNSResultTable"
 
 export function DnsCheckPage() {
   const { settings } = useSettings()
+  const location = useLocation()
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-    if (!domain.trim()) return
+  useEffect(() => {
+    const target = location.state?.target;
+    if (target) {
+      setDomain(target);
+      performSearch(target);
+    }
+  }, [location.state]);
+
+  const performSearch = async (targetDomain: string) => {
+    if (!targetDomain.trim()) return
 
     setStatus('loading')
     setErrorMsg("")
@@ -29,7 +38,7 @@ export function DnsCheckPage() {
     const startTime = performance.now();
 
     try {
-      const res = await runDnsCheck(domain, settings);
+      const res = await runDnsCheck(targetDomain, settings);
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ results: res, queryTime });
       setStatus('success')
@@ -38,6 +47,11 @@ export function DnsCheckPage() {
       setErrorMsg(err.message || "An error occurred during the DNS check.")
       setStatus('error')
     }
+  }
+
+  const handleSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    performSearch(domain)
   }
 
   return (

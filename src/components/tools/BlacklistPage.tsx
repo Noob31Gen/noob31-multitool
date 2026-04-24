@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useLocation } from "react-router-dom"
 import { checkBlacklist } from "@/lib/blacklist"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -11,14 +12,22 @@ import { Card } from "@/components/ui/card"
 
 export function BlacklistPage() {
   const { settings } = useSettings()
+  const location = useLocation()
   const [ip, setIp] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-    if (!ip.trim()) return
+  useEffect(() => {
+    const target = location.state?.target;
+    if (target) {
+      setIp(target);
+      performSearch(target);
+    }
+  }, [location.state]);
+
+  const performSearch = async (targetIp: string) => {
+    if (!targetIp.trim()) return
 
     setStatus('loading')
     setErrorMsg("")
@@ -27,7 +36,7 @@ export function BlacklistPage() {
     const startTime = performance.now();
 
     try {
-      const res = await checkBlacklist(ip, settings);
+      const res = await checkBlacklist(targetIp, settings);
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ data: res, queryTime });
       setStatus('success')
@@ -36,6 +45,11 @@ export function BlacklistPage() {
       setErrorMsg(err.message || "An error occurred during blacklist check.")
       setStatus('error')
     }
+  }
+
+  const handleSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    performSearch(ip)
   }
 
   const listedCount = result?.data?.filter((r: any) => r.listed).length || 0;
