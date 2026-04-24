@@ -1,9 +1,13 @@
 export interface ParsedRDAP {
   name: string;
   handle: string;
-  type: string; 
+  type: string;
   registrar?: string;
+  registrarIanaId?: string;
   registrant?: string;
+  abuseContact?: string;
+  adminContact?: string;
+  techContact?: string;
   creationDate?: string;
   expirationDate?: string;
   updatedDate?: string;
@@ -11,6 +15,58 @@ export interface ParsedRDAP {
   statuses: string[];
   ipRange?: string;
   country?: string;
+}
+
+function processEntities(entities: any[], parsed: ParsedRDAP) {
+  if (!entities || !Array.isArray(entities)) return;
+
+  for (const entity of entities) {
+    const roles = entity.roles || [];
+    const vcard = entity.vcardArray?.[1] || [];
+
+    let fn = '';
+    let email = '';
+    let org = '';
+
+    // Extract properties from the vCard array
+    for (const item of vcard) {
+      if (item[0] === 'fn') fn = item[3];
+      if (item[0] === 'email') email = item[3];
+      if (item[0] === 'org') org = item[3];
+    }
+
+    const nameToUse = org || fn;
+    const fullContact = email ? `${nameToUse} - ${email}` : nameToUse;
+
+    if (roles.includes('registrar')) {
+      if (!parsed.registrar) parsed.registrar = nameToUse;
+
+      // Extract IANA ID if available
+      if (entity.publicIds && Array.isArray(entity.publicIds)) {
+        const iana = entity.publicIds.find((id: any) =>
+          id.type && id.type.toLowerCase() === 'iana registrar id'
+        );
+        if (iana) parsed.registrarIanaId = iana.identifier;
+      }
+    }
+    if (roles.includes('registrant') && !parsed.registrant) {
+      parsed.registrant = nameToUse;
+    }
+    if (roles.includes('abuse') && !parsed.abuseContact && fullContact) {
+      parsed.abuseContact = fullContact;
+    }
+    if (roles.includes('administrative') && !parsed.adminContact && fullContact) {
+      parsed.adminContact = fullContact;
+    }
+    if (roles.includes('technical') && !parsed.techContact && fullContact) {
+      parsed.techContact = fullContact;
+    }
+
+    // Recursively process nested entities
+    if (entity.entities) {
+      processEntities(entity.entities, parsed);
+    }
+  }
 }
 
 export function parseRDAP(data: any): ParsedRDAP {
@@ -41,26 +97,8 @@ export function parseRDAP(data: any): ParsedRDAP {
     }
   }
 
-  if (data.entities && Array.isArray(data.entities)) {
-    for (const entity of data.entities) {
-      const roles = entity.roles || [];
-      const vcard = entity.vcardArray?.[1] || [];
-      
-      let fn = '';
-      for (const item of vcard) {
-        if (item[0] === 'fn') {
-          fn = item[3];
-          break;
-        }
-      }
-
-      if (roles.includes('registrar') && !parsed.registrar) {
-        parsed.registrar = fn;
-      }
-      if (roles.includes('registrant') && !parsed.registrant) {
-        parsed.registrant = fn;
-      }
-    }
+  if (data.entities) {
+    processEntities(data.entities, parsed);
   }
 
   return parsed;

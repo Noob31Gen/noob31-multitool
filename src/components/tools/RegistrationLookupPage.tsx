@@ -47,10 +47,18 @@ function RDAPRegistrationCard({ data }: { data: any }) {
               <TableCell className="font-medium bg-muted/50">Handle</TableCell>
               <TableCell>{parsed.handle}</TableCell>
             </TableRow>
+
             {parsed.registrar && (
               <TableRow>
                 <TableCell className="font-medium bg-muted/50">Registrar</TableCell>
-                <TableCell>{parsed.registrar}</TableCell>
+                <TableCell>
+                  {parsed.registrar}
+                  {parsed.registrarIanaId && (
+                    <span className="ml-2 text-xs font-mono text-muted-foreground border bg-muted/30 px-1.5 py-0.5 rounded">
+                      IANA: {parsed.registrarIanaId}
+                    </span>
+                  )}
+                </TableCell>
               </TableRow>
             )}
             {parsed.registrant && (
@@ -59,6 +67,27 @@ function RDAPRegistrationCard({ data }: { data: any }) {
                 <TableCell>{parsed.registrant}</TableCell>
               </TableRow>
             )}
+
+            {/* New Contact Information */}
+            {parsed.abuseContact && (
+              <TableRow>
+                <TableCell className="font-medium bg-muted/50">Abuse Contact</TableCell>
+                <TableCell>{parsed.abuseContact}</TableCell>
+              </TableRow>
+            )}
+            {parsed.adminContact && (
+              <TableRow>
+                <TableCell className="font-medium bg-muted/50">Admin Contact</TableCell>
+                <TableCell>{parsed.adminContact}</TableCell>
+              </TableRow>
+            )}
+            {parsed.techContact && (
+              <TableRow>
+                <TableCell className="font-medium bg-muted/50">Tech Contact</TableCell>
+                <TableCell>{parsed.techContact}</TableCell>
+              </TableRow>
+            )}
+
             {parsed.creationDate && (
               <TableRow>
                 <TableCell className="font-medium bg-muted/50">Creation Date</TableCell>
@@ -162,29 +191,74 @@ export function RegistrationLookupPage() {
   }
 
   const performSearch = async (targetQuery: string) => {
-    if (!targetQuery.trim()) return
+    const q = targetQuery.trim();
+    if (!q) return;
 
-    setStatus('loading')
-    setErrorMsg("")
-    setResult(null)
+    // IP Validation RegEx
+    const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
+    const isIP = ipv4Regex.test(q) || ipv6Regex.test(q);
+
+    // Private IP Identification
+    const isPrivateIP = (ip: string) => {
+      if (ipv4Regex.test(ip)) {
+        const parts = ip.split('.');
+        const p1 = parseInt(parts[0], 10);
+        const p2 = parseInt(parts[1], 10);
+        // Checks: 10.x.x.x, 127.x.x.x, 169.254.x.x, 192.168.x.x, 172.16.x.x - 172.31.x.x
+        if (p1 === 10 || p1 === 127 || (p1 === 169 && p2 === 254) || (p1 === 192 && p2 === 168) || (p1 === 172 && p2 >= 16 && p2 <= 31)) return true;
+      } else if (ip.includes(':')) {
+        const lower = ip.toLowerCase();
+        // Checks: Unique Local, Link Local, Loopback
+        if (lower.startsWith('fc') || lower.startsWith('fd') || lower.startsWith('fe8') || lower.startsWith('fe9') || lower.startsWith('fea') || lower.startsWith('feb') || lower === '::1') return true;
+      }
+      return false;
+    };
+
+    // Pre-flight validation checks
+    if (tool === 'ARIN' && !isIP) {
+      setErrorMsg("Invalid IP address format.");
+      setStatus('error');
+      return;
+    }
+
+    if (tool === 'ASN') {
+      const isASNFormat = /^AS\d+$/i.test(q);
+      if (!isASNFormat) {
+        if (!isIP) {
+          setErrorMsg("Input must be a valid IP address or ASN (e.g., AS15169).");
+          setStatus('error');
+          return;
+        }
+        if (isPrivateIP(q)) {
+          setErrorMsg("Private, loopback, or link-local IPs cannot be queried for ASN data.");
+          setStatus('error');
+          return;
+        }
+      }
+    }
+
+    setStatus('loading');
+    setErrorMsg("");
+    setResult(null);
 
     const startTime = performance.now();
 
     try {
       let res;
       if (tool === 'ASN') {
-        res = await queryASN(targetQuery, settings);
+        res = await queryASN(q, settings);
       } else {
-        res = await queryRDAP(targetQuery, settings);
+        res = await queryRDAP(q, settings);
       }
 
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ data: res, queryTime });
-      setStatus('success')
+      setStatus('success');
     } catch (err: any) {
-      console.error(err)
-      setErrorMsg(err.message || "An error occurred while fetching registration data.")
-      setStatus('error')
+      console.error(err);
+      setErrorMsg(err.message || "An error occurred while fetching registration data.");
+      setStatus('error');
     }
   }
 
@@ -237,7 +311,9 @@ export function RegistrationLookupPage() {
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            Ensure you entered a valid query format. Note that RDAP servers frequently use strict CORS policies. If you are experiencing CORS errors, check your CORS Proxy URL in Settings.
+            {errorMsg.includes("fetching") || errorMsg.toLowerCase().includes("cors")
+              ? "Network request failed. Note that RDAP/ASN servers frequently use strict CORS policies. If you are experiencing CORS errors, check your CORS Proxy URL in Settings."
+              : "Please verify your input. Public lookups require valid, publicly routable IP addresses, domains, or ASNs. Internal networks (e.g., 10.x.x.x, 192.168.x.x) are not registered in public databases."}
           </div>
         </ResultCard>
       )}
