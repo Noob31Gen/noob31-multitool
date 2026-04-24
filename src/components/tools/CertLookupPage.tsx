@@ -70,11 +70,11 @@ export function CertLookupPage() {
         </form>
       </Card>
 
-      {!settings.corsProvider && (
+      {!settings.corsProvider || settings.corsProvider === 'none' ? (
         <div className="text-sm text-amber-600 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10">
           <strong>Warning:</strong> You must configure a CORS Proxy URL in Settings. Or, <a href={`https://crt.sh/?q=${domain}`} target="_blank" rel="noreferrer" className="underline font-bold">Open directly in crt.sh</a>.
         </div>
-      )}
+      ) : null}
 
       {status === 'loading' && (
         <ResultCard title="Querying crt.sh..." status="loading">

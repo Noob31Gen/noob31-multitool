@@ -46,6 +46,18 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <nav className="grid items-start px-4 text-sm font-medium">
+      <div className="mb-4">
+        <Link
+          to="/"
+          onClick={onNavigate}
+          className={cn(
+            "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
+            location.pathname === "/" && "bg-muted font-medium text-foreground"
+          )}
+        >
+          Home
+        </Link>
+      </div>
       {TOOL_CATEGORIES.map((category) => (
         <div key={category.title} className="mb-4">
           <h4 className="mb-1 rounded-md px-2 py-1 text-sm font-semibold tracking-tight">

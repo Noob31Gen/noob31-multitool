@@ -6,50 +6,54 @@ export interface SubdomainResult {
   sources: string[];
 }
 
-export async function querySubdomains(domain: string, settings: AppSettings): Promise<SubdomainResult[]> {
+export async function querySubdomains(
+  domain: string, 
+  settings: AppSettings,
+  onProgress: (results: SubdomainResult[], errors: string[], sourceName: string) => void
+): Promise<void> {
   domain = domain.trim().toLowerCase();
   
   const sources = [
-    fetchHackerTarget(domain, settings),
-    fetchAlienVault(domain, settings),
-    fetchThreatMiner(domain, settings),
-    fetchUrlScan(domain, settings)
+    { name: 'HackerTarget', fn: fetchHackerTarget },
+    { name: 'AlienVault OTX', fn: fetchAlienVault },
+    { name: 'ThreatMiner', fn: fetchThreatMiner },
+    { name: 'URLScan.io', fn: fetchUrlScan },
+    { name: 'crt.sh', fn: fetchCrtSh },
+    { name: 'CertSpotter', fn: fetchCertSpotter }
   ];
 
-  // We use Promise.allSettled so that if one source fails, the others still succeed.
-  const results = await Promise.allSettled(sources);
-  
   const subdomainMap = new Map<string, Set<string>>();
   let allFailed = true;
   const errors: string[] = [];
 
-  results.forEach((result) => {
-    if (result.status === 'fulfilled') {
+  for (const source of sources) {
+    try {
+      const data = await source.fn(domain, settings);
       allFailed = false;
-      result.value.forEach(({ subdomain, source }) => {
+      
+      data.forEach(({ subdomain, source }) => {
         if (!subdomainMap.has(subdomain)) {
           subdomainMap.set(subdomain, new Set());
         }
         subdomainMap.get(subdomain)!.add(source);
       });
-    } else {
-      errors.push(result.reason?.message || 'Unknown error');
+    } catch (err: any) {
+      errors.push(`${source.name}: ${err.message}`);
     }
-  });
+
+    // Convert map to array and sort after each source
+    const currentResults: SubdomainResult[] = Array.from(subdomainMap.entries()).map(([subdomain, sourcesSet]) => ({
+      subdomain,
+      sources: Array.from(sourcesSet).sort()
+    }));
+    currentResults.sort((a, b) => a.subdomain.localeCompare(b.subdomain));
+
+    onProgress(currentResults, errors, source.name);
+  }
 
   if (allFailed) {
     throw new Error(`All subdomain sources failed. Details: ${errors.join(" | ")}`);
   }
-
-  // Convert the map to the final array format and sort alphabetically
-  const finalResults: SubdomainResult[] = Array.from(subdomainMap.entries()).map(([subdomain, sourcesSet]) => ({
-    subdomain,
-    sources: Array.from(sourcesSet).sort()
-  }));
-
-  finalResults.sort((a, b) => a.subdomain.localeCompare(b.subdomain));
-
-  return finalResults;
 }
 
 async function fetchHackerTarget(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
@@ -108,7 +112,11 @@ async function fetchAlienVault(domain: string, settings: AppSettings): Promise<{
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    const data = await res.json();
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<')) {
+      throw new Error('API returned an HTML error page. The proxy or endpoint is likely blocked.');
+    }
+    const data = JSON.parse(text);
     const results: { subdomain: string, source: string }[] = [];
 
     if (data && Array.isArray(data.passive_dns)) {
@@ -145,7 +153,11 @@ async function fetchThreatMiner(domain: string, settings: AppSettings): Promise<
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    const data = await res.json();
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<')) {
+      throw new Error('API returned an HTML error page. The proxy or endpoint is likely blocked.');
+    }
+    const data = JSON.parse(text);
     const results: { subdomain: string, source: string }[] = [];
 
     if (data && Array.isArray(data.results)) {
@@ -167,7 +179,7 @@ async function fetchThreatMiner(domain: string, settings: AppSettings): Promise<
 }
 
 async function fetchUrlScan(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
-  const targetUrl = `https://urlscan.io/api/v1/search/?q=domain:${domain}`;
+  const targetUrl = `https://urlscan.io/api/v1/search/?q=domain:${domain}&size=10000`;
   const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
 
   const controller = new AbortController();
@@ -182,7 +194,11 @@ async function fetchUrlScan(domain: string, settings: AppSettings): Promise<{ su
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    const data = await res.json();
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<')) {
+      throw new Error('API returned an HTML error page. The proxy or endpoint is likely blocked.');
+    }
+    const data = JSON.parse(text);
     const results: { subdomain: string, source: string }[] = [];
 
     if (data && Array.isArray(data.results)) {
@@ -200,5 +216,101 @@ async function fetchUrlScan(domain: string, settings: AppSettings): Promise<{ su
   } catch (error: any) {
     clearTimeout(timeoutId);
     throw new Error(`URLScan.io: ${error.message}`);
+  }
+}
+
+async function fetchCrtSh(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
+  const targetUrl = `https://crt.sh/?q=%.${domain}&output=json`;
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<')) {
+      throw new Error('API returned an HTML error page. The proxy or endpoint is likely blocked.');
+    }
+    
+    const data = JSON.parse(text);
+    const results: { subdomain: string, source: string }[] = [];
+
+    if (Array.isArray(data)) {
+      for (const record of data) {
+        if (record.common_name) {
+          const names = record.common_name.split('\n');
+          for (let name of names) {
+             name = name.trim().toLowerCase();
+             if (name.endsWith(domain) && !name.includes('*')) {
+               results.push({ subdomain: name, source: 'crt.sh' });
+             }
+          }
+        }
+        if (record.name_value) {
+          const names = record.name_value.split('\n');
+          for (let name of names) {
+             name = name.trim().toLowerCase();
+             if (name.endsWith(domain) && !name.includes('*')) {
+               results.push({ subdomain: name, source: 'crt.sh' });
+             }
+          }
+        }
+      }
+    }
+    return results;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    throw new Error(`crt.sh: ${error.message}`);
+  }
+}
+
+async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
+  const targetUrl = `https://api.certspotter.com/v1/issuances?domain=${domain}&include_subdomains=true&expand=dns_names`;
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    const res = await fetch(proxyUrl, { 
+      signal: controller.signal,
+      headers: { 'Accept': 'application/json' }
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      if (res.status === 404) return []; // CertSpotter returns 404 when 0 certs
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<')) {
+      throw new Error('API returned an HTML error page. The proxy or endpoint is likely blocked.');
+    }
+
+    const data = JSON.parse(text);
+    const results: { subdomain: string, source: string }[] = [];
+
+    if (Array.isArray(data)) {
+      for (const cert of data) {
+        if (Array.isArray(cert.dns_names)) {
+          for (let name of cert.dns_names) {
+            name = name.trim().toLowerCase();
+            if (name.endsWith(domain) && !name.includes('*')) {
+              results.push({ subdomain: name, source: 'CertSpotter' });
+            }
+          }
+        }
+      }
+    }
+    return results;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    throw new Error(`CertSpotter: ${error.message}`);
   }
 }

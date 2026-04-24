@@ -23,6 +23,8 @@ export function SubdomainScannerPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
+  const [currentSource, setCurrentSource] = useState("")
+  const [scanErrors, setScanErrors] = useState<string[]>([])
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
@@ -31,13 +33,17 @@ export function SubdomainScannerPage() {
     setStatus('loading')
     setErrorMsg("")
     setResult(null)
+    setScanErrors([])
+    setCurrentSource("Starting scan...")
 
     const startTime = performance.now();
 
     try {
-      const res = await querySubdomains(domain, settings);
-      const queryTime = Math.round(performance.now() - startTime);
-      setResult({ data: res, queryTime });
+      await querySubdomains(domain, settings, (res, errs, sourceName) => {
+        setResult({ data: res, queryTime: Math.round(performance.now() - startTime) });
+        setScanErrors([...errs]);
+        setCurrentSource(`Queried ${sourceName}...`);
+      });
       setStatus('success')
     } catch (err: any) {
       console.error(err)
@@ -70,17 +76,11 @@ export function SubdomainScannerPage() {
         </form>
       </Card>
 
-      {!settings.corsProvider && (
+      {!settings.corsProvider || settings.corsProvider === 'none' ? (
         <div className="text-sm text-amber-600 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10">
           <strong>Warning:</strong> You must configure a CORS Proxy URL in Settings to query the public databases.
         </div>
-      )}
-
-      {status === 'loading' && (
-        <ResultCard title="Scanning multiple sources..." status="loading">
-          <LoadingSkeleton />
-        </ResultCard>
-      )}
+      ) : null}
 
       {status === 'error' && (
         <ResultCard title="Scan Failed" status="error" description={errorMsg}>
@@ -90,10 +90,16 @@ export function SubdomainScannerPage() {
         </ResultCard>
       )}
 
-      {status === 'success' && result && (
+      {status === 'loading' && !result && (
+        <ResultCard title={currentSource || "Scanning..."} status="loading">
+          <LoadingSkeleton />
+        </ResultCard>
+      )}
+
+      {(status === 'loading' || status === 'success') && result && (
         <ResultCard
-          title={`Discovered Subdomains (${result.data.length})`}
-          status="success"
+          title={`Discovered Subdomains (${result.data.length})${status === 'loading' ? ` - ${currentSource}` : ''}`}
+          status={status === 'loading' ? 'loading' : 'success'}
           timeMs={result.queryTime}
           action={
             <div className="flex gap-2">
@@ -102,37 +108,44 @@ export function SubdomainScannerPage() {
             </div>
           }
         >
-          <div className="rounded-md border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Subdomain</TableHead>
-                  <TableHead>Found In</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((item: SubdomainResult, i: number) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-medium text-xs break-all">{item.subdomain}</TableCell>
-                    <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                      <div className="flex gap-1 flex-wrap">
-                        {item.sources.map(src => (
-                          <span key={src} className="px-1.5 py-0.5 rounded-md bg-secondary text-secondary-foreground">
-                            {src}
-                          </span>
-                        ))}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )) : (
+          <div className="space-y-4">
+            {scanErrors.length > 0 && status === 'success' && (
+              <div className="text-sm text-amber-600 dark:text-amber-400 p-3 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10">
+                <strong>Some sources failed:</strong> {scanErrors.join(' | ')}
+              </div>
+            )}
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={2} className="text-center text-muted-foreground h-24">
-                      No subdomains found.
-                    </TableCell>
+                    <TableHead>Subdomain</TableHead>
+                    <TableHead>Found In</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((item: SubdomainResult, i: number) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-medium text-xs break-all">{item.subdomain}</TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        <div className="flex gap-1 flex-wrap">
+                          {item.sources.map(src => (
+                            <span key={src} className="px-1.5 py-0.5 rounded-md bg-secondary text-secondary-foreground">
+                              {src}
+                            </span>
+                          ))}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={2} className="text-center text-muted-foreground h-24">
+                        No subdomains found yet.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </ResultCard>
       )}
