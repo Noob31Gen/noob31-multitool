@@ -117,20 +117,45 @@ export function BlacklistPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {result.data.map((item: any, i: number) => (
-              <div key={i} className={`flex items-center gap-3 p-3 rounded-md border ${item.listed ? 'bg-destructive/5 border-destructive/30' : 'bg-card'}`}>
-                {item.error ? (
-                  <AlertCircle className="w-5 h-5 text-muted-foreground shrink-0" />
-                ) : item.listed ? (
-                  <XCircle className="w-5 h-5 text-destructive shrink-0" />
-                ) : (
-                  <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
-                )}
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate" title={item.zone}>{item.zone}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {item.error ? 'Query failed' : item.listed ? 'Listed' : 'Clean'}
-                    {item.listed && item.records?.[0]?.data ? ` (${item.records[0].data})` : ''}
-                  </p>
+              <div
+                key={i}
+                className={`flex items-start gap-3 p-3 rounded-md border transition-colors ${item.listed
+                    ? 'bg-destructive/5 border-destructive/30 md:col-span-full'
+                    : 'bg-card items-center'
+                  }`}
+              >
+                <div className={`${item.listed ? 'mt-0.5' : ''} shrink-0`}>
+                  {item.error ? (
+                    <AlertCircle className="w-5 h-5 text-muted-foreground" />
+                  ) : item.listed ? (
+                    <XCircle className="w-5 h-5 text-destructive" />
+                  ) : (
+                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  )}
+                </div>
+                <div className="min-w-0 w-full flex flex-col gap-1.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                    <p className="text-sm font-medium truncate" title={item.zone}>{item.zone}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {item.error ? 'Query failed' : item.listed ? 'Listed' : 'Clean'}
+                      {/* Only show raw loopback IPs here if we don't have a specific classification mapping */}
+                      {item.listed && item.records?.[0] && !item.classification ? ` (${item.records[0]})` : ''}
+                    </p>
+                  </div>
+
+                  {item.classification && (
+                    <div className="w-fit">
+                      <span className="text-xs font-semibold text-destructive bg-destructive/10 border border-destructive/20 rounded px-2 py-0.5 inline-block">
+                        {item.classification}
+                      </span>
+                    </div>
+                  )}
+
+                  {item.details && (
+                    <div className="text-xs font-mono text-muted-foreground break-words whitespace-pre-wrap bg-background/50 p-2.5 rounded border border-border/50 mt-1">
+                      {item.details}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

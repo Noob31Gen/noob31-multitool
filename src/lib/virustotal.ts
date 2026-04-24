@@ -20,6 +20,18 @@ export interface VTReport {
       first_submission_date?: number;
       last_submission_date?: number;
       last_analysis_date?: number;
+
+      // Robust Details
+      categories?: Record<string, string>;
+      html_meta?: Record<string, string[]>;
+      trackers?: Record<string, any[]>;
+      last_http_response_code?: number;
+      last_http_response_content_length?: number;
+      last_http_response_content_sha256?: string;
+      last_http_response_headers?: Record<string, string>;
+      last_final_url?: string;
+      redirection_chain?: string[];
+      outgoing_links?: string[];
     }
   }
 }

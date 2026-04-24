@@ -35,7 +35,7 @@ export function UrlScannerPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [parsed, setParsed] = useState<ParsedUrl | null>(null)
   const [visitData, setVisitData] = useState<VisitResult | null>(null)
-  const [vtData, setVtData] = useState<VTReport | null | undefined>(undefined) // undefined = not checked, null = 404
+  const [vtData, setVtData] = useState<VTReport | null | undefined>(undefined)
   const [errorMsg, setErrorMsg] = useState("")
 
   useEffect(() => {
@@ -70,7 +70,6 @@ export function UrlScannerPage() {
             .then(res => setVtData(res))
             .catch(err => {
               console.error("VirusTotal error:", err);
-              // Don't fail the whole scan just because VT failed
             })
         );
       }
@@ -104,6 +103,11 @@ export function UrlScannerPage() {
       <span className={`text-sm break-all ${mono ? 'font-mono' : ''}`}>{value || <span className="text-muted-foreground italic">—</span>}</span>
     </div>
   )
+
+  const formatEpoch = (epoch?: number) => {
+    if (!epoch) return "N/A";
+    return new Date(epoch * 1000).toLocaleString();
+  }
 
   return (
     <div className="space-y-6">
@@ -210,7 +214,6 @@ export function UrlScannerPage() {
                   )}
                 </div>
               </div>
-              {/* Legend */}
               <div className="flex flex-wrap gap-3 mt-3 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-blue-500/30" />Scheme</span>
                 {parsed.authority.userinfo.hasCredentials && <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-500/30" />Credentials</span>}
@@ -226,8 +229,6 @@ export function UrlScannerPage() {
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-            {/* Section 1: Scheme */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -246,7 +247,6 @@ export function UrlScannerPage() {
               </CardContent>
             </Card>
 
-            {/* Section 2: Authority / Host */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -284,7 +284,6 @@ export function UrlScannerPage() {
               </CardContent>
             </Card>
 
-            {/* Section 3: Path */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -311,7 +310,6 @@ export function UrlScannerPage() {
               </CardContent>
             </Card>
 
-            {/* Section 4: Query */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -349,7 +347,6 @@ export function UrlScannerPage() {
               </CardContent>
             </Card>
 
-            {/* Section 5: Fragment */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -366,7 +363,6 @@ export function UrlScannerPage() {
               </CardContent>
             </Card>
 
-            {/* Section 6: Credentials */}
             {parsed.authority.userinfo.hasCredentials && (
               <Card>
                 <CardHeader className="pb-2">
@@ -385,7 +381,6 @@ export function UrlScannerPage() {
               </Card>
             )}
 
-            {/* Section 7: Metadata */}
             <Card className={parsed.authority.userinfo.hasCredentials ? '' : 'lg:col-span-2'}>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -418,14 +413,16 @@ export function UrlScannerPage() {
           {settings.apiKeys.virustotal ? (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-3 text-lg">
-                  <Bug className="w-5 h-5 text-primary" />
-                  VirusTotal Analysis
-                  {vtData && (
-                    <Badge className={vtData.data.attributes.last_analysis_stats.malicious > 0 ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}>
-                      {vtData.data.attributes.last_analysis_stats.malicious > 0 ? "Malicious" : "Clean"}
-                    </Badge>
-                  )}
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-3 text-lg">
+                    <Bug className="w-5 h-5 text-primary" />
+                    VirusTotal Analysis
+                    {vtData && (
+                      <Badge className={vtData.data.attributes.last_analysis_stats.malicious > 0 ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}>
+                        {vtData.data.attributes.last_analysis_stats.malicious > 0 ? "Malicious" : "Clean"}
+                      </Badge>
+                    )}
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -434,7 +431,7 @@ export function UrlScannerPage() {
                 ) : vtData === null ? (
                   <div className="text-sm text-muted-foreground italic">No analysis report found for this URL on VirusTotal.</div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="p-3 rounded-md border bg-red-500/10 border-red-500/20 text-center">
                         <div className="text-2xl font-bold text-red-600 dark:text-red-400">{vtData.data.attributes.last_analysis_stats.malicious}</div>
@@ -452,6 +449,72 @@ export function UrlScannerPage() {
                         <div className="text-2xl font-bold">{vtData.data.attributes.last_analysis_stats.undetected}</div>
                         <div className="text-xs uppercase text-muted-foreground font-semibold">Undetected</div>
                       </div>
+                    </div>
+
+                    {/* Deep Details Section */}
+                    <div className="border-t pt-4 space-y-6">
+
+                      {/* Categories */}
+                      {vtData.data.attributes.categories && Object.keys(vtData.data.attributes.categories).length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold mb-2">Web Categories</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {Object.values(vtData.data.attributes.categories).filter((v, i, a) => a.indexOf(v) === i).map((cat, i) => (
+                              <Badge key={i} variant="secondary">{cat}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* History & HTTP */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                          <h4 className="text-sm font-semibold mb-2">History & Meta</h4>
+                          <div className="space-y-1">
+                            <InfoRow label="First Submission" value={formatEpoch(vtData.data.attributes.first_submission_date)} />
+                            <InfoRow label="Last Analysis" value={formatEpoch(vtData.data.attributes.last_analysis_date)} />
+                            {vtData.data.attributes.html_meta?.title && (
+                              <InfoRow label="HTML Title" value={vtData.data.attributes.html_meta.title[0]} />
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold mb-2">Last HTTP Response (VirusTotal)</h4>
+                          <div className="space-y-1">
+                            <InfoRow label="Final URL" value={vtData.data.attributes.last_final_url || 'N/A'} mono />
+                            <InfoRow label="Status Code" value={vtData.data.attributes.last_http_response_code || 'N/A'} mono />
+                            <InfoRow label="Body SHA256" value={vtData.data.attributes.last_http_response_content_sha256 || 'N/A'} mono />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Trackers & Outgoing Links */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {vtData.data.attributes.trackers && Object.keys(vtData.data.attributes.trackers).length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-semibold mb-2">Identified Trackers</h4>
+                            <div className="flex flex-wrap gap-1">
+                              {Object.keys(vtData.data.attributes.trackers).map((tracker, i) => (
+                                <Badge key={i} variant="outline" className="text-xs bg-background">{tracker}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {vtData.data.attributes.outgoing_links && vtData.data.attributes.outgoing_links.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-semibold mb-2">Outgoing Links ({vtData.data.attributes.outgoing_links.length})</h4>
+                            <div className="max-h-32 overflow-y-auto border rounded-md p-2 bg-muted/10">
+                              {vtData.data.attributes.outgoing_links.slice(0, 20).map((link, i) => (
+                                <div key={i} className="text-xs font-mono truncate text-muted-foreground" title={link}>{link}</div>
+                              ))}
+                              {vtData.data.attributes.outgoing_links.length > 20 && (
+                                <div className="text-xs text-muted-foreground italic mt-1">+ {vtData.data.attributes.outgoing_links.length - 20} more</div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
                     </div>
                   </div>
                 )}
