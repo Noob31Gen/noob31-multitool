@@ -18,6 +18,7 @@ import { DmarcGeneratorPage } from "@/components/tools/DmarcGeneratorPage"
 import { EmailDeliverabilityPage } from "@/components/tools/EmailDeliverabilityPage"
 import { SubdomainScannerPage } from "@/components/tools/SubdomainScannerPage"
 import { SuperToolSearch } from "@/components/shared/SuperToolSearch"
+import { CreditsPage } from "@/components/tools/CreditsPage"
 
 
 function App() {
@@ -87,6 +88,9 @@ function App() {
           <Route path="/bonus/subnet" element={<SubnetCalculatorPage />} />
           <Route path="/bonus/spf-generator" element={<SpfGeneratorPage />} />
           <Route path="/bonus/dmarc-generator" element={<DmarcGeneratorPage />} />
+
+          {/* Part 9: About */}
+          <Route path="/about/credits" element={<CreditsPage />} />
 
           <Route path="*" element={<div className="p-10 text-center text-muted-foreground">Component coming soon...</div>} />
         </Routes>

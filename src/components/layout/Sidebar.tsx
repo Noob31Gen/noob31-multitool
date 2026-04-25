@@ -39,6 +39,12 @@ const TOOL_CATEGORIES = [
       { name: "DMARC Generator", path: "/bonus/dmarc-generator" },
     ],
   },
+  {
+    title: "About",
+    tools: [
+      { name: "Credits", path: "/about/credits" },
+    ],
+  },
 ]
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
