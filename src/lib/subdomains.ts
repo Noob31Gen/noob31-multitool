@@ -7,19 +7,22 @@ export interface SubdomainResult {
 }
 
 export async function querySubdomains(
-  domain: string, 
+  domain: string,
   settings: AppSettings,
   onProgress: (results: SubdomainResult[], errors: string[], sourceName: string) => void
 ): Promise<void> {
   domain = domain.trim().toLowerCase();
-  
+
   const sources = [
     { name: 'HackerTarget', fn: fetchHackerTarget },
     { name: 'AlienVault OTX', fn: fetchAlienVault },
     { name: 'ThreatMiner', fn: fetchThreatMiner },
     { name: 'URLScan.io', fn: fetchUrlScan },
     { name: 'crt.sh', fn: fetchCrtSh },
-    { name: 'CertSpotter', fn: fetchCertSpotter }
+    { name: 'CertSpotter', fn: fetchCertSpotter },
+    { name: 'Anubis', fn: fetchAnubis },
+    { name: 'Mnemonic', fn: fetchMnemonic },
+    { name: 'Wayback Machine', fn: fetchWaybackMachine }
   ];
 
   const subdomainMap = new Map<string, Set<string>>();
@@ -30,7 +33,7 @@ export async function querySubdomains(
     try {
       const data = await source.fn(domain, settings);
       allFailed = false;
-      
+
       data.forEach(({ subdomain, source }) => {
         if (!subdomainMap.has(subdomain)) {
           subdomainMap.set(subdomain, new Set());
@@ -70,7 +73,7 @@ async function fetchHackerTarget(domain: string, settings: AppSettings): Promise
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const text = await res.text();
-    
+
     // HackerTarget can return errors in plain text like "error check your search parameter" or "API count exceeded"
     if (text.includes("error") || text.includes("API count exceeded")) {
       throw new Error(`HackerTarget API Error: ${text.trim()}`);
@@ -104,7 +107,7 @@ async function fetchAlienVault(domain: string, settings: AppSettings): Promise<{
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch(proxyUrl, { 
+    const res = await fetch(proxyUrl, {
       signal: controller.signal,
       headers: { 'Accept': 'application/json' }
     });
@@ -145,7 +148,7 @@ async function fetchThreatMiner(domain: string, settings: AppSettings): Promise<
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch(proxyUrl, { 
+    const res = await fetch(proxyUrl, {
       signal: controller.signal,
       headers: { 'Accept': 'application/json' }
     });
@@ -186,7 +189,7 @@ async function fetchUrlScan(domain: string, settings: AppSettings): Promise<{ su
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch(proxyUrl, { 
+    const res = await fetch(proxyUrl, {
       signal: controller.signal,
       headers: { 'Accept': 'application/json' }
     });
@@ -236,7 +239,7 @@ async function fetchCrtSh(domain: string, settings: AppSettings): Promise<{ subd
     if (!text || text.trim().startsWith('<')) {
       throw new Error('API returned an HTML error page. The proxy or endpoint is likely blocked.');
     }
-    
+
     const data = JSON.parse(text);
     const results: { subdomain: string, source: string }[] = [];
 
@@ -245,19 +248,19 @@ async function fetchCrtSh(domain: string, settings: AppSettings): Promise<{ subd
         if (record.common_name) {
           const names = record.common_name.split('\n');
           for (let name of names) {
-             name = name.trim().toLowerCase();
-             if (name.endsWith(domain) && !name.includes('*')) {
-               results.push({ subdomain: name, source: 'crt.sh' });
-             }
+            name = name.trim().toLowerCase();
+            if (name.endsWith(domain) && !name.includes('*')) {
+              results.push({ subdomain: name, source: 'crt.sh' });
+            }
           }
         }
         if (record.name_value) {
           const names = record.name_value.split('\n');
           for (let name of names) {
-             name = name.trim().toLowerCase();
-             if (name.endsWith(domain) && !name.includes('*')) {
-               results.push({ subdomain: name, source: 'crt.sh' });
-             }
+            name = name.trim().toLowerCase();
+            if (name.endsWith(domain) && !name.includes('*')) {
+              results.push({ subdomain: name, source: 'crt.sh' });
+            }
           }
         }
       }
@@ -277,7 +280,7 @@ async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<
   const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
-    const res = await fetch(proxyUrl, { 
+    const res = await fetch(proxyUrl, {
       signal: controller.signal,
       headers: { 'Accept': 'application/json' }
     });
@@ -313,4 +316,36 @@ async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<
     clearTimeout(timeoutId);
     throw new Error(`CertSpotter: ${error.message}`);
   }
+}
+
+async function fetchAnubis(domain: string, settings: AppSettings) {
+  const targetUrl = `https://jldc.me/anubis/subdomains/${domain}`;
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  const res = await fetch(proxyUrl);
+  const data = await res.json();
+  return data.map((sub: string) => ({ subdomain: sub.toLowerCase(), source: 'Anubis' }));
+}
+
+async function fetchMnemonic(domain: string, settings: AppSettings) {
+  const targetUrl = `https://api.mnemonic.no/pdns/v3/${domain}`;
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  const res = await fetch(proxyUrl);
+  const data = await res.json();
+  return (data.data || []).map((record: any) => ({ subdomain: record.query.toLowerCase(), source: 'Mnemonic' }));
+}
+
+async function fetchWaybackMachine(domain: string, settings: AppSettings) {
+  const targetUrl = `http://web.archive.org/cdx/search/cdx?url=*.${domain}/*&output=json&collapse=urlkey&fl=original`;
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  const res = await fetch(proxyUrl);
+  const data = await res.json();
+  // Skip header row and extract hostnames from original URLs
+  return data.slice(1).map((row: string[]) => {
+    try {
+      const url = new URL(row[0]);
+      return { subdomain: url.hostname.toLowerCase(), source: 'Wayback Machine' };
+    } catch {
+      return null;
+    }
+  }).filter(Boolean);
 }
