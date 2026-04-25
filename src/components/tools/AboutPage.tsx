@@ -1,5 +1,7 @@
 import { Card } from "@/components/ui/card"
 
+const version = import.meta.env.APP_VERSION;
+
 export function AboutPage() {
   return (
     <div className="space-y-6">
@@ -17,7 +19,9 @@ export function AboutPage() {
             I have a lot of windows and web tools on my website. Check them out too. Also if something doesn't work, please let me know.
           </p>
         </div>
-
+        <p className="text-muted-foreground">
+          App Version : {version}
+        </p>
         <div className="pt-4 space-y-2">
           <p className="text-muted-foreground">
             <span className="font-medium text-foreground">Contact:</span> <a className="underline hover:text-foreground" href="mailto:welcome@noob31.com">welcome@noob31.com</a>
