@@ -6,6 +6,34 @@ export interface SubdomainResult {
   sources: string[];
 }
 
+function extractValidSubdomain(sub: string, domain: string): string | null {
+  if (!sub) return null;
+  let cleanSub = sub.trim().toLowerCase();
+  
+  // Remove protocol
+  cleanSub = cleanSub.replace(/^https?:\/\//, '');
+  
+  // Remove any path, query, fragment, port
+  cleanSub = cleanSub.split('/')[0].split('?')[0].split('#')[0].split(':')[0];
+  
+  // Strip wildcard prefix
+  if (cleanSub.startsWith('*.')) {
+    cleanSub = cleanSub.substring(2);
+  }
+
+  // Validate characters (RFC 1123 loosely)
+  if (!/^[a-z0-9.-]+$/.test(cleanSub) || cleanSub.includes('..')) {
+    return null;
+  }
+
+  // Exact match or proper subdomain
+  if (cleanSub === domain || cleanSub.endsWith(`.${domain}`)) {
+    return cleanSub;
+  }
+  
+  return null;
+}
+
 export async function querySubdomains(
   domain: string,
   settings: AppSettings,
@@ -22,6 +50,12 @@ export async function querySubdomains(
     { name: 'CertSpotter', fn: fetchCertSpotter },
     { name: 'Anubis', fn: fetchAnubis },
     { name: 'Mnemonic', fn: fetchMnemonic },
+    { name: 'ThreatCrowd', fn: fetchThreatCrowd },
+    { name: 'BufferOver', fn: fetchBufferOver },
+    { name: 'Omnisint', fn: fetchOmnisint },
+    { name: 'Columbus Project', fn: fetchColumbus },
+    { name: 'Riddler', fn: fetchRiddler },
+    { name: 'Subdomain Center', fn: fetchSubdomainCenter },
     { name: 'Wayback Machine', fn: fetchWaybackMachine }
   ];
 
@@ -31,10 +65,10 @@ export async function querySubdomains(
 
   for (const source of sources) {
     try {
-      const data = await source.fn(domain, settings);
+      const data: { subdomain: string; source: string }[] = await source.fn(domain, settings);
       allFailed = false;
 
-      data.forEach(({ subdomain, source }) => {
+      data.forEach(({ subdomain, source }: { subdomain: string; source: string }) => {
         if (!subdomainMap.has(subdomain)) {
           subdomainMap.set(subdomain, new Set());
         }
@@ -84,10 +118,10 @@ async function fetchHackerTarget(domain: string, settings: AppSettings): Promise
 
     for (const line of lines) {
       const parts = line.split(',');
-      if (parts.length > 0 && parts[0].trim()) {
-        const sub = parts[0].trim().toLowerCase();
-        if (sub.endsWith(domain)) {
-          results.push({ subdomain: sub, source: 'HackerTarget' });
+      if (parts.length > 0) {
+        const validSub = extractValidSubdomain(parts[0], domain);
+        if (validSub) {
+          results.push({ subdomain: validSub, source: 'HackerTarget' });
         }
       }
     }
@@ -125,9 +159,9 @@ async function fetchAlienVault(domain: string, settings: AppSettings): Promise<{
     if (data && Array.isArray(data.passive_dns)) {
       for (const record of data.passive_dns) {
         if (record.hostname) {
-          const sub = record.hostname.trim().toLowerCase();
-          if (sub.endsWith(domain)) {
-            results.push({ subdomain: sub, source: 'AlienVault OTX' });
+          const validSub = extractValidSubdomain(record.hostname, domain);
+          if (validSub) {
+            results.push({ subdomain: validSub, source: 'AlienVault OTX' });
           }
         }
       }
@@ -166,9 +200,9 @@ async function fetchThreatMiner(domain: string, settings: AppSettings): Promise<
     if (data && Array.isArray(data.results)) {
       for (const record of data.results) {
         if (typeof record === 'string') {
-          const sub = record.trim().toLowerCase();
-          if (sub.endsWith(domain)) {
-            results.push({ subdomain: sub, source: 'ThreatMiner' });
+          const validSub = extractValidSubdomain(record, domain);
+          if (validSub) {
+            results.push({ subdomain: validSub, source: 'ThreatMiner' });
           }
         }
       }
@@ -207,9 +241,9 @@ async function fetchUrlScan(domain: string, settings: AppSettings): Promise<{ su
     if (data && Array.isArray(data.results)) {
       for (const record of data.results) {
         if (record.page && record.page.domain) {
-          const sub = record.page.domain.trim().toLowerCase();
-          if (sub.endsWith(domain)) {
-            results.push({ subdomain: sub, source: 'URLScan.io' });
+          const validSub = extractValidSubdomain(record.page.domain, domain);
+          if (validSub) {
+            results.push({ subdomain: validSub, source: 'URLScan.io' });
           }
         }
       }
@@ -247,19 +281,19 @@ async function fetchCrtSh(domain: string, settings: AppSettings): Promise<{ subd
       for (const record of data) {
         if (record.common_name) {
           const names = record.common_name.split('\n');
-          for (let name of names) {
-            name = name.trim().toLowerCase();
-            if (name.endsWith(domain) && !name.includes('*')) {
-              results.push({ subdomain: name, source: 'crt.sh' });
+          for (const name of names) {
+            const validSub = extractValidSubdomain(name, domain);
+            if (validSub) {
+              results.push({ subdomain: validSub, source: 'crt.sh' });
             }
           }
         }
         if (record.name_value) {
           const names = record.name_value.split('\n');
-          for (let name of names) {
-            name = name.trim().toLowerCase();
-            if (name.endsWith(domain) && !name.includes('*')) {
-              results.push({ subdomain: name, source: 'crt.sh' });
+          for (const name of names) {
+            const validSub = extractValidSubdomain(name, domain);
+            if (validSub) {
+              results.push({ subdomain: validSub, source: 'crt.sh' });
             }
           }
         }
@@ -302,10 +336,10 @@ async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<
     if (Array.isArray(data)) {
       for (const cert of data) {
         if (Array.isArray(cert.dns_names)) {
-          for (let name of cert.dns_names) {
-            name = name.trim().toLowerCase();
-            if (name.endsWith(domain) && !name.includes('*')) {
-              results.push({ subdomain: name, source: 'CertSpotter' });
+          for (const name of cert.dns_names) {
+            const validSub = extractValidSubdomain(name, domain);
+            if (validSub) {
+              results.push({ subdomain: validSub, source: 'CertSpotter' });
             }
           }
         }
@@ -318,34 +352,320 @@ async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<
   }
 }
 
-async function fetchAnubis(domain: string, settings: AppSettings) {
+async function fetchAnubis(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://jldc.me/anubis/subdomains/${domain}`;
   const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
-  const res = await fetch(proxyUrl);
-  const data = await res.json();
-  return data.map((sub: string) => ({ subdomain: sub.toLowerCase(), source: 'Anubis' }));
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<')) {
+      throw new Error('API returned HTML instead of JSON');
+    }
+    
+    const data = JSON.parse(text);
+    const results: { subdomain: string, source: string }[] = [];
+    
+    if (Array.isArray(data)) {
+      for (const sub of data) {
+        if (typeof sub === 'string') {
+          const validSub = extractValidSubdomain(sub, domain);
+          if (validSub) results.push({ subdomain: validSub, source: 'Anubis' });
+        }
+      }
+    }
+    
+    return results;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    throw new Error(`Anubis: ${error.message}`);
+  }
 }
 
-async function fetchMnemonic(domain: string, settings: AppSettings) {
+async function fetchMnemonic(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://api.mnemonic.no/pdns/v3/${domain}`;
   const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
-  const res = await fetch(proxyUrl);
-  const data = await res.json();
-  return (data.data || []).map((record: any) => ({ subdomain: record.query.toLowerCase(), source: 'Mnemonic' }));
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<')) {
+      throw new Error('API returned HTML instead of JSON');
+    }
+    
+    const data = JSON.parse(text);
+    const results: { subdomain: string, source: string }[] = [];
+    
+    if (data && Array.isArray(data.data)) {
+      for (const record of data.data) {
+        if (record && record.query) {
+          const validSub = extractValidSubdomain(record.query, domain);
+          if (validSub) results.push({ subdomain: validSub, source: 'Mnemonic' });
+        }
+      }
+    }
+    
+    return results;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    throw new Error(`Mnemonic: ${error.message}`);
+  }
 }
 
-async function fetchWaybackMachine(domain: string, settings: AppSettings) {
+async function fetchWaybackMachine(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `http://web.archive.org/cdx/search/cdx?url=*.${domain}/*&output=json&collapse=urlkey&fl=original`;
   const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
-  const res = await fetch(proxyUrl);
-  const data = await res.json();
-  // Skip header row and extract hostnames from original URLs
-  return data.slice(1).map((row: string[]) => {
-    try {
-      const url = new URL(row[0]);
-      return { subdomain: url.hostname.toLowerCase(), source: 'Wayback Machine' };
-    } catch {
-      return null;
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<')) {
+      throw new Error('API returned HTML instead of JSON');
     }
-  }).filter(Boolean);
+    
+    const data = JSON.parse(text);
+    const results: { subdomain: string, source: string }[] = [];
+    
+    if (Array.isArray(data) && data.length > 1) {
+      // Skip header row
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        if (Array.isArray(row) && row.length > 0) {
+          try {
+            let hostname = "";
+            if (row[0].startsWith('http')) {
+               const url = new URL(row[0]);
+               hostname = url.hostname;
+            } else {
+               hostname = row[0];
+            }
+            
+            const validSub = extractValidSubdomain(hostname, domain);
+            if (validSub) results.push({ subdomain: validSub, source: 'Wayback Machine' });
+          } catch (e) {
+            // Ignore parsing errors for individual URLs
+          }
+        }
+      }
+    }
+    
+    return results;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    throw new Error(`Wayback Machine: ${error.message}`);
+  }
+}
+
+async function fetchThreatCrowd(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
+  const targetUrl = `https://www.threatcrowd.org/searchApi/v2/domain/report/?domain=${domain}`;
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<')) throw new Error('API returned HTML instead of JSON');
+    
+    const data = JSON.parse(text);
+    const results: { subdomain: string, source: string }[] = [];
+    
+    if (data && Array.isArray(data.subdomains)) {
+      for (const sub of data.subdomains) {
+        if (typeof sub === 'string') {
+          const validSub = extractValidSubdomain(sub, domain);
+          if (validSub) results.push({ subdomain: validSub, source: 'ThreatCrowd' });
+        }
+      }
+    }
+    return results;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    throw new Error(`ThreatCrowd: ${error.message}`);
+  }
+}
+
+async function fetchBufferOver(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
+  const targetUrl = `https://tls.bufferover.run/dns?q=.${domain}`;
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<')) throw new Error('API returned HTML instead of JSON');
+    
+    const data = JSON.parse(text);
+    const results: { subdomain: string, source: string }[] = [];
+    
+    if (data && Array.isArray(data.FDNS_A)) {
+      for (const record of data.FDNS_A) {
+        if (typeof record === 'string') {
+          const parts = record.split(',');
+          if (parts.length > 1) {
+            const validSub = extractValidSubdomain(parts[1], domain);
+            if (validSub) results.push({ subdomain: validSub, source: 'BufferOver' });
+          }
+        }
+      }
+    }
+    return results;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    throw new Error(`BufferOver: ${error.message}`);
+  }
+}
+
+async function fetchOmnisint(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
+  const targetUrl = `https://sonar.omnisint.io/subdomains/${domain}`;
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<')) throw new Error('API returned HTML instead of JSON');
+    
+    const data = JSON.parse(text);
+    const results: { subdomain: string, source: string }[] = [];
+    
+    if (Array.isArray(data)) {
+      for (const sub of data) {
+        if (typeof sub === 'string') {
+          const validSub = extractValidSubdomain(sub, domain);
+          if (validSub) results.push({ subdomain: validSub, source: 'Omnisint' });
+        }
+      }
+    }
+    return results;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    throw new Error(`Omnisint: ${error.message}`);
+  }
+}
+
+async function fetchColumbus(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
+  const targetUrl = `https://columbus.elmasy.com/api/lookup/${domain}`;
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
+    const text = await res.text();
+    const results: { subdomain: string, source: string }[] = [];
+    
+    for (const line of text.split('\n')) {
+      const sub = line.trim();
+      if (sub) {
+        const fullSub = sub.endsWith(domain) ? sub : `${sub}.${domain}`;
+        const validSub = extractValidSubdomain(fullSub, domain);
+        if (validSub) results.push({ subdomain: validSub, source: 'Columbus Project' });
+      }
+    }
+    return results;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    throw new Error(`Columbus Project: ${error.message}`);
+  }
+}
+
+async function fetchRiddler(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
+  const targetUrl = `https://riddler.io/search/exportcsv?q=pld:${domain}`;
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
+    const text = await res.text();
+    const results: { subdomain: string, source: string }[] = [];
+    
+    const escapedDomain = domain.replace(/\./g, '\\.');
+    const regex = new RegExp(`[a-zA-Z0-9.-]*${escapedDomain}`, 'gi');
+    const matches = text.match(regex);
+    
+    if (matches) {
+      for (const match of matches) {
+        const validSub = extractValidSubdomain(match, domain);
+        if (validSub) results.push({ subdomain: validSub, source: 'Riddler' });
+      }
+    }
+    return results;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    throw new Error(`Riddler: ${error.message}`);
+  }
+}
+
+async function fetchSubdomainCenter(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
+  const targetUrl = `https://api.subdomain.center/?domain=${domain}`;
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<')) throw new Error('API returned HTML instead of JSON');
+    
+    const data = JSON.parse(text);
+    const results: { subdomain: string, source: string }[] = [];
+    
+    if (Array.isArray(data)) {
+      for (const sub of data) {
+        if (typeof sub === 'string') {
+          const validSub = extractValidSubdomain(sub, domain);
+          if (validSub) results.push({ subdomain: validSub, source: 'Subdomain Center' });
+        }
+      }
+    }
+    return results;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    throw new Error(`Subdomain Center: ${error.message}`);
+  }
 }
