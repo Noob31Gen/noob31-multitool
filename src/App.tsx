@@ -19,6 +19,8 @@ import { EmailDeliverabilityPage } from "@/components/tools/EmailDeliverabilityP
 import { SubdomainScannerPage } from "@/components/tools/SubdomainScannerPage"
 import { SuperToolSearch } from "@/components/shared/SuperToolSearch"
 import { CreditsPage } from "@/components/tools/CreditsPage"
+import { AboutPage } from "@/components/tools/AboutPage"
+
 
 
 function App() {
@@ -42,13 +44,9 @@ function App() {
                 All tools here run fully in the browser. No tracking or metrics info is collected.
               </p>
               <br></br>
-              <br></br>
               <p className="text-lg text-muted-foreground mb-10 max-w-2xl">
-                I have a lot of windows and web tools in my website too. Check them out too. Also if something doesn't work, please let me know.
-              </p>
-              <p className="text-lg text-muted-foreground mb-10 max-w-2xl">
-                Contact: <a className="underline" href="mailto:welcome@noob31.com">welcome@noob31.com</a> |
-                Website: <a className="underline" href="https://noob31.com/" target="_blank">noob31.com</a>
+                <a className="underline" href="/about/info">About</a> |&nbsp;
+                <a className="underline" href="https://noob31.com/" target="_blank" rel="noreferrer">My Website</a>
               </p>
               <p className="text-sm text-muted-foreground">
                 This project is built with React.js, Vite, and Tailwind CSS.
@@ -90,6 +88,7 @@ function App() {
           <Route path="/bonus/dmarc-generator" element={<DmarcGeneratorPage />} />
 
           {/* Part 9: About */}
+          <Route path="/about/info" element={<AboutPage />} />
           <Route path="/about/credits" element={<CreditsPage />} />
 
           <Route path="*" element={<div className="p-10 text-center text-muted-foreground">Component coming soon...</div>} />

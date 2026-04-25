@@ -42,6 +42,7 @@ const TOOL_CATEGORIES = [
   {
     title: "About",
     tools: [
+      { name: "About", path: "/about/info" },
       { name: "Credits", path: "/about/credits" },
     ],
   },
