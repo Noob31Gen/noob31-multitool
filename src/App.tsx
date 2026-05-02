@@ -20,6 +20,7 @@ import { SubdomainScannerPage } from "@/components/tools/SubdomainScannerPage"
 import { SuperToolSearch } from "@/components/shared/SuperToolSearch"
 import { CreditsPage } from "@/components/tools/CreditsPage"
 import { AboutPage } from "@/components/tools/AboutPage"
+import { AllFeaturesPage } from "@/components/tools/AllFeaturesPage"
 
 
 
@@ -90,8 +91,9 @@ function App() {
           {/* Part 9: About */}
           <Route path="/about/info" element={<AboutPage />} />
           <Route path="/about/credits" element={<CreditsPage />} />
+          <Route path="/about/features" element={<AllFeaturesPage />} />
 
-          <Route path="*" element={<div className="p-10 text-center text-muted-foreground">Component coming soon...</div>} />
+          <Route path="*" element={<div className="p-10 text-center text-muted-foreground">Tool not found. Check the sidebar if you're lost.</div>} />
         </Routes>
       </AppLayout>
     </BrowserRouter>

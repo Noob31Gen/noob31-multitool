@@ -64,6 +64,16 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         >
           Home
         </Link>
+        <Link
+          to="/about/features"
+          onClick={onNavigate}
+          className={cn(
+            "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
+            location.pathname === "/about/features" && "bg-muted font-medium text-foreground"
+          )}
+        >
+          Everything
+        </Link>
       </div>
       {TOOL_CATEGORIES.map((category) => (
         <div key={category.title} className="mb-4">
