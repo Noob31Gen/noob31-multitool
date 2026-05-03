@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react"
 import { queryASN } from "@/lib/asn"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
