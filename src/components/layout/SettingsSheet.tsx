@@ -107,9 +107,9 @@ export function SettingsSheet() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">None (Direct Request)</SelectItem>
+                <SelectItem value="codetabs">CodeTabs (Recommended)</SelectItem>
                 <SelectItem value="corsproxy">CORSProxy</SelectItem>
                 <SelectItem value="allorigins">AllOrigins</SelectItem>
-                <SelectItem value="codetabs">CodeTabs</SelectItem>
                 <SelectItem value="thingproxy">ThingProxy</SelectItem>
                 <SelectItem value="corsanywhere">CORS Anywhere</SelectItem>
                 <SelectItem value="custom">Custom CORS Proxy</SelectItem>

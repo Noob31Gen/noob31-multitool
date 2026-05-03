@@ -16,7 +16,7 @@ export interface AppSettings {
 export const defaultSettings: AppSettings = {
   dohProvider: 'google',
   customDnsUrl: '',
-  corsProvider: 'corsproxy',
+  corsProvider: 'none',
   customCorsUrl: '',
   theme: 'system',
   persistenceEnabled: safeStorage.isEnabled(),
