@@ -92,9 +92,13 @@ export async function lookupMac(
   // We only need the OUI (first 6 chars) for vendor lookup
   const oui = cleanMac.substring(0, 6);
   
-  // macvendorlookup.com API v2 provides more details (address, country, range)
-  const url = `https://www.macvendorlookup.com/api/v2/${oui}`;
-  const proxiedUrl = getProxiedUrl(url, corsProvider, customCorsUrl);
+  // Attempt 1: macvendorlookup.com (Detailed info)
+  const urlV1 = `https://www.macvendorlookup.com/api/v2/${oui}`;
+  const proxiedUrlV1 = getProxiedUrl(urlV1, corsProvider, customCorsUrl);
+
+  // Attempt 2: macvendors.com (Fallback - Reliable vendor name)
+  const urlV2 = `https://api.macvendors.com/${oui}`;
+  const proxiedUrlV2 = getProxiedUrl(urlV2, corsProvider, customCorsUrl);
 
   // Bit analysis on the first byte
   const firstByteHex = oui.substring(0, 2);
@@ -108,10 +112,42 @@ export async function lookupMac(
   const isUniversal = binary[6] === '0';
 
   try {
-    const response = await fetch(proxiedUrl);
+    // Try detailed API first
+    try {
+      const response = await fetch(proxiedUrlV1);
+      if (response.ok && response.status !== 204) {
+        const data = await response.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const entry = data[0];
+          return {
+            mac,
+            vendor: entry.company || "Unknown",
+            address: [entry.addressL1, entry.addressL2, entry.addressL3].filter(Boolean).join(", "),
+            country: entry.country,
+            range: {
+              start: entry.startHex,
+              end: entry.endHex,
+            },
+            blockType: entry.type,
+            category: getVendorCategory(entry.company || ""),
+            oui,
+            success: true,
+            isUnicast,
+            isUniversal,
+            binary,
+            queryTime: Date.now() - startTime,
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("Detailed MAC lookup failed, trying fallback...", e);
+    }
+
+    // Fallback to simpler API if detailed one fails or returns no data
+    const fbResponse = await fetch(proxiedUrlV2);
     const queryTime = Date.now() - startTime;
 
-    if (response.status === 404 || response.status === 204) {
+    if (fbResponse.status === 404) {
       return {
         mac,
         vendor: "Unknown Vendor / Not Assigned",
@@ -124,36 +160,15 @@ export async function lookupMac(
       };
     }
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+    if (!fbResponse.ok) {
+      throw new Error(`API error: ${fbResponse.status}`);
     }
 
-    const data = await response.json();
-    if (Array.isArray(data) && data.length > 0) {
-      const entry = data[0];
-      return {
-        mac,
-        vendor: entry.company || "Unknown",
-        address: [entry.addressL1, entry.addressL2, entry.addressL3].filter(Boolean).join(", "),
-        country: entry.country,
-        range: {
-          start: entry.startHex,
-          end: entry.endHex,
-        },
-        blockType: entry.type,
-        category: getVendorCategory(entry.company || ""),
-        oui,
-        success: true,
-        isUnicast,
-        isUniversal,
-        binary,
-        queryTime,
-      };
-    }
-
+    const vendor = await fbResponse.text();
     return {
       mac,
-      vendor: "Unknown Vendor",
+      vendor: vendor.trim(),
+      category: getVendorCategory(vendor),
       oui,
       success: true,
       isUnicast,
@@ -170,7 +185,7 @@ export async function lookupMac(
       isUnicast: true,
       isUniversal: true,
       binary: "",
-      error: error.message || "Failed to lookup MAC address.",
+      error: error.message || "Failed to lookup MAC address. This might be due to CORS proxy limitations on your current network.",
       queryTime: Date.now() - startTime,
     };
   }
