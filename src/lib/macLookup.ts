@@ -143,8 +143,17 @@ export async function lookupMac(
       console.warn("Detailed MAC lookup failed, trying fallback...", e);
     }
 
-    // Fallback to simpler API if detailed one fails or returns no data
-    const fbResponse = await fetch(proxiedUrlV2);
+    // Fallback 1: Use configured proxy with simpler API
+    let fbResponse;
+    try {
+      fbResponse = await fetch(proxiedUrlV2);
+    } catch (e) {
+      // If even the configured proxy fails (or if provider is 'none'), try an emergency proxy
+      console.warn("Configured proxy failed or blocked by CORS. Trying emergency proxy (AllOrigins)...");
+      const emergencyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(urlV2)}`;
+      fbResponse = await fetch(emergencyUrl);
+    }
+
     const queryTime = Date.now() - startTime;
 
     if (fbResponse.status === 404) {
@@ -177,6 +186,7 @@ export async function lookupMac(
       queryTime,
     };
   } catch (error: any) {
+    console.error("All MAC lookup attempts failed:", error);
     return {
       mac,
       vendor: "",
@@ -185,7 +195,9 @@ export async function lookupMac(
       isUnicast: true,
       isUniversal: true,
       binary: "",
-      error: error.message || "Failed to lookup MAC address. This might be due to CORS proxy limitations on your current network.",
+      error: error.name === 'TypeError' ? 
+        "CORS Blocked: The request was blocked by your browser. Please go to Settings and select a working CORS Proxy (like AllOrigins or Corsproxy.io)." : 
+        (error.message || "Failed to lookup MAC address."),
       queryTime: Date.now() - startTime,
     };
   }
