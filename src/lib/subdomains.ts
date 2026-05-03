@@ -6,6 +6,31 @@ export interface SubdomainResult {
   sources: string[];
 }
 
+/**
+ * Enhanced fetch that handles authenticated proxies by moving URL credentials to headers
+ */
+async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  let finalUrl = url;
+  const finalOptions: RequestInit = { ...options };
+  const headers = new Headers(finalOptions.headers || {});
+
+  try {
+    const u = new URL(url);
+    if (u.username || u.password) {
+      const auth = btoa(`${u.username}:${u.password}`);
+      headers.set("Authorization", `Basic ${auth}`);
+      u.username = "";
+      u.password = "";
+      finalUrl = u.toString();
+    }
+  } catch (e) {
+    // Not an absolute URL
+  }
+
+  finalOptions.headers = headers;
+  return fetch(finalUrl, finalOptions);
+}
+
 function extractValidSubdomain(sub: string, domain: string): string | null {
   if (!sub) return null;
   let cleanSub = sub.trim().toLowerCase();
@@ -88,13 +113,13 @@ export async function querySubdomains(
 
 async function fetchHackerTarget(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://api.hackertarget.com/hostsearch/?q=${domain}`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch(proxyUrl, { signal: controller.signal });
+    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -128,13 +153,13 @@ async function fetchHackerTarget(domain: string, settings: AppSettings): Promise
 
 async function fetchUrlScan(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://urlscan.io/api/v1/search/?q=domain:${domain}&size=10000`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch(proxyUrl, {
+    const res = await authenticatedFetch(proxyUrl, {
       signal: controller.signal,
       headers: { 'Accept': 'application/json' }
     });
@@ -169,13 +194,13 @@ async function fetchUrlScan(domain: string, settings: AppSettings): Promise<{ su
 
 async function fetchCrtSh(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://crt.sh/?q=%.${domain}&output=json`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch(proxyUrl, { signal: controller.signal });
+    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -219,13 +244,13 @@ async function fetchCrtSh(domain: string, settings: AppSettings): Promise<{ subd
 
 async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://api.certspotter.com/v1/issuances?domain=${domain}&include_subdomains=true&expand=dns_names`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
-    const res = await fetch(proxyUrl, {
+    const res = await authenticatedFetch(proxyUrl, {
       signal: controller.signal,
       headers: { 'Accept': 'application/json' }
     });
@@ -265,13 +290,13 @@ async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<
 
 async function fetchAnubis(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://jldc.me/anubis/subdomains/${domain}`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch(proxyUrl, { signal: controller.signal });
+    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -302,13 +327,13 @@ async function fetchAnubis(domain: string, settings: AppSettings): Promise<{ sub
 
 async function fetchMnemonic(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://api.mnemonic.no/pdns/v3/${domain}`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch(proxyUrl, { signal: controller.signal });
+    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -339,13 +364,13 @@ async function fetchMnemonic(domain: string, settings: AppSettings): Promise<{ s
 
 async function fetchWaybackMachine(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `http://web.archive.org/cdx/search/cdx?url=*.${domain}/*&output=json&collapse=urlkey&fl=original`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch(proxyUrl, { signal: controller.signal });
+    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -390,13 +415,13 @@ async function fetchWaybackMachine(domain: string, settings: AppSettings): Promi
 
 async function fetchBufferOver(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://tls.bufferover.run/dns?q=.${domain}`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider as any, (settings as any).customProxyUrl);
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch(proxyUrl, { signal: controller.signal });
+    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
