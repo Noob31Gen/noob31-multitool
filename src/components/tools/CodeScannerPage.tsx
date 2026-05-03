@@ -19,7 +19,21 @@ export function CodeScannerPage() {
   useEffect(() => {
     if (isScanning && !scannerRef.current) {
       const html5QrCode = new Html5Qrcode("reader")
-      const config = { fps: 10, qrbox: { width: 250, height: 250 } }
+      
+      const qrboxFunction = (viewfinderWidth: number, viewfinderHeight: number) => {
+        const minEdge = Math.min(viewfinderWidth, viewfinderHeight)
+        const size = Math.floor(minEdge * 0.85) // 85% of the smallest edge
+        return { width: size, height: size }
+      }
+
+      const config = { 
+        fps: 15, 
+        qrbox: qrboxFunction,
+        aspectRatio: 1.0,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true
+        }
+      }
 
       html5QrCode.start(
         { facingMode: "environment" },
@@ -259,9 +273,9 @@ export function CodeScannerPage() {
 
       {isScanning && (
         <div className="space-y-4">
-          <Card className="overflow-hidden relative bg-black aspect-square max-w-md mx-auto rounded-2xl border-4 border-primary/20 shadow-2xl">
-            <div id="reader" className="w-full h-full"></div>
-            <div className="absolute top-4 right-4 z-10">
+          <Card className="overflow-hidden relative bg-black aspect-square max-w-sm mx-auto rounded-2xl border-4 border-primary/20 shadow-2xl">
+            <div id="reader" className="w-full h-full overflow-hidden [&>video]:h-full [&>video]:w-full [&>video]:object-cover"></div>
+            <div className="absolute top-4 right-4 z-20">
               <Button size="icon" variant="destructive" onClick={stopScanning} className="rounded-full">
                 <X className="h-4 w-4" />
               </Button>
@@ -321,10 +335,19 @@ export function CodeScannerPage() {
 
       <style dangerouslySetInnerHTML={{
         __html: `
+        #reader__scan_region {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        #reader__scan_region video {
+          border-radius: 12px;
+        }
         @keyframes scan {
-          0% { transform: translateY(0); }
-          50% { transform: translateY(100%); }
-          100% { transform: translateY(0); }
+          0% { transform: translateY(0); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(100%); opacity: 0; }
         }
       `}} />
     </div>
