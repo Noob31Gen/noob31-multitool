@@ -3,7 +3,7 @@ import QRCode from "qrcode"
 import JsBarcode from "jsbarcode"
 import { safeStorage } from "@/lib/storage"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import {
@@ -27,12 +27,15 @@ export function CodeGeneratorPage() {
     return safeStorage.getItem("qr-allow-high-res") === "true"
   })
   const [isGenerationPaused, setIsGenerationPaused] = useState<boolean>(() => {
-    return safeStorage.getItem("qr-pause-gen") === "true"
+    const stored = safeStorage.getItem("qr-pause-gen")
+    if (stored !== null) return stored === "true"
+    // Default to true if high res is allowed
+    return safeStorage.getItem("qr-allow-high-res") === "true"
   })
 
   // QR Code Settings
   const [qrSize, setQrSize] = useState<number>(() => {
-    return parseInt(safeStorage.getItem("qr-size") || "1000")
+    return parseInt(safeStorage.getItem("qr-size") || "500")
   })
   const [qrLevel, setQrLevel] = useState<"L" | "M" | "Q" | "H">(() => {
     return (safeStorage.getItem("qr-level") as "L" | "M" | "Q" | "H") || "M"
@@ -117,8 +120,8 @@ export function CodeGeneratorPage() {
     safeStorage.setItem("barcode-height", barcodeHeight.toString())
 
     // Reset size if high res is no longer allowed
-    if (!isHighResAllowed && qrSize > 1000) {
-      setQrSize(1000)
+    if (!isHighResAllowed && qrSize >= 1000) {
+      setQrSize(500)
     }
   }, [isHighResAllowed, qrSize, qrLevel, qrMargin, barcodeFormat, barcodeWidth, barcodeHeight])
 
@@ -225,12 +228,12 @@ export function CodeGeneratorPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="code-text">Data to encode</Label>
-                <Input
+                <Textarea
                   id="code-text"
                   placeholder={activeTab === "qr" ? "Enter URL or text..." : "Enter numbers or text..."}
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  className="bg-background"
+                  className="bg-background min-h-[120px] resize-none rounded-xl"
                 />
               </div>
 
@@ -252,7 +255,7 @@ export function CodeGeneratorPage() {
                         Enable high-resolution options <AlertCircle className="h-3 w-3 text-muted-foreground" />
                       </label>
                       <p className="text-xs text-muted-foreground">
-                        Warning: All processing happens locally so generating images larger than 1000px can slow down or freeze your browser.
+                        Warning: All processing happens locally so generating images 1000px or larger can slow down or freeze your browser.
                       </p>
                     </div>
                   </div>
@@ -274,7 +277,7 @@ export function CodeGeneratorPage() {
                           Pause generation
                         </label>
                         <p className="text-xs text-muted-foreground">
-                          Pause real-time generation to not crash your browser
+                          Pausing real-time generation with high resolution should be enabled to not crash your browser. Disabling this is not recommended.
                         </p>
                       </div>
                     </div>
@@ -307,7 +310,7 @@ export function CodeGeneratorPage() {
                       <SelectContent>
                         <SelectItem value="200">200 px</SelectItem>
                         <SelectItem value="500">500 px</SelectItem>
-                        <SelectItem value="1000">1000 px</SelectItem>
+                        <SelectItem value="1000" disabled={!isHighResAllowed}>1000 px {!isHighResAllowed && "(Locked)"}</SelectItem>
                         <SelectItem value="2000" disabled={!isHighResAllowed}>2000 px {!isHighResAllowed && "(Locked)"}</SelectItem>
                         <SelectItem value="3000" disabled={!isHighResAllowed}>3000 px {!isHighResAllowed && "(Locked)"}</SelectItem>
                         <SelectItem value="4000" disabled={!isHighResAllowed}>4000 px {!isHighResAllowed && "(Locked)"}</SelectItem>
