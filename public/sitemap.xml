@@ -4,210 +4,252 @@
     <loc>https://tools.noob31.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/network/url-scanner</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/dns/a</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/dns/aaaa</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/dns/mx</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/dns/txt</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/dns/cname</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/dns/ns</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/dns/soa</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/network/subdomains</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/network/my-ip</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/network/mac-lookup</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/health/dns</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/health/domain</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/health/deliverability</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/security/cert</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/security/blacklist</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/bonus/headers</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/bonus/subnet</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/bonus/spf-generator</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/bonus/dmarc-generator</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/bonus/code-generator</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/bonus/code-scanner</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/registration/whois</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/registration/arin</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/registration/asn</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/about/info</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/about/credits</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/about/features</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/dnssec/dnskey</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/dnssec/ds</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/dnssec/nsec</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/dnssec/nsec3param</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/dnssec/rrsig</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/email/spf</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/email/dkim</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/email/dmarc</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/email/bimi</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/email/mta-sts</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/email/tlsrpt</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/network/http/http</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
   <url>
     <loc>https://tools.noob31.com/network/http/https</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-05-03</lastmod>
   </url>
 </urlset>
