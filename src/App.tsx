@@ -17,6 +17,8 @@ import { SpfGeneratorPage } from "@/components/tools/SpfGeneratorPage"
 import { DmarcGeneratorPage } from "@/components/tools/DmarcGeneratorPage"
 import { EmailDeliverabilityPage } from "@/components/tools/EmailDeliverabilityPage"
 import { SubdomainScannerPage } from "@/components/tools/SubdomainScannerPage"
+import { CodeGeneratorPage } from "@/components/tools/CodeGeneratorPage"
+import { CodeScannerPage } from "@/components/tools/CodeScannerPage"
 import { SuperToolSearch } from "@/components/shared/SuperToolSearch"
 import { CreditsPage } from "@/components/tools/CreditsPage"
 import { AboutPage } from "@/components/tools/AboutPage"
@@ -87,11 +89,14 @@ function App() {
           <Route path="/bonus/subnet" element={<SubnetCalculatorPage />} />
           <Route path="/bonus/spf-generator" element={<SpfGeneratorPage />} />
           <Route path="/bonus/dmarc-generator" element={<DmarcGeneratorPage />} />
+          <Route path="/bonus/code-generator" element={<CodeGeneratorPage />} />
+          <Route path="/bonus/code-scanner" element={<CodeScannerPage />} />
 
           {/* Part 9: About */}
           <Route path="/about/info" element={<AboutPage />} />
           <Route path="/about/credits" element={<CreditsPage />} />
           <Route path="/about/features" element={<AllFeaturesPage />} />
+
 
           <Route path="*" element={<div className="p-10 text-center text-muted-foreground">Tool not found. Check the sidebar if you're lost.</div>} />
         </Routes>

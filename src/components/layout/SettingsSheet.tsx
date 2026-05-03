@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Settings } from "lucide-react"
 import { useSettings, defaultSettings, type AppSettings } from "@/lib/settings"
+import { safeStorage } from "@/lib/storage"
 import {
   Select,
   SelectContent,
@@ -32,13 +33,13 @@ export function SettingsSheet() {
 
   const handleApply = () => {
     setSettings(localSettings);
-    localStorage.setItem('url-scanner-settings', JSON.stringify(localSettings));
+    safeStorage.setItem('url-scanner-settings', JSON.stringify(localSettings));
     window.location.reload();
   };
 
   const handleReset = () => {
     setSettings(defaultSettings);
-    localStorage.setItem('url-scanner-settings', JSON.stringify(defaultSettings));
+    safeStorage.setItem('url-scanner-settings', JSON.stringify(defaultSettings));
     window.location.reload();
   };
 

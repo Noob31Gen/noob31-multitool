@@ -33,10 +33,12 @@ const TOOL_CATEGORIES = [
     ],
   },
   {
-    title: "Generators",
+    title: "Utilities",
     tools: [
       { name: "SPF Generator", path: "/bonus/spf-generator" },
       { name: "DMARC Generator", path: "/bonus/dmarc-generator" },
+      { name: "QR & Barcode Generator", path: "/bonus/code-generator" },
+      { name: "QR & Barcode Scanner", path: "/bonus/code-scanner" },
     ],
   },
   {
