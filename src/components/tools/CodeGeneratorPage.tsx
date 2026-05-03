@@ -17,6 +17,7 @@ import { Download, Copy, Check, QrCode as QrIcon, Barcode as BarIcon, AlertCircl
 import { toast } from "sonner"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Play } from "lucide-react"
 
 export function CodeGeneratorPage() {
   const [activeTab, setActiveTab] = useState<string>("qr")
@@ -24,6 +25,9 @@ export function CodeGeneratorPage() {
   const [isCopied, setIsCopied] = useState(false)
   const [isHighResAllowed, setIsHighResAllowed] = useState<boolean>(() => {
     return safeStorage.getItem("qr-allow-high-res") === "true"
+  })
+  const [isGenerationPaused, setIsGenerationPaused] = useState<boolean>(() => {
+    return safeStorage.getItem("qr-pause-gen") === "true"
   })
 
   // QR Code Settings
@@ -51,7 +55,7 @@ export function CodeGeneratorPage() {
   const barcodeSvgRef = useRef<SVGSVGElement>(null)
 
   // Generate QR Code
-  useEffect(() => {
+  const generateQRCode = () => {
     if (activeTab === "qr" && qrCanvasRef.current && text) {
       QRCode.toCanvas(
         qrCanvasRef.current,
@@ -73,7 +77,13 @@ export function CodeGeneratorPage() {
         }
       )
     }
-  }, [text, qrSize, qrLevel, qrMargin, activeTab])
+  }
+
+  useEffect(() => {
+    if (!isGenerationPaused) {
+      generateQRCode()
+    }
+  }, [text, qrSize, qrLevel, qrMargin, activeTab, isGenerationPaused])
 
   // Generate Barcode
   useEffect(() => {
@@ -97,6 +107,7 @@ export function CodeGeneratorPage() {
   // Save settings to storage
   useEffect(() => {
     safeStorage.setItem("qr-allow-high-res", isHighResAllowed.toString())
+    safeStorage.setItem("qr-pause-gen", isGenerationPaused.toString())
     safeStorage.setItem("qr-size", qrSize.toString())
     safeStorage.setItem("qr-level", qrLevel)
     safeStorage.setItem("qr-margin", qrMargin.toString())
@@ -224,25 +235,50 @@ export function CodeGeneratorPage() {
               </div>
 
               {activeTab === "qr" && (
-                <div className="flex items-start gap-3 p-3 rounded-md bg-muted/50 border border-muted-foreground/10">
-                  <div className="pt-0.5">
-                    <Checkbox
-                      id="high-res-allow"
-                      checked={isHighResAllowed}
-                      onCheckedChange={(checked) => setIsHighResAllowed(!!checked)}
-                    />
+                <div className="flex flex-col gap-4 p-3 rounded-md bg-muted/50 border border-muted-foreground/10">
+                  <div className="flex items-start gap-3">
+                    <div className="pt-0.5">
+                      <Checkbox
+                        id="high-res-allow"
+                        checked={isHighResAllowed}
+                        onCheckedChange={(checked) => setIsHighResAllowed(!!checked)}
+                      />
+                    </div>
+                    <div className="grid gap-1.5 leading-none">
+                      <label
+                        htmlFor="high-res-allow"
+                        className="text-sm font-medium leading-none cursor-pointer flex items-center gap-1.5"
+                      >
+                        Enable high-resolution options <AlertCircle className="h-3 w-3 text-muted-foreground" />
+                      </label>
+                      <p className="text-xs text-muted-foreground">
+                        Warning: All processing happens locally so generating images larger than 1000px can slow down or freeze your browser.
+                      </p>
+                    </div>
                   </div>
-                  <div className="grid gap-1.5 leading-none">
-                    <label
-                      htmlFor="high-res-allow"
-                      className="text-sm font-medium leading-none cursor-pointer flex items-center gap-1.5"
-                    >
-                      Enable high-resolution options <AlertCircle className="h-3 w-3 text-muted-foreground" />
-                    </label>
-                    <p className="text-xs text-muted-foreground">
-                      Warning: All processing happens locally so generating images larger than 1000px can slow down or freeze your browser.
-                    </p>
-                  </div>
+
+                  {isHighResAllowed && (
+                    <div className="flex items-start gap-3 pt-2 border-t border-muted-foreground/10">
+                      <div className="pt-0.5">
+                        <Checkbox
+                          id="pause-gen"
+                          checked={isGenerationPaused}
+                          onCheckedChange={(checked) => setIsGenerationPaused(!!checked)}
+                        />
+                      </div>
+                      <div className="grid gap-1.5 leading-none">
+                        <label
+                          htmlFor="pause-gen"
+                          className="text-sm font-medium leading-none cursor-pointer"
+                        >
+                          Pause generation
+                        </label>
+                        <p className="text-xs text-muted-foreground">
+                          Pause real-time generation to not crash your browser
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -352,6 +388,11 @@ export function CodeGeneratorPage() {
           </Tabs>
 
           <div className="pt-4 flex flex-col sm:flex-row justify-center sm:justify-start gap-4">
+            {isGenerationPaused && activeTab === "qr" && (
+              <Button onClick={generateQRCode} className="gap-2 rounded-2xl h-12 px-8 min-w-[180px] w-full sm:w-auto bg-primary/90 hover:bg-primary">
+                <Play className="h-4 w-4" /> Generate QR
+              </Button>
+            )}
             <Button onClick={downloadCode} className="gap-2 rounded-2xl h-12 px-8 min-w-[180px] w-full sm:w-auto">
               <Download className="h-4 w-4" /> Download PNG
             </Button>
