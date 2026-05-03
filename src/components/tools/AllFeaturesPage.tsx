@@ -82,6 +82,8 @@ const FEATURE_CATEGORIES = [
       { name: "Subnet Calculator", path: "/bonus/subnet" },
       { name: "SPF Generator", path: "/bonus/spf-generator" },
       { name: "DMARC Generator", path: "/bonus/dmarc-generator" },
+      { name: "Code Generator", path: "/bonus/code-generator" },
+      { name: "Code Scanner", path: "/bonus/code-scanner" },
     ],
   },
 ]

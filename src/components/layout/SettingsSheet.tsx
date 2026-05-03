@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Settings } from "lucide-react"
+import { Settings, AlertCircle } from "lucide-react"
 import { useSettings, defaultSettings, type AppSettings } from "@/lib/settings"
 import { safeStorage } from "@/lib/storage"
 import {
@@ -58,10 +58,16 @@ export function SettingsSheet() {
             <Button variant="destructive" size="sm" onClick={handleReset}>Reset Defaults</Button>
           </div>
           <SheetDescription>
-            Configure DNS and CORS settings.Do not forget to click 'Apply' to save changes. BEWARE: Using a CORS Proxy means the proxy will see your queries.
+            Configure DNS and CORS settings. Do not forget to click 'Apply' to save changes. BEWARE: Using a CORS Proxy means the proxy will see your queries.
           </SheetDescription>
         </SheetHeader>
         <div className="grid gap-8 py-8 px-2">
+          {!settings.persistenceEnabled && (
+            <div className="flex items-start gap-3 p-3 rounded-lg border border-yellow-500/50 bg-yellow-500/5 text-yellow-600 dark:text-yellow-500 text-[13px] leading-relaxed">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <p>For settings to persist on reload, cookies must be enabled.</p>
+            </div>
+          )}
           <div className="space-y-3">
             <h3 className="text-sm font-medium">DoH Provider</h3>
             <Select

@@ -6,8 +6,9 @@ import { SuperToolSearch } from "@/components/shared/SuperToolSearch"
 import { SidebarNav } from "./Sidebar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Menu, Shield, ShieldOff } from "lucide-react"
+import { Menu, Cookie } from "lucide-react"
 import { useSettings } from "@/lib/settings"
+import { Switch } from "@/components/ui/switch"
 import SiteLogo from "@/assets/sitelogo.png"
 
 export function Header() {
@@ -48,16 +49,16 @@ export function Header() {
         {!isLandingPage && <SuperToolSearch className="relative w-full" />}
       </div>
 
-      <div className="flex items-center gap-2 justify-end md:w-auto min-w-[80px]">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setSettings({ ...settings, persistenceEnabled: !settings.persistenceEnabled })}
-          title={settings.persistenceEnabled ? "Persistence Enabled" : "Persistence Disabled"}
-          className={settings.persistenceEnabled ? "text-primary" : "text-muted-foreground opacity-50"}
-        >
-          {settings.persistenceEnabled ? <Shield className="h-5 w-5" /> : <ShieldOff className="h-5 w-5" />}
-        </Button>
+      <div className="flex items-center gap-3 justify-end md:w-auto min-w-[120px]">
+        <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-muted/50 border border-transparent hover:border-border transition-colors group">
+          <Cookie className={`h-4 w-4 transition-colors ${settings.persistenceEnabled ? "text-primary" : "text-muted-foreground opacity-40"}`} />
+          <Switch 
+            id="persistence-mode"
+            checked={settings.persistenceEnabled}
+            onCheckedChange={(checked) => setSettings({ ...settings, persistenceEnabled: checked })}
+            className="scale-75 origin-right"
+          />
+        </div>
         <ThemeToggle />
         <SettingsSheet />
       </div>
