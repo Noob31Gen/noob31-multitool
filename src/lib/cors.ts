@@ -51,5 +51,6 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
     }
 
     finalOptions.headers = headers;
+    finalOptions.credentials = 'include'; // Allow cookies for authenticated proxy sessions
     return fetch(finalUrl, finalOptions);
-}
+}
