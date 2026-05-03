@@ -87,7 +87,7 @@ export function MacLookupPage() {
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            Please verify the MAC address format and try again.
+            Please verify MAC address format or try switching CORS proxy in settings. CodeTabs should work.
           </div>
         </ResultCard>
       )}
@@ -173,15 +173,15 @@ export function MacLookupPage() {
                 <div className="flex items-center gap-2 mb-4">
                   <div className="flex gap-1 font-mono text-xl">
                     {result.binary.split('').map((bit, i) => (
-                      <div 
-                        key={i} 
+                      <div
+                        key={i}
                         className={cn(
                           "w-8 h-10 flex items-center justify-center border rounded transition-colors",
                           i === 7 ? (result.isUnicast ? "bg-green-500/10 border-green-500/50 text-green-600" : "bg-orange-500/10 border-orange-500/50 text-orange-600") :
-                          i === 6 ? (result.isUniversal ? "bg-blue-500/10 border-blue-500/50 text-blue-600" : "bg-purple-500/10 border-purple-500/50 text-purple-600") :
-                          "bg-muted border-transparent"
+                            i === 6 ? (result.isUniversal ? "bg-blue-500/10 border-blue-500/50 text-blue-600" : "bg-purple-500/10 border-purple-500/50 text-purple-600") :
+                              "bg-muted border-transparent"
                         )}
-                        title={i === 7 ? "I/G Bit" : i === 6 ? "U/L Bit" : `Bit ${7-i}`}
+                        title={i === 7 ? "I/G Bit" : i === 6 ? "U/L Bit" : `Bit ${7 - i}`}
                       >
                         {bit}
                       </div>
@@ -190,69 +190,69 @@ export function MacLookupPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                   <div className={cn(
-                     "p-3 rounded-lg border",
-                     result.isUnicast ? "bg-green-500/5 border-green-500/20" : "bg-orange-500/5 border-orange-500/20"
-                   )}>
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Transmission Type</p>
-                      <p className="font-semibold">{result.isUnicast ? "Unicast (Individual)" : "Multicast (Group)"}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {result.isUnicast 
-                          ? "Addresses a single network interface." 
-                          : "Addresses multiple network interfaces."}
-                      </p>
-                   </div>
+                  <div className={cn(
+                    "p-3 rounded-lg border",
+                    result.isUnicast ? "bg-green-500/5 border-green-500/20" : "bg-orange-500/5 border-orange-500/20"
+                  )}>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Transmission Type</p>
+                    <p className="font-semibold">{result.isUnicast ? "Unicast (Individual)" : "Multicast (Group)"}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {result.isUnicast
+                        ? "Addresses a single network interface."
+                        : "Addresses multiple network interfaces."}
+                    </p>
+                  </div>
 
-                   <div className={cn(
-                     "p-3 rounded-lg border",
-                     result.isUniversal ? "bg-blue-500/5 border-blue-500/20" : "bg-purple-500/5 border-purple-500/20"
-                   )}>
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Administration Type</p>
-                      <p className="font-semibold">{result.isUniversal ? "Universal (UAA)" : "Locally Administered (LAA)"}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {result.isUniversal 
-                          ? "Assigned by the manufacturer globally." 
-                          : "Assigned by a network administrator."}
-                      </p>
-                   </div>
+                  <div className={cn(
+                    "p-3 rounded-lg border",
+                    result.isUniversal ? "bg-blue-500/5 border-blue-500/20" : "bg-purple-500/5 border-purple-500/20"
+                  )}>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Administration Type</p>
+                    <p className="font-semibold">{result.isUniversal ? "Universal (UAA)" : "Locally Administered (LAA)"}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {result.isUniversal
+                        ? "Assigned by the manufacturer globally."
+                        : "Assigned by a network administrator."}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Right Column: Knowledge / Help */}
             <div className="space-y-4">
-               <Card className="p-4 border-dashed bg-muted/20">
-                  <div className="flex items-start gap-3">
-                    <Info className="h-5 w-5 text-blue-500 mt-0.5" />
-                    <div className="text-sm">
-                      <p className="font-medium mb-1">Structure</p>
-                      <p className="text-muted-foreground leading-relaxed">
-                        A MAC address consists of 48 bits (6 bytes). The first 3 bytes are the <strong>OUI</strong>, and the last 3 bytes are assigned by the manufacturer to the specific device.
-                      </p>
-                    </div>
+              <Card className="p-4 border-dashed bg-muted/20">
+                <div className="flex items-start gap-3">
+                  <Info className="h-5 w-5 text-blue-500 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium mb-1">Structure</p>
+                    <p className="text-muted-foreground leading-relaxed">
+                      A MAC address consists of 48 bits (6 bytes). The first 3 bytes are the <strong>OUI</strong>, and the last 3 bytes are assigned by the manufacturer to the specific device.
+                    </p>
                   </div>
-               </Card>
+                </div>
+              </Card>
 
-               <Card className="p-4 border-dashed bg-muted/20">
-                  <div className="flex items-start gap-3">
-                    <ShieldCheck className="h-5 w-5 text-green-500 mt-0.5" />
-                    <div className="text-sm">
-                      <p className="font-medium mb-1">Address Format</p>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {isValidMac(result.mac) ? 
-                          (formatMac(result.mac).length === 12 ? "Full 48-bit MAC Address detected." : "24-bit OUI Prefix detected.") 
-                          : "Custom identifier format."}
-                      </p>
-                    </div>
+              <Card className="p-4 border-dashed bg-muted/20">
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium mb-1">Address Format</p>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {isValidMac(result.mac) ?
+                        (formatMac(result.mac).length === 12 ? "Full 48-bit MAC Address detected." : "24-bit OUI Prefix detected.")
+                        : "Custom identifier format."}
+                    </p>
                   </div>
-               </Card>
+                </div>
+              </Card>
 
-               <div className="p-4 bg-primary/5 rounded-lg border border-primary/10">
-                  <h4 className="text-xs font-bold uppercase mb-2 text-primary">Quick Tip</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    If the second character of a MAC address is 2, 6, A, or E, it is likely a <strong>locally administered</strong> (randomized) address, common in modern smartphones for privacy.
-                  </p>
-               </div>
+              <div className="p-4 bg-primary/5 rounded-lg border border-primary/10">
+                <h4 className="text-xs font-bold uppercase mb-2 text-primary">Quick Tip</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  If the second character of a MAC address is 2, 6, A, or E, it is likely a <strong>locally administered</strong> (randomized) address, common in modern smartphones for privacy.
+                </p>
+              </div>
             </div>
           </div>
         </ResultCard>
