@@ -91,7 +91,7 @@ export function CodeScannerPage() {
 
   const processFile = async (file: File) => {
     const toastId = toast.loading("Processing image...")
-    
+
     try {
       // 1. Create an image from the file
       const img = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -146,11 +146,11 @@ export function CodeScannerPage() {
 
       const html5QrCode = new Html5Qrcode("file-processor")
       const decodedText = await html5QrCode.scanFile(resizedFile, false)
-      
+
       setScanResult(decodedText)
       toast.dismiss(toastId)
       toast.success("Code found in image!")
-      
+
       await html5QrCode.clear()
     } catch (err) {
       console.error("File scan error", err)
@@ -198,13 +198,13 @@ export function CodeScannerPage() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Code Scanner</h1>
-        <p className="text-muted-foreground mt-2">Scan QR codes and barcodes using your camera, image files, or by pasting.</p>
+        <p className="text-muted-foreground mt-2">Scan QR codes and barcodes using your camera, image files, or by pasting. Note: If camera scan is bugged, please reload the page.</p>
       </div>
 
       {!isScanning && !scanResult && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Camera Card */}
-          <Card 
+          <Card
             className="p-8 flex flex-col items-center justify-center border-dashed bg-muted/20 cursor-pointer hover:bg-muted/30 transition-all rounded-2xl group"
             onClick={startScanning}
           >
@@ -221,7 +221,7 @@ export function CodeScannerPage() {
           </Card>
 
           {/* Upload/Paste Card */}
-          <Card 
+          <Card
             className={cn(
               "p-8 flex flex-col items-center justify-center border-dashed transition-all border-2 rounded-2xl",
               isDragging ? "border-primary bg-primary/5 scale-[1.02]" : "bg-muted/20 border-muted-foreground/20"
@@ -237,12 +237,12 @@ export function CodeScannerPage() {
             <p className="text-muted-foreground text-sm text-center mb-6">
               Drag & drop an image, paste (Ctrl+V), or click to upload.
             </p>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept="image/*" 
-              onChange={handleFileChange} 
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileChange}
             />
             <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2 rounded-full h-11">
               <ImageIcon className="h-4 w-4" /> Select Image
@@ -291,7 +291,7 @@ export function CodeScannerPage() {
           <div className="p-4 bg-muted rounded-xl border font-mono break-all text-lg">
             {scanResult}
           </div>
-          
+
           {scanResult.startsWith('http') && (
             <div className="mt-4">
               <Button asChild variant="link" className="px-0">
@@ -313,7 +313,8 @@ export function CodeScannerPage() {
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes scan {
           0% { transform: translateY(0); }
           50% { transform: translateY(100%); }
