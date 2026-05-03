@@ -90,17 +90,72 @@ export function CodeScannerPage() {
   }
 
   const processFile = async (file: File) => {
-    const html5QrCode = new Html5Qrcode("file-processor")
+    const toastId = toast.loading("Processing image...")
+    
     try {
-      toast.info("Processing image...")
-      const decodedText = await html5QrCode.scanFile(file, true)
+      // 1. Create an image from the file
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const image = new Image()
+          image.onload = () => resolve(image)
+          image.onerror = reject
+          image.src = e.target?.result as string
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+
+      // 2. Use a canvas to resize if too large (improves detection for high-res images)
+      const canvas = document.createElement("canvas")
+      const MAX_SIZE = 800
+      let width = img.width
+      let height = img.height
+
+      if (width > height) {
+        if (width > MAX_SIZE) {
+          height *= MAX_SIZE / width
+          width = MAX_SIZE
+        }
+      } else {
+        if (height > MAX_SIZE) {
+          width *= MAX_SIZE / height
+          height = MAX_SIZE
+        }
+      }
+
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext("2d")
+      ctx?.drawImage(img, 0, 0, width, height)
+
+      // 3. Convert canvas to blob for scanner
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((b) => resolve(b!), "image/png")
+      })
+      const resizedFile = new File([blob], "resized.png", { type: "image/png" })
+
+      // 4. Scan the resized image
+      let processor = document.getElementById("file-processor")
+      if (!processor) {
+        processor = document.createElement("div")
+        processor.id = "file-processor"
+        processor.style.display = "none"
+        document.body.appendChild(processor)
+      }
+
+      const html5QrCode = new Html5Qrcode("file-processor")
+      const decodedText = await html5QrCode.scanFile(resizedFile, false)
+      
       setScanResult(decodedText)
+      toast.dismiss(toastId)
       toast.success("Code found in image!")
+      
+      await html5QrCode.clear()
     } catch (err) {
       console.error("File scan error", err)
-      toast.error("No valid QR code or barcode found in this image.")
-    } finally {
-      html5QrCode.clear()
+      toast.dismiss(toastId)
+      toast.error("No valid code found. Try a clearer image.")
     }
   }
 
@@ -146,24 +201,21 @@ export function CodeScannerPage() {
         <p className="text-muted-foreground mt-2">Scan QR codes and barcodes using your camera, image files, or by pasting.</p>
       </div>
 
-      {/* Hidden container for file processing */}
-      <div id="file-processor" className="hidden"></div>
-
       {!isScanning && !scanResult && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Camera Card */}
           <Card 
-            className="p-8 flex flex-col items-center justify-center border-dashed bg-muted/20 cursor-pointer hover:bg-muted/30 transition-colors"
+            className="p-8 flex flex-col items-center justify-center border-dashed bg-muted/20 cursor-pointer hover:bg-muted/30 transition-all rounded-2xl group"
             onClick={startScanning}
           >
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <Camera className="h-8 w-8 text-primary" />
             </div>
             <h3 className="text-lg font-semibold mb-1">Use Camera</h3>
             <p className="text-muted-foreground text-sm text-center mb-6">
               Scan codes in real-time using your webcam.
             </p>
-            <Button variant="outline" className="gap-2 pointer-events-none">
+            <Button variant="outline" className="gap-2 rounded-full pointer-events-none">
               <ScanLine className="h-4 w-4" /> Start Scanner
             </Button>
           </Card>
@@ -171,7 +223,7 @@ export function CodeScannerPage() {
           {/* Upload/Paste Card */}
           <Card 
             className={cn(
-              "p-8 flex flex-col items-center justify-center border-dashed transition-all border-2",
+              "p-8 flex flex-col items-center justify-center border-dashed transition-all border-2 rounded-2xl",
               isDragging ? "border-primary bg-primary/5 scale-[1.02]" : "bg-muted/20 border-muted-foreground/20"
             )}
             onDragOver={handleDragOver}
@@ -192,7 +244,7 @@ export function CodeScannerPage() {
               accept="image/*" 
               onChange={handleFileChange} 
             />
-            <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2">
+            <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2 rounded-full h-11">
               <ImageIcon className="h-4 w-4" /> Select Image
             </Button>
           </Card>
@@ -201,21 +253,20 @@ export function CodeScannerPage() {
 
       {isScanning && (
         <div className="space-y-4">
-          <Card className="overflow-hidden relative bg-black aspect-square max-w-md mx-auto rounded-xl border-4 border-primary/20 shadow-2xl">
+          <Card className="overflow-hidden relative bg-black aspect-square max-w-md mx-auto rounded-2xl border-4 border-primary/20 shadow-2xl">
             <div id="reader" className="w-full h-full"></div>
             <div className="absolute top-4 right-4 z-10">
-              <Button size="icon" variant="destructive" onClick={stopScanning}>
+              <Button size="icon" variant="destructive" onClick={stopScanning} className="rounded-full">
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            {/* Visual scan line effect */}
             <div className="absolute inset-0 pointer-events-none border-t-2 border-primary/50 animate-[scan_2s_linear_infinite] z-0"></div>
           </Card>
           <p className="text-center text-sm text-muted-foreground animate-pulse">
             Position the code within the scanner box...
           </p>
           <div className="flex justify-center">
-            <Button variant="outline" size="sm" onClick={stopScanning}>Cancel Scanning</Button>
+            <Button variant="outline" size="sm" onClick={stopScanning} className="rounded-full">Cancel Scanning</Button>
           </div>
         </div>
       )}
@@ -225,18 +276,19 @@ export function CodeScannerPage() {
           title="Scan Result"
           status="success"
           description="Code successfully decoded"
+          className="rounded-2xl"
           action={
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => { setScanResult(null); setIsScanning(false); }} className="gap-1">
+              <Button size="sm" variant="outline" onClick={() => { setScanResult(null); setIsScanning(false); }} className="gap-1 rounded-full px-4">
                 <RefreshCw className="h-3.5 w-3.5" /> New Scan
               </Button>
-              <Button size="sm" onClick={copyToClipboard} className="gap-1">
+              <Button size="sm" onClick={copyToClipboard} className="gap-1 rounded-full px-4">
                 <Copy className="h-3.5 w-3.5" /> Copy
               </Button>
             </div>
           }
         >
-          <div className="p-4 bg-muted rounded-lg border font-mono break-all text-lg">
+          <div className="p-4 bg-muted rounded-xl border font-mono break-all text-lg">
             {scanResult}
           </div>
           
@@ -250,7 +302,7 @@ export function CodeScannerPage() {
         </ResultCard>
       )}
 
-      <div className="bg-muted/40 p-4 rounded-lg border text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="bg-muted/40 p-6 rounded-2xl border text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>
           <h4 className="font-semibold text-foreground mb-1">Supported Formats</h4>
           <p>QR Codes, Barcodes (EAN-13, Code-128, UPC-A, ITF), Data Matrix.</p>

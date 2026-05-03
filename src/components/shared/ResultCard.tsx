@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 
 interface ResultCardProps {
   title: React.ReactNode
@@ -8,11 +9,12 @@ interface ResultCardProps {
   timeMs?: number
   children: React.ReactNode
   action?: React.ReactNode
+  className?: string
 }
 
-export function ResultCard({ title, description, status, timeMs, children, action }: ResultCardProps) {
+export function ResultCard({ title, description, status, timeMs, children, action, className }: ResultCardProps) {
   return (
-    <Card className="w-full">
+    <Card className={cn("w-full", className)}>
       <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-4">
         <div className="space-y-1.5">
           <CardTitle className="flex items-center gap-2">

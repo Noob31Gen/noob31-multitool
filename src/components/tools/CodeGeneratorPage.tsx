@@ -200,13 +200,13 @@ export function CodeGeneratorPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 p-6 space-y-6">
+        <Card className="lg:col-span-2 p-6 space-y-6 rounded-2xl">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="qr" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-2 mb-6 rounded-full p-1 bg-muted/50">
+              <TabsTrigger value="qr" className="flex items-center gap-2 rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
                 <QrIcon className="h-4 w-4" /> QR Code
               </TabsTrigger>
-              <TabsTrigger value="barcode" className="flex items-center gap-2">
+              <TabsTrigger value="barcode" className="flex items-center gap-2 rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
                 <BarIcon className="h-4 w-4" /> Barcode
               </TabsTrigger>
             </TabsList>
@@ -335,7 +335,7 @@ export function CodeGeneratorPage() {
                   <div className="space-y-2">
                     <Label>Bar Height</Label>
                     <Select value={barcodeHeight.toString()} onValueChange={(val) => setBarcodeHeight(parseInt(val))}>
-                      <SelectTrigger className="bg-background">
+                      <SelectTrigger className="bg-background rounded-xl">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -352,10 +352,10 @@ export function CodeGeneratorPage() {
           </Tabs>
 
           <div className="pt-4 flex flex-col sm:flex-row gap-3">
-            <Button onClick={downloadCode} className="flex-1 gap-2">
+            <Button onClick={downloadCode} className="flex-1 gap-2 rounded-full h-11">
               <Download className="h-4 w-4" /> Download PNG
             </Button>
-            <Button onClick={copyImage} variant="outline" className="flex-1 gap-2 min-w-[140px]">
+            <Button onClick={copyImage} variant="outline" className="flex-1 gap-2 min-w-[140px] rounded-full h-11">
               {isCopied ? (
                 <>
                   <Check className="h-4 w-4 text-green-500" /> Copied!
@@ -369,7 +369,7 @@ export function CodeGeneratorPage() {
           </div>
         </Card>
 
-        <Card className="p-6 flex flex-col items-center justify-center bg-muted/30 border-dashed min-h-[300px] lg:h-full overflow-hidden">
+        <Card className="p-6 flex flex-col items-center justify-center bg-muted/30 border-dashed min-h-[300px] lg:h-full overflow-hidden rounded-2xl">
           <div className="bg-white p-4 rounded-lg shadow-sm w-full h-[250px] sm:h-[350px] flex items-center justify-center overflow-hidden">
             {activeTab === "qr" ? (
               <canvas
