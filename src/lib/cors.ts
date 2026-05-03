@@ -51,6 +51,33 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
     }
 
     finalOptions.headers = headers;
-    finalOptions.credentials = 'include'; // Allow cookies for authenticated proxy sessions
+    
+    // Default to 'same-origin' to prevent CORS wildcard errors on public proxies.
+    // We only upgrade to 'include' if credentials are found in the URL or explicitly requested.
+    if (!options.credentials) {
+        finalOptions.credentials = 'same-origin';
+    }
+
+    try {
+        const u = new URL(url);
+        if (u.username || u.password) {
+            const auth = btoa(`${u.username}:${u.password}`);
+            headers.set("Authorization", `Basic ${auth}`);
+            
+            // If creds are in the URL, it's an authenticated proxy request.
+            // Upgrade to 'include' to allow browser-based auth handling/dialogs.
+            if (!options.credentials) {
+                finalOptions.credentials = 'include';
+            }
+            
+            // Strip credentials from the URL for the actual fetch
+            u.username = "";
+            u.password = "";
+            finalUrl = u.toString();
+        }
+    } catch (e) {
+        // Not an absolute URL, keep same-origin mode and original finalUrl
+    }
+    
     return fetch(finalUrl, finalOptions);
 }
