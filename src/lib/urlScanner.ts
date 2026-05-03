@@ -269,27 +269,25 @@ export function parseUrl(input: string): ParsedUrl {
   };
 }
 
+import { getProxiedUrl, authenticatedFetch } from "./cors"
+
 // ---- Visit function ----
 
 export async function visitUrl(url: string, settings: AppSettings): Promise<VisitResult> {
-  if (!settings.corsProvider) {
-    throw new Error("CORS Proxy URL is required to visit URLs. Please configure it in Settings.");
-  }
-
   let targetUrl = url.trim();
   if (!targetUrl.match(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//)) {
     targetUrl = 'https://' + targetUrl;
   }
 
-  const proxyUrl = `${settings.corsProvider}${encodeURIComponent(targetUrl)}`;
+  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
   const startTime = performance.now();
 
   try {
-    let res = await fetch(proxyUrl, { method: 'HEAD', signal: controller.signal });
+    let res = await authenticatedFetch(proxyUrl, { method: 'HEAD', signal: controller.signal });
     if (res.status === 405) {
-      res = await fetch(proxyUrl, { method: 'GET', signal: controller.signal });
+      res = await authenticatedFetch(proxyUrl, { method: 'GET', signal: controller.signal });
     }
     clearTimeout(timeoutId);
     const responseTime = Math.round(performance.now() - startTime);

@@ -1,4 +1,7 @@
-export async function queryASN(ipOrAsn: string) {
+import type { AppSettings } from "./settings"
+import { getProxiedUrl, authenticatedFetch } from "./cors"
+
+export async function queryASN(ipOrAsn: string, settings: AppSettings) {
   const query = ipOrAsn.trim();
   const isAsn = /^AS\d+$/i.test(query);
 
@@ -9,7 +12,9 @@ export async function queryASN(ipOrAsn: string) {
 
   // 1. Fetch IPAPI (Primary Data)
   try {
-    const res = await fetch(`https://api.ipapi.is/?q=${query}`);
+    const targetUrl = `https://api.ipapi.is/?q=${query}`;
+    const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+    const res = await authenticatedFetch(proxyUrl);
     if (res.ok) {
       resultData.ipapi = await res.json();
     }
@@ -18,7 +23,9 @@ export async function queryASN(ipOrAsn: string) {
   // 2. Fetch RIPEstat (Fallback / Supplemental if IPAPI fails on ASN)
   if (isAsn && !resultData.ipapi) {
     try {
-      const res = await fetchWithTimeout(`https://stat.ripe.net/data/as-overview/data.json?resource=${query}`);
+      const targetUrl = `https://stat.ripe.net/data/as-overview/data.json?resource=${query}`;
+      const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+      const res = await fetchWithTimeout(proxyUrl, 10000);
       if (res.ok) {
         resultData.ripe = await res.json();
       }
@@ -30,7 +37,9 @@ export async function queryASN(ipOrAsn: string) {
   if (isAsn) {
     try {
       const cleanAsn = query.replace(/AS/i, '');
-      const res = await fetchWithTimeout(`https://www.peeringdb.com/api/net?asn=${cleanAsn}`);
+      const targetUrl = `https://www.peeringdb.com/api/net?asn=${cleanAsn}`;
+      const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+      const res = await fetchWithTimeout(proxyUrl, 10000);
       if (res.ok) {
         const pdb = await res.json();
         if (pdb.data?.length > 0) {
@@ -118,7 +127,7 @@ export async function queryASN(ipOrAsn: string) {
 async function fetchWithTimeout(url: string, timeout = 10000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
-  const response = await fetch(url, { signal: controller.signal });
+  const response = await authenticatedFetch(url, { signal: controller.signal });
   clearTimeout(id);
   return response;
 }

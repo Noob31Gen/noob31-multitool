@@ -1,34 +1,9 @@
 import type { AppSettings } from "./settings"
-import { getProxiedUrl } from "@/lib/cors"
+import { getProxiedUrl, authenticatedFetch } from "@/lib/cors"
 
 export interface SubdomainResult {
   subdomain: string;
   sources: string[];
-}
-
-/**
- * Enhanced fetch that handles authenticated proxies by moving URL credentials to headers
- */
-async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  let finalUrl = url;
-  const finalOptions: RequestInit = { ...options };
-  const headers = new Headers(finalOptions.headers || {});
-
-  try {
-    const u = new URL(url);
-    if (u.username || u.password) {
-      const auth = btoa(`${u.username}:${u.password}`);
-      headers.set("Authorization", `Basic ${auth}`);
-      u.username = "";
-      u.password = "";
-      finalUrl = u.toString();
-    }
-  } catch (e) {
-    // Not an absolute URL
-  }
-
-  finalOptions.headers = headers;
-  return fetch(finalUrl, finalOptions);
 }
 
 function extractValidSubdomain(sub: string, domain: string): string | null {

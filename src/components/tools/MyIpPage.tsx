@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react"
 import { queryASN } from "@/lib/asn"
+import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 
 export function MyIpPage() {
+  const { settings } = useSettings()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
@@ -18,7 +19,7 @@ export function MyIpPage() {
       setStatus('loading');
       try {
         // Passing empty string triggers the IP detection logic in queryASN
-        const res = await queryASN("");
+        const res = await queryASN("", settings);
         if (isMounted) {
           setResult(res);
           setStatus('success');

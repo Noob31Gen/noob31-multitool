@@ -1,22 +1,21 @@
 import type { AppSettings } from "./settings"
+import { getProxiedUrl, authenticatedFetch } from "./cors"
 
 export async function fetchHeaders(url: string, settings: AppSettings) {
-  if (!settings.corsProvider) throw new Error("CORS Proxy URL is required for HTTP Header lookups. Please configure it in Settings.");
-
   // ensure url has scheme
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     throw new Error("URL must start with http:// or https://");
   }
 
-  const proxyUrl = `${settings.corsProvider}${encodeURIComponent(url)}`;
+  const proxyUrl = getProxiedUrl(url, settings.corsProvider, settings.customCorsUrl);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
-    let res = await fetch(proxyUrl, { method: 'HEAD', signal: controller.signal });
+    let res = await authenticatedFetch(proxyUrl, { method: 'HEAD', signal: controller.signal });
     // Some CORS proxies don't support HEAD; fall back to GET
     if (res.status === 405) {
-      res = await fetch(proxyUrl, { method: 'GET', signal: controller.signal });
+      res = await authenticatedFetch(proxyUrl, { method: 'GET', signal: controller.signal });
     }
     clearTimeout(timeoutId);
 

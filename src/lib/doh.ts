@@ -1,7 +1,7 @@
 import * as dnsPacket from 'dns-packet';
 import { Buffer } from 'buffer';
 import type { CorsProvider } from './cors';
-import { getProxiedUrl } from './cors';
+import { getProxiedUrl, authenticatedFetch } from './cors';
 
 export interface DNSRecord {
   name: string;
@@ -63,21 +63,20 @@ export async function queryDNS(
     const base64 = btoa(Array.from(packet).map(b => String.fromCharCode(b)).join(''));
     const base64Url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
-    const targetUrl = customUrl.includes('?')
+    url = customUrl.includes('?')
       ? `${customUrl}&dns=${base64Url}`
       : `${customUrl}?dns=${base64Url}`;
-
-    url = getProxiedUrl(targetUrl, corsProvider, customCorsUrl);
-    method = 'GET';
+    
     headers = { 'Accept': 'application/dns-message' };
   }
 
+  const proxiedUrl = getProxiedUrl(url, corsProvider, customCorsUrl);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
-    const response = await fetch(url, { method, headers, body, signal: controller.signal });
-    clearTimeout(timeoutId);;
+    const response = await authenticatedFetch(proxiedUrl, { method, headers, body, signal: controller.signal });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

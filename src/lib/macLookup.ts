@@ -1,4 +1,4 @@
-import { getProxiedUrl, type CorsProvider } from "./cors";
+import { getProxiedUrl, authenticatedFetch, type CorsProvider } from "./cors";
 
 export interface MacLookupResponse {
   mac: string;
@@ -108,26 +108,7 @@ export async function lookupMac(
   const isUniversal = binary[6] === '0';
 
   try {
-    // Sanitize URL to remove credentials which fetch() blocks and move them to headers
-    let finalUrl = proxiedUrl;
-    const fetchOptions: RequestInit = {};
-    
-    try {
-      const u = new URL(proxiedUrl);
-      if (u.username || u.password) {
-        const auth = btoa(`${u.username}:${u.password}`);
-        fetchOptions.headers = {
-          "Authorization": `Basic ${auth}`
-        };
-        u.username = "";
-        u.password = "";
-        finalUrl = u.toString();
-      }
-    } catch (e) {
-      // Not a valid absolute URL, keep as is
-    }
-
-    const response = await fetch(finalUrl, fetchOptions);
+    const response = await authenticatedFetch(proxiedUrl);
     const queryTime = Date.now() - startTime;
 
     if (response.status === 404 || response.status === 204) {

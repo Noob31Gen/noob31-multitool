@@ -1,5 +1,5 @@
 import type { AppSettings } from "./settings"
-import { getProxiedUrl } from "@/lib/cors"
+import { getProxiedUrl, authenticatedFetch } from "@/lib/cors"
 
 export interface NormalizedCert {
   not_before: string;
@@ -64,7 +64,7 @@ async function fetchCrtSh(domain: string, settings: AppSettings): Promise<Normal
   const proxyUrl = getProxiedUrl(
     targetUrl,
     settings.corsProvider as any,
-    (settings as any).customProxyUrl
+    settings.customCorsUrl
   );
 
   const controller = new AbortController();
@@ -101,13 +101,13 @@ async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<
   const proxyUrl = getProxiedUrl(
     targetUrl,
     settings.corsProvider as any,
-    (settings as any).customProxyUrl
+    settings.customCorsUrl
   );
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-  const res = await fetch(proxyUrl, {
+  const res = await authenticatedFetch(proxyUrl, {
     headers: { 'Accept': 'application/json' },
     signal: controller.signal
   });

@@ -253,7 +253,7 @@ export function RegistrationLookupPage() {
     try {
       let res;
       if (tool === 'ASN') {
-        res = await queryASN(q);
+        res = await queryASN(q, settings);
       } else {
         res = await queryRDAP(q, settings);
       }
