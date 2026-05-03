@@ -27,6 +27,15 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
       return
     }
 
+    // Auto-detect MAC Address
+    const isMac = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(q) || 
+                  /^([0-9A-Fa-f]{4}\.){2}([0-9A-Fa-f]{4})$/.test(q) ||
+                  /^[0-9A-Fa-f]{12}$/.test(q);
+    if (isMac) {
+      navigate(`/network/mac-lookup`, { state: { target: q } })
+      return
+    }
+
     // Auto-detect URL
     if (q.startsWith('http://') || q.startsWith('https://')) {
       navigate(`/network/url-scanner`, { state: { target: q } })

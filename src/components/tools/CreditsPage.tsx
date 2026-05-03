@@ -44,6 +44,14 @@ export function CreditsPage() {
         </div>
 
         <div>
+          <h2 className="text-lg font-semibold mb-3">MAC Address & OUI</h2>
+          <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+            <li><a href="https://www.macvendorlookup.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">MACVendorLookup.com</a></li>
+            <li><a href="https://macvendors.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">MacVendors.com</a></li>
+          </ul>
+        </div>
+
+        <div>
           <h2 className="text-lg font-semibold mb-3">CORS Proxies</h2>
           <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
             <li><a href="https://api.allorigins.win/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">AllOrigins</a></li>

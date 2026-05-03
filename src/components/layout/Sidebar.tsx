@@ -28,6 +28,7 @@ const TOOL_CATEGORIES = [
       { name: "Subdomain Scanner", path: "/network/subdomains" },
       { name: "HTTP Headers", path: "/network/http/http" },
       { name: "What Is My IP?", path: "/network/my-ip" },
+      { name: "MAC Address Lookup", path: "/network/mac-lookup" },
       { name: "Email Header Analyzer", path: "/bonus/headers" },
       { name: "Subnet Calculator", path: "/bonus/subnet" },
     ],

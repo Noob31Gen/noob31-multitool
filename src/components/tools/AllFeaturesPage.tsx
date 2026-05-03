@@ -61,6 +61,7 @@ const FEATURE_CATEGORIES = [
       { name: "HTTP Headers", path: "/network/http/http" },
       { name: "HTTPS Headers", path: "/network/http/https" },
       { name: "What Is My IP?", path: "/network/my-ip" },
+      { name: "MAC Address Lookup", path: "/network/mac-lookup" },
     ],
   },
   {

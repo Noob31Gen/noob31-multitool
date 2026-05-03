@@ -19,6 +19,7 @@ import { EmailDeliverabilityPage } from "@/components/tools/EmailDeliverabilityP
 import { SubdomainScannerPage } from "@/components/tools/SubdomainScannerPage"
 import { CodeGeneratorPage } from "@/components/tools/CodeGeneratorPage"
 import { CodeScannerPage } from "@/components/tools/CodeScannerPage"
+import { MacLookupPage } from "@/components/tools/MacLookupPage"
 import { SuperToolSearch } from "@/components/shared/SuperToolSearch"
 import { CreditsPage } from "@/components/tools/CreditsPage"
 import { AboutPage } from "@/components/tools/AboutPage"
@@ -73,6 +74,7 @@ function App() {
           <Route path="/network/url-scanner" element={<UrlScannerPage />} />
           <Route path="/network/subdomains" element={<SubdomainScannerPage />} />
           <Route path="/network/my-ip" element={<MyIpPage />} />
+          <Route path="/network/mac-lookup" element={<MacLookupPage />} />
           <Route path="/network/http/:scheme" element={<HttpLookupPage />} />
 
           {/* Part 5 & 9: DNS, Domain Health, Deliverability */}
