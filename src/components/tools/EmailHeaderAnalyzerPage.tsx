@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { SEO } from "@/components/shared/SEO"
 import { parseEmailHeaders } from "@/lib/headerParser"
 import { CopyButton } from "@/components/shared/ActionButtons"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,11 @@ export function EmailHeaderAnalyzerPage() {
 
   return (
     <div className="space-y-6">
+      <SEO 
+        title="Email Header Analyzer"
+        description="Trace email routing paths and verify security authentication (SPF, DKIM, DMARC) by analyzing raw email headers."
+        url="https://tools.noob31.com/bonus/headers"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Email Header Analyzer</h1>
         <p className="text-muted-foreground mt-2">Deep dive into raw email headers to trace routing paths and authentication results.</p>

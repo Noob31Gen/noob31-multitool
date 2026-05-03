@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { SEO } from "@/components/shared/SEO"
 import { calculateSubnet } from "@/lib/subnet"
 import { CopyButton } from "@/components/shared/ActionButtons"
 import { Button } from "@/components/ui/button"
@@ -38,6 +39,11 @@ export function SubnetCalculatorPage() {
 
   return (
     <div className="space-y-6">
+      <SEO 
+        title="IPv4 Subnet Calculator"
+        description="Calculate IP address ranges, broadcast addresses, and usable host counts for any IPv4 network with CIDR notation support."
+        url="https://tools.noob31.com/bonus/subnet"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">IPv4 Subnet Calculator</h1>
         <p className="text-muted-foreground mt-2">Calculate network ranges, broadcast addresses, and usable hosts from an IP and CIDR mask.</p>

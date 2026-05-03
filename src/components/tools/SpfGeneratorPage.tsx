@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { SEO } from "@/components/shared/SEO"
 import { CopyButton } from "@/components/shared/ActionButtons"
 import { Card } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -33,6 +34,11 @@ export function SpfGeneratorPage() {
 
   return (
     <div className="space-y-6">
+      <SEO 
+        title="SPF Record Generator"
+        description="Easily generate a valid Sender Policy Framework (SPF) TXT record for your domain to prevent email spoofing and improve deliverability."
+        url="https://tools.noob31.com/bonus/spf-generator"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">SPF Generator</h1>
         <p className="text-muted-foreground mt-2">Generate a valid Sender Policy Framework (SPF) TXT record.</p>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import { runDnsCheck } from "@/lib/health"
 import { useSettings } from "@/lib/settings"
+import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { CopyButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
@@ -56,6 +57,11 @@ export function DnsCheckPage() {
 
   return (
     <div className="space-y-6">
+      <SEO 
+        title="Comprehensive DNS Check"
+        description="Run a parallel query for all core DNS records (A, AAAA, MX, TXT, NS, SOA) to audit a domain's DNS health."
+        url="https://tools.noob31.com/health/dns"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">DNS Check</h1>
         <p className="text-muted-foreground mt-2">Runs a parallel query for all core DNS records associated with a domain.</p>

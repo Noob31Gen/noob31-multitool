@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react"
+import { SEO } from "@/components/shared/SEO"
 import QRCode from "qrcode"
 import JsBarcode from "jsbarcode"
 import { safeStorage } from "@/lib/storage"
@@ -208,6 +209,11 @@ export function CodeGeneratorPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
+      <SEO 
+        title="QR & Barcode Generator"
+        description="Create high-resolution QR codes and barcodes (CODE128, EAN-13, UPC) for URLs, text, or data with customizable settings."
+        url="https://tools.noob31.com/bonus/code-generator"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Code Generator</h1>
         <p className="text-muted-foreground mt-2">Generate QR codes and barcodes for URLs, text, or data.</p>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import { querySubdomains, type SubdomainResult } from "@/lib/subdomains"
 import { useSettings } from "@/lib/settings"
+import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
@@ -68,6 +69,11 @@ export function SubdomainScannerPage() {
 
   return (
     <div className="space-y-6">
+      <SEO 
+        title="Subdomain Scanner"
+        description="Find subdomains for a given domain using multiple public databases and unauthenticated sources. Fast and easy."
+        url="https://tools.noob31.com/network/subdomains"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Subdomain Scanner</h1>
         <p className="text-muted-foreground mt-2">Find subdomains for a given domain using multiple unauthenticated public databases.</p>

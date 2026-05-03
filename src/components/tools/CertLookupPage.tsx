@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import { queryCert } from "@/lib/cert"
 import { useSettings } from "@/lib/settings"
+import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
@@ -62,6 +63,11 @@ export function CertLookupPage() {
 
   return (
     <div className="space-y-6">
+      <SEO 
+        title="Certificate Lookup (crt.sh)"
+        description="Find historical SSL/TLS certificates and Certificate Transparency (CT) logs for any domain."
+        url="https://tools.noob31.com/security/cert"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Certificate (crt.sh) Lookup</h1>
         <p className="text-muted-foreground mt-2">Find historical SSL/TLS certificates for a domain using Certificate Transparency logs.</p>

@@ -27,6 +27,8 @@ import { AllFeaturesPage } from "@/components/tools/AllFeaturesPage"
 
 
 
+import { SEO } from "@/components/shared/SEO"
+
 function App() {
   return (
     <BrowserRouter>
@@ -34,6 +36,18 @@ function App() {
         <Routes>
           <Route path="/" element={
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] text-center px-4">
+              <SEO 
+                url="https://tools.noob31.com/"
+                jsonLd={JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "WebApplication",
+                  "name": "Noob31's MultiTools",
+                  "description": "A comprehensive toolkit for network diagnostics, domain health, email authentication, and security analysis.",
+                  "url": "https://tools.noob31.com/",
+                  "applicationCategory": "UtilitiesApplication",
+                  "operatingSystem": "All"
+                })}
+              />
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 tracking-tight">Noob31's MultiTools.</h1>
               <p className="text-lg text-muted-foreground mb-10 max-w-2xl">
                 This is my toolkit for domain health, network diagnostics, and email authentication.

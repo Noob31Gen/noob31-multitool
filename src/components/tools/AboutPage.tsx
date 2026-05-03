@@ -1,10 +1,16 @@
 import { Card } from "@/components/ui/card"
+import { SEO } from "@/components/shared/SEO"
 
 const version = import.meta.env.APP_VERSION;
 
 export function AboutPage() {
   return (
     <div className="space-y-6">
+      <SEO 
+        title="About Noob31's MultiTools"
+        description="Learn more about the developer and the motivation behind this network security toolkit."
+        url="https://tools.noob31.com/about/info"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">About Me</h1>
       </div>

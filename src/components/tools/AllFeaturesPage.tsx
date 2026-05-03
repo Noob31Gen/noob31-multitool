@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom"
+import { SEO } from "@/components/shared/SEO"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
@@ -92,6 +93,11 @@ const FEATURE_CATEGORIES = [
 export function AllFeaturesPage() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-6xl mx-auto">
+      <SEO 
+        title="All Features & Tools"
+        description="A complete directory of all network, DNS, and security tools available in Noob31's MultiTools."
+        url="https://tools.noob31.com/about/features"
+      />
       <div className="text-center space-y-4">
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">All Features</h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">

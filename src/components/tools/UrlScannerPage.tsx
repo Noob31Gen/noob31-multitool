@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { parseUrl, visitUrl, type ParsedUrl, type VisitResult } from "@/lib/urlScanner"
+import { SEO } from "@/components/shared/SEO"
 
 export function UrlScannerPage() {
   const { settings } = useSettings()
@@ -93,6 +94,11 @@ export function UrlScannerPage() {
 
   return (
     <div className="space-y-6">
+      <SEO 
+        title="URL Scanner & Parser"
+        description="Decompose and analyze every component of a URL according to RFC 3986. Check HTTP status, headers, and redirects."
+        url="https://tools.noob31.com/network/url-scanner"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">URL Scanner</h1>
         <p className="text-muted-foreground mt-2">Decompose and analyze every component of a URL according to RFC 3986.</p>

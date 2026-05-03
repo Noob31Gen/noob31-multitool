@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { queryRDAP } from "@/lib/rdap"
 import { queryASN } from "@/lib/asn"
 import { useSettings } from "@/lib/settings"
+import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
@@ -278,6 +279,11 @@ export function RegistrationLookupPage() {
 
   return (
     <div className="space-y-6">
+      <SEO 
+        title={info.title}
+        description={info.desc}
+        url={`https://tools.noob31.com/registration/${tool.toLowerCase()}`}
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{info.title}</h1>
         <p className="text-muted-foreground mt-2">{info.desc}</p>

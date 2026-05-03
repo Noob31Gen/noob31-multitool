@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { queryDNS, type DNSResponse, type DNSRecord } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
+import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { DNSResultTable } from "@/components/shared/DNSResultTable"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
@@ -216,6 +217,11 @@ export function DNSSECLookupPage() {
 
   return (
     <div className="space-y-6">
+      <SEO 
+        title={info.title}
+        description={info.desc}
+        url={`https://tools.noob31.com/dnssec/${recordType.toLowerCase()}`}
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{info.title}</h1>
         <p className="text-muted-foreground mt-2">{info.desc}</p>

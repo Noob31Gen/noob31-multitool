@@ -1,8 +1,14 @@
 import { Card } from "@/components/ui/card"
+import { SEO } from "@/components/shared/SEO"
 
 export function CreditsPage() {
   return (
     <div className="space-y-6">
+      <SEO 
+        title="Credits & Data Sources"
+        description="A list of APIs, services, and libraries that power Noob31's MultiTools. Special thanks to all the providers."
+        url="https://tools.noob31.com/about/credits"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Credits</h1>
         <p className="text-muted-foreground mt-2">Special thanks to the following APIs and services that power this project.</p>

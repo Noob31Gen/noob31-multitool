@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import { lookupMac, type MacLookupResponse, formatMac, isValidMac } from "@/lib/macLookup"
 import { useSettings } from "@/lib/settings"
+import { SEO } from "@/components/shared/SEO"
 import { cn } from "@/lib/utils"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
@@ -56,6 +57,11 @@ export function MacLookupPage() {
 
   return (
     <div className="space-y-6">
+      <SEO 
+        title="MAC / OUI Address Lookup"
+        description="Identify device manufacturers and check OUI registration details. Analyze MAC address bits for unicast/multicast and universal/local status."
+        url="https://tools.noob31.com/network/mac-lookup"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">MAC / OUI Lookup</h1>
         <p className="text-muted-foreground mt-2">Identify device manufacturers and verify OUI registration status.</p>

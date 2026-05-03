@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { queryASN } from "@/lib/asn"
 import { useSettings } from "@/lib/settings"
+import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
@@ -42,6 +43,11 @@ export function MyIpPage() {
 
   return (
     <div className="space-y-6">
+      <SEO 
+        title="What Is My IP Address?"
+        description="Quickly find your public IPv4 address and view detailed network metadata including ISP, ASN, location, and security flags (VPN/Proxy detection)."
+        url="https://tools.noob31.com/network/my-ip"
+      />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">What Is My IP?</h1>

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { SEO } from "@/components/shared/SEO"
 import { CopyButton } from "@/components/shared/ActionButtons"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -27,6 +28,11 @@ export function DmarcGeneratorPage() {
 
   return (
     <div className="space-y-6">
+      <SEO 
+        title="DMARC Record Generator"
+        description="Quickly generate a valid DMARC record to protect your domain from email fraud and set reporting policies for SPF and DKIM failures."
+        url="https://tools.noob31.com/bonus/dmarc-generator"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">DMARC Generator</h1>
         <p className="text-muted-foreground mt-2">Generate a valid Domain-based Message Authentication, Reporting, and Conformance (DMARC) record.</p>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import { runDeliverabilityCheck } from "@/lib/deliverability"
 import { useSettings } from "@/lib/settings"
+import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
@@ -57,6 +58,11 @@ export function EmailDeliverabilityPage() {
 
   return (
     <div className="space-y-6">
+      <SEO 
+        title="Email Deliverability Check"
+        description="Check DNS-based email authentication (MX, SPF, DKIM, DMARC) and compute a deliverability score to improve inbox placement."
+        url="https://tools.noob31.com/health/deliverability"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Email Deliverability</h1>
         <p className="text-muted-foreground mt-2">Checks all DNS-based email authentication records and computes a deliverability score.</p>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react"
+import { SEO } from "@/components/shared/SEO"
 import { Html5Qrcode } from "html5-qrcode"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -196,6 +197,11 @@ export function CodeScannerPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
+      <SEO 
+        title="QR & Barcode Scanner"
+        description="Scan QR codes and barcodes using your camera, image files, or by pasting directly. Privacy-focused local processing in your browser."
+        url="https://tools.noob31.com/bonus/code-scanner"
+      />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Code Scanner</h1>
         <p className="text-muted-foreground mt-2">Scan QR codes and barcodes using your camera, image files, or by pasting. Note: If camera scan is bugged, please reload the page.</p>
