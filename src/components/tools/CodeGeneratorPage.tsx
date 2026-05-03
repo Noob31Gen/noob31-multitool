@@ -20,7 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 
 export function CodeGeneratorPage() {
   const [activeTab, setActiveTab] = useState<string>("qr")
-  const [text, setText] = useState<string>("https://noob31.com")
+  const [text, setText] = useState<string>("")
   const [isCopied, setIsCopied] = useState(false)
   const [isHighResAllowed, setIsHighResAllowed] = useState<boolean>(() => {
     return safeStorage.getItem("qr-allow-high-res") === "true"
@@ -202,11 +202,11 @@ export function CodeGeneratorPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 p-6 space-y-6 rounded-2xl">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6 rounded-full p-1 bg-muted/50">
-              <TabsTrigger value="qr" className="flex items-center gap-2 rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
+            <TabsList className="grid w-full grid-cols-2 mb-6 rounded-xl p-1 bg-muted/50">
+              <TabsTrigger value="qr" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
                 <QrIcon className="h-4 w-4" /> QR Code
               </TabsTrigger>
-              <TabsTrigger value="barcode" className="flex items-center gap-2 rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
+              <TabsTrigger value="barcode" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
                 <BarIcon className="h-4 w-4" /> Barcode
               </TabsTrigger>
             </TabsList>
@@ -351,11 +351,11 @@ export function CodeGeneratorPage() {
             </div>
           </Tabs>
 
-          <div className="pt-4 flex flex-col sm:flex-row gap-3">
-            <Button onClick={downloadCode} className="flex-1 gap-2 rounded-full h-11">
+          <div className="pt-4 flex flex-col sm:flex-row justify-center sm:justify-start gap-4">
+            <Button onClick={downloadCode} className="gap-2 rounded-2xl h-12 px-8 min-w-[180px] w-full sm:w-auto">
               <Download className="h-4 w-4" /> Download PNG
             </Button>
-            <Button onClick={copyImage} variant="outline" className="flex-1 gap-2 min-w-[140px] rounded-full h-11">
+            <Button onClick={copyImage} variant="outline" className="gap-2 rounded-2xl h-12 px-8 min-w-[180px] w-full sm:w-auto">
               {isCopied ? (
                 <>
                   <Check className="h-4 w-4 text-green-500" /> Copied!

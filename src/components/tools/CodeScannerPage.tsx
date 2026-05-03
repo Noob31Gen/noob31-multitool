@@ -215,7 +215,7 @@ export function CodeScannerPage() {
             <p className="text-muted-foreground text-sm text-center mb-6">
               Scan codes in real-time using your webcam.
             </p>
-            <Button variant="outline" className="gap-2 rounded-full pointer-events-none">
+            <Button variant="outline" className="gap-2 rounded-2xl h-12 px-8 pointer-events-none">
               <ScanLine className="h-4 w-4" /> Start Scanner
             </Button>
           </Card>
@@ -244,7 +244,7 @@ export function CodeScannerPage() {
               accept="image/*"
               onChange={handleFileChange}
             />
-            <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2 rounded-full h-11">
+            <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2 rounded-2xl h-12 px-8">
               <ImageIcon className="h-4 w-4" /> Select Image
             </Button>
           </Card>
@@ -278,12 +278,12 @@ export function CodeScannerPage() {
           description="Code successfully decoded"
           className="rounded-2xl"
           action={
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => { setScanResult(null); setIsScanning(false); }} className="gap-1 rounded-full px-4">
-                <RefreshCw className="h-3.5 w-3.5" /> New Scan
+            <div className="flex flex-wrap justify-center sm:justify-end gap-3 w-full sm:w-auto">
+              <Button variant="outline" onClick={() => { setScanResult(null); setIsScanning(false); }} className="gap-2 rounded-2xl h-12 px-8">
+                <RefreshCw className="h-4 w-4" /> New Scan
               </Button>
-              <Button size="sm" onClick={copyToClipboard} className="gap-1 rounded-full px-4">
-                <Copy className="h-3.5 w-3.5" /> Copy
+              <Button onClick={copyToClipboard} className="gap-2 rounded-2xl h-12 px-8">
+                <Copy className="h-4 w-4" /> Copy Result
               </Button>
             </div>
           }
