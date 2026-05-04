@@ -10,13 +10,11 @@ import { Menu, Cookie } from "lucide-react"
 import { useSettings } from "@/lib/settings"
 import { Switch } from "@/components/ui/switch"
 import SiteLogo from "@/assets/sitelogo.png"
-
 export function Header() {
   const { settings, setSettings } = useSettings();
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const isLandingPage = location.pathname === '/';
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex h-16 items-center justify-between px-3 sm:px-6">
       <div className="flex items-center gap-2 font-semibold md:w-auto">
@@ -47,16 +45,13 @@ export function Header() {
             </div>
           </SheetContent>
         </Sheet>
-        
         <Link to="/" className="flex items-center ml-2 transition-transform hover:scale-105">
           <img src={SiteLogo} alt="Noob31" className="h-8 md:h-10 w-auto" />
         </Link>
       </div>
-
       <div className="flex-1 hidden md:flex justify-center max-w-2xl px-2 min-w-0">
         {!isLandingPage && <SuperToolSearch className="relative w-full" />}
       </div>
-
       <div className="flex items-center gap-1.5 sm:gap-3 justify-end md:w-auto min-w-fit">
         <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50 border border-transparent hover:border-border transition-colors group">
           <Cookie className={`h-4 w-4 transition-colors ${settings.persistenceEnabled ? "text-primary" : "text-muted-foreground opacity-40"}`} />

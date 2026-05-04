@@ -26,7 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { parseSPF, parseKeyValue, formatEmailAuthQuery, filterEmailAuthRecords } from "@/lib/emailAuthParsers"
-
 const EMAIL_AUTH_INFO: Record<string, { title: string, desc: string }> = {
   SPF: { title: "SPF Record Lookup", desc: "Check Sender Policy Framework (SPF) records." },
   DKIM: { title: "DKIM Record Lookup", desc: "Check DomainKeys Identified Mail (DKIM) records." },
@@ -35,19 +34,15 @@ const EMAIL_AUTH_INFO: Record<string, { title: string, desc: string }> = {
   "MTA-STS": { title: "MTA-STS Record Lookup", desc: "Check Mail Transfer Agent Strict Transport Security records." },
   TLSRPT: { title: "TLSRPT Record Lookup", desc: "Check TLS Reporting (TLSRPT) records." }
 }
-
 function ParsedAuthTable({ record, type }: { record: DNSRecord, type: string }) {
   const dataStr = record.data.replace(/"/g, '');
   const parsedFields = type === 'SPF' ? parseSPF(dataStr) : parseKeyValue(dataStr);
-
   return (
     <div className="space-y-4">
       <div className="p-3 bg-muted/50 rounded-md font-mono text-sm break-all border border-border/50">
         <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2">Raw Record</p>
         {record.data}
       </div>
-      
-      {/* Desktop Table View */}
       <div className="hidden sm:block rounded-md border overflow-x-auto w-full min-w-0">
         <Table>
           <TableHeader>
@@ -68,8 +63,6 @@ function ParsedAuthTable({ record, type }: { record: DNSRecord, type: string }) 
           </TableBody>
         </Table>
       </div>
-
-      {/* Mobile Card/Box View */}
       <div className="sm:hidden space-y-3">
         {parsedFields.map((field, i) => (
           <div key={i} className="p-3 rounded-lg border bg-card shadow-sm">
@@ -90,30 +83,24 @@ function ParsedAuthTable({ record, type }: { record: DNSRecord, type: string }) 
     </div>
   )
 }
-
 export function EmailAuthPage() {
   const { type } = useParams<{ type: string }>()
   const navigate = useNavigate()
   const { settings } = useSettings()
-
   const recordType = (type || 'spf').toUpperCase()
   const info = EMAIL_AUTH_INFO[recordType] || { title: `${recordType} Lookup`, desc: `Check ${recordType} records.` }
-
   const [domain, setDomain] = useState("")
   const [selector, setSelector] = useState("default")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<DNSResponse | null>(null)
   const [filteredRecords, setFilteredRecords] = useState<DNSRecord[]>([])
   const [errorMsg, setErrorMsg] = useState("")
-
   const needsSelector = ['DKIM', 'BIMI'].includes(recordType);
-
   useEffect(() => {
     setStatus('idle')
     setResult(null)
     setFilteredRecords([])
   }, [recordType])
-
   const location = useLocation();
   useEffect(() => {
     const q = location.state?.target;
@@ -122,18 +109,14 @@ export function EmailAuthPage() {
       performSearch(q);
     }
   }, [location.state]);
-
   const performSearch = async (targetDomain: string) => {
     if (!targetDomain.trim()) return
-
     setStatus('loading')
     setErrorMsg("")
     setResult(null)
-
     try {
       const queryTarget = formatEmailAuthQuery(targetDomain, recordType, selector);
       const res = await queryDNS(queryTarget, 'TXT', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
-
       setResult(res);
       setFilteredRecords(filterEmailAuthRecords(res.records, recordType));
       setStatus('success')
@@ -143,12 +126,10 @@ export function EmailAuthPage() {
       setStatus('error')
     }
   }
-
   const handleSearch = (e: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
   }
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -160,7 +141,6 @@ export function EmailAuthPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{info.title}</h1>
         <p className="text-muted-foreground mt-2">{info.desc}</p>
       </div>
-
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <Select value={recordType} onValueChange={(val) => navigate(`/email/${val.toLowerCase()}`)}>
@@ -176,7 +156,6 @@ export function EmailAuthPage() {
               <SelectItem value="TLSRPT">TLSRPT</SelectItem>
             </SelectContent>
           </Select>
-
           {needsSelector && (
             <Input
               placeholder="Selector (e.g. default)"
@@ -185,7 +164,6 @@ export function EmailAuthPage() {
               onChange={(e) => setSelector(e.target.value)}
             />
           )}
-
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -195,19 +173,16 @@ export function EmailAuthPage() {
               onChange={(e) => setDomain(e.target.value)}
             />
           </div>
-
           <Button type="submit" disabled={status === 'loading'} className="w-full sm:w-auto">
             {status === 'loading' ? 'Checking...' : `${recordType} Lookup`}
           </Button>
         </form>
       </Card>
-
       {status === 'loading' && (
         <ResultCard title={`Querying ${recordType}...`} status="loading">
           <LoadingSkeleton />
         </ResultCard>
       )}
-
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
@@ -215,7 +190,6 @@ export function EmailAuthPage() {
           </div>
         </ResultCard>
       )}
-
       {status === 'success' && result && (
         <ResultCard
           title={`${recordType} Records`}
@@ -245,4 +219,4 @@ export function EmailAuthPage() {
       )}
     </div>
   )
-}
+}

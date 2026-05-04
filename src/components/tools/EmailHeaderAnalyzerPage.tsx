@@ -7,17 +7,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Mail, ShieldCheck, Clock, Server, ArrowDown, User, Hash } from "lucide-react"
-
 export function EmailHeaderAnalyzerPage() {
   const [input, setInput] = useState("")
   const [result, setResult] = useState<any>(null)
-
   const handleAnalyze = () => {
     if (!input.trim()) return;
     const res = parseEmailHeaders(input);
     setResult(res);
   }
-
   const getSpfStatus = (spfLine: string) => {
     const lower = spfLine.toLowerCase();
     if (lower.includes('pass')) return 'pass';
@@ -25,7 +22,6 @@ export function EmailHeaderAnalyzerPage() {
     if (lower.includes('neutral') || lower.includes('none')) return 'warn';
     return 'unknown';
   }
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -37,7 +33,6 @@ export function EmailHeaderAnalyzerPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Email Header Analyzer</h1>
         <p className="text-muted-foreground mt-2">Deep dive into raw email headers to trace routing paths and authentication results.</p>
       </div>
-
       <Card className="p-4 bg-muted/40 flex flex-col gap-3">
         <Textarea 
           placeholder="Paste raw email headers here...&#10;&#10;e.g.&#10;Return-Path: <...>,&#10;Received: from...&#10;DKIM-Signature: v=1; ..."
@@ -52,17 +47,13 @@ export function EmailHeaderAnalyzerPage() {
           <Button onClick={handleAnalyze} disabled={!input.trim()}>Analyze Headers</Button>
         </div>
       </Card>
-
       {result && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Analysis Report</h2>
             <CopyButton data={JSON.stringify(result, null, 2)} text="Copy JSON" />
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Summary Card */}
             <Card className="min-w-0">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -74,23 +65,17 @@ export function EmailHeaderAnalyzerPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-x-4 gap-y-2 text-sm">
                   <span className="font-medium text-muted-foreground flex items-center gap-1"><User className="w-3 h-3" /> From</span>
                   <span className="font-medium break-all" title={result.from}>{result.from}</span>
-                  
                   <span className="font-medium text-muted-foreground flex items-center gap-1"><User className="w-3 h-3" /> To</span>
                   <span className="font-medium break-all" title={result.to}>{result.to}</span>
-                  
                   <span className="font-medium text-muted-foreground flex items-center gap-1"><Mail className="w-3 h-3" /> Subject</span>
                   <span className="font-medium break-all" title={result.subject}>{result.subject}</span>
-                  
                   <span className="font-medium text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Date</span>
                   <span className="break-all">{result.date}</span>
-                  
                   <span className="font-medium text-muted-foreground flex items-center gap-1"><Hash className="w-3 h-3" /> Msg ID</span>
                   <span className="font-mono text-xs break-all text-muted-foreground" title={result.messageId}>{result.messageId}</span>
                 </div>
               </CardContent>
             </Card>
-
-            {/* Security & Auth Card */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -109,7 +94,6 @@ export function EmailHeaderAnalyzerPage() {
                     <span className="font-mono text-xs text-muted-foreground break-all">{result.spf}</span>
                   </div>
                 </div>
-
                 {result.authResults.length > 0 && (
                   <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">Authentication-Results</h4>
@@ -126,8 +110,6 @@ export function EmailHeaderAnalyzerPage() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Hops Timeline */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -166,10 +148,8 @@ export function EmailHeaderAnalyzerPage() {
               )}
             </CardContent>
           </Card>
-
         </div>
       )}
     </div>
   )
 }
-

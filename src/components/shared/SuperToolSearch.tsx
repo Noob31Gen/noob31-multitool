@@ -3,31 +3,23 @@ import { useNavigate } from "react-router-dom"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-
 interface SuperToolSearchProps {
   className?: string;
   autoFocus?: boolean;
 }
-
 export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoFocus = false }: SuperToolSearchProps) {
   const [query, setQuery] = useState("")
   const [isFocused, setIsFocused] = useState(false)
   const navigate = useNavigate()
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (!query.trim()) return
-
     const q = query.trim()
-
-    // Auto-detect IP
     const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(q)
     if (isIp) {
       navigate(`/registration/arin`, { state: { target: q } })
       return
     }
-
-    // Auto-detect MAC Address
     const isMac = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(q) || 
                   /^([0-9A-Fa-f]{4}\.){2}([0-9A-Fa-f]{4})$/.test(q) ||
                   /^[0-9A-Fa-f]{12}$/.test(q);
@@ -35,14 +27,10 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
       navigate(`/network/mac-lookup`, { state: { target: q } })
       return
     }
-
-    // Auto-detect URL
     if (q.startsWith('http://') || q.startsWith('https://')) {
       navigate(`/network/url-scanner`, { state: { target: q } })
       return
     }
-
-    // Auto-detect Email
     if (q.includes('@')) {
       const parts = q.split('@');
       const domain = parts[parts.length - 1];
@@ -51,8 +39,6 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
         return
       }
     }
-
-    // Extract hostname if path is included but no scheme matched (e.g. example.com/path)
     let parsedQ = q
     if (q.includes('/') && !isIp && !q.startsWith('http')) {
       try {
@@ -62,11 +48,8 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
         parsedQ = q.split('/')[0]
       }
     }
-
-    // Default: Domain Health
     navigate(`/health/domain`, { state: { target: parsedQ } })
   }
-
   return (
     <form onSubmit={handleSearch} className={className}>
       <div className="relative flex items-center w-full overflow-hidden rounded-md">

@@ -8,19 +8,16 @@ import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { MapPin, Network, Globe, ShieldAlert, Server, Activity } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-
 export function MyIpPage() {
   const { settings } = useSettings()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
-
   useEffect(() => {
     let isMounted = true;
     async function fetchMyIp() {
       setStatus('loading');
       try {
-        // Passing empty string triggers the IP detection logic in queryASN
         const res = await queryASN("", settings);
         if (isMounted) {
           setResult(res);
@@ -36,11 +33,8 @@ export function MyIpPage() {
     fetchMyIp();
     return () => { isMounted = false; };
   }, []);
-
-  // Helper references for the normalized data
   const parsed = result?.parsed;
   const currentIp = result?.ipapi?.ip || "Unknown IP";
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -59,13 +53,11 @@ export function MyIpPage() {
           </Badge>
         )}
       </div>
-
       {status === 'loading' && (
         <ResultCard title="Detecting your connection..." status="loading">
           <LoadingSkeleton />
         </ResultCard>
       )}
-
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
@@ -75,17 +67,13 @@ export function MyIpPage() {
           </div>
         </ResultCard>
       )}
-
       {status === 'success' && parsed && (
         <div className="grid gap-6">
-          {/* Main IP Display & Security Flags */}
           <div className="grid gap-6 md:grid-cols-3">
             <Card className="md:col-span-2 p-6 flex flex-col justify-center items-center relative overflow-hidden">
-              {/* Background Decoration */}
               <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                 <Globe className="w-32 h-32" />
               </div>
-
               <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">Public IPv4 Address</p>
               <div className="text-3xl sm:text-5xl font-mono font-bold text-primary break-all mb-4">
                 {currentIp}
@@ -95,7 +83,6 @@ export function MyIpPage() {
                 <ExportButton data={result} filename={`my-ip-metadata.json`} />
               </div>
             </Card>
-
             <Card className="p-6 space-y-4">
               <h4 className="text-sm font-bold uppercase text-muted-foreground">Security Identity</h4>
               <div className="space-y-3">
@@ -120,8 +107,6 @@ export function MyIpPage() {
               </div>
             </Card>
           </div>
-
-          {/* Network & Location Details */}
           <div className="grid gap-6 md:grid-cols-2">
             <ResultCard title="Network Authority">
               <div className="space-y-4 pt-2">
@@ -146,7 +131,6 @@ export function MyIpPage() {
                 </div>
               </div>
             </ResultCard>
-
             <ResultCard title="Geographic Origin">
               <div className="space-y-4 pt-2">
                 <div className="flex items-start gap-3">

@@ -18,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-
 export function CertLookupPage() {
   const { settings } = useSettings()
   const location = useLocation()
@@ -26,7 +25,6 @@ export function CertLookupPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
-
   useEffect(() => {
     const target = location.state?.target;
     if (target) {
@@ -34,16 +32,12 @@ export function CertLookupPage() {
       performSearch(target);
     }
   }, [location.state]);
-
   const performSearch = async (targetDomain: string) => {
     if (!targetDomain.trim()) return
-
     setStatus('loading')
     setErrorMsg("")
     setResult(null)
-
     const startTime = performance.now();
-
     try {
       const res = await queryCert(targetDomain, settings);
       const queryTime = Math.round(performance.now() - startTime);
@@ -55,12 +49,10 @@ export function CertLookupPage() {
       setStatus('error')
     }
   }
-
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
   }
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -72,7 +64,6 @@ export function CertLookupPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Certificate (crt.sh) Lookup</h1>
         <p className="text-muted-foreground mt-2">Find historical SSL/TLS certificates for a domain using Certificate Transparency logs.</p>
       </div>
-
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -89,19 +80,16 @@ export function CertLookupPage() {
           </Button>
         </form>
       </Card>
-
       {!settings.corsProvider || settings.corsProvider === 'none' ? (
         <div className="text-sm text-amber-600 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10">
           <strong>Warning:</strong> You must configure a CORS Proxy URL in Settings. Or, <a href={`https://crt.sh/?q=${domain}`} target="_blank" rel="noreferrer" className="underline font-bold">Open directly in crt.sh</a>.
         </div>
       ) : null}
-
       {status === 'loading' && (
         <ResultCard title="Querying crt.sh..." status="loading">
           <LoadingSkeleton />
         </ResultCard>
       )}
-
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
@@ -109,7 +97,6 @@ export function CertLookupPage() {
           </div>
         </ResultCard>
       )}
-
       {status === 'success' && result && (
         <ResultCard
           title="Certificate Transparency Logs"
@@ -123,7 +110,6 @@ export function CertLookupPage() {
           }
         >
           <div className="w-full min-w-0">
-            {/* Desktop Table View */}
             <div className="hidden md:block rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -152,8 +138,6 @@ export function CertLookupPage() {
                 </TableBody>
               </Table>
             </div>
-
-            {/* Mobile Card/Box View */}
             <div className="md:hidden space-y-4">
               {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((cert: any, i: number) => (
                 <div key={i} className="rounded-xl border bg-card overflow-hidden shadow-sm">
@@ -192,4 +176,4 @@ export function CertLookupPage() {
       )}
     </div>
   )
-}
+}

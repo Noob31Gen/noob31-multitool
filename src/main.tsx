@@ -4,7 +4,6 @@ import './index.css'
 import App from './App.tsx'
 import { ThemeProvider } from './components/ThemeProvider.tsx'
 import { SettingsProvider } from './lib/settings.ts'
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SettingsProvider>

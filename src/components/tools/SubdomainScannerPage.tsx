@@ -18,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-
 export function SubdomainScannerPage() {
   const { settings } = useSettings()
   const location = useLocation()
@@ -28,7 +27,6 @@ export function SubdomainScannerPage() {
   const [errorMsg, setErrorMsg] = useState("")
   const [currentSource, setCurrentSource] = useState("")
   const [scanErrors, setScanErrors] = useState<string[]>([])
-
   useEffect(() => {
     const target = location.state?.target;
     if (target) {
@@ -36,18 +34,14 @@ export function SubdomainScannerPage() {
       performSearch(target);
     }
   }, [location.state]);
-
   const performSearch = async (targetDomain: string) => {
     if (!targetDomain.trim()) return
-
     setStatus('loading')
     setErrorMsg("")
     setResult(null)
     setScanErrors([])
     setCurrentSource("Starting scan...")
-
     const startTime = performance.now();
-
     try {
       await querySubdomains(targetDomain, settings, (res, errs, sourceName) => {
         setResult({ data: res, queryTime: Math.round(performance.now() - startTime) });
@@ -61,12 +55,10 @@ export function SubdomainScannerPage() {
       setStatus('error')
     }
   }
-
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
   }
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -78,7 +70,6 @@ export function SubdomainScannerPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Subdomain Scanner</h1>
         <p className="text-muted-foreground mt-2">Find subdomains for a given domain using multiple unauthenticated public databases.</p>
       </div>
-
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -95,13 +86,11 @@ export function SubdomainScannerPage() {
           </Button>
         </form>
       </Card>
-
       {!settings.corsProvider || settings.corsProvider === 'none' ? (
         <div className="text-sm text-amber-600 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10">
           <strong>Warning:</strong> You must configure a CORS Proxy URL in Settings to query the public databases.
         </div>
       ) : null}
-
       {status === 'error' && (
         <ResultCard title="Scan Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
@@ -109,13 +98,11 @@ export function SubdomainScannerPage() {
           </div>
         </ResultCard>
       )}
-
       {status === 'loading' && !result && (
         <ResultCard title={currentSource || "Scanning..."} status="loading">
           <LoadingSkeleton />
         </ResultCard>
       )}
-
       {(status === 'loading' || status === 'success') && result && (
         <ResultCard
           title={`Discovered Subdomains (${result.data.length})${status === 'loading' ? ` - ${currentSource}` : ''}`}
@@ -135,7 +122,6 @@ export function SubdomainScannerPage() {
               </div>
             )}
             <div className="w-full min-w-0">
-              {/* Desktop Table View */}
               <div className="hidden sm:block rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -168,8 +154,6 @@ export function SubdomainScannerPage() {
                   </TableBody>
                 </Table>
               </div>
-
-              {/* Mobile Card/Box View */}
               <div className="sm:hidden space-y-3">
                 {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((item: SubdomainResult, i: number) => (
                   <div key={i} className="p-3 rounded-lg border bg-card shadow-sm">

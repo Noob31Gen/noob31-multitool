@@ -12,7 +12,6 @@ import { Search } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { HealthItem } from "@/components/shared/HealthReportCard"
 import { DNSResultTable } from "@/components/shared/DNSResultTable"
-
 export function DnsCheckPage() {
   const { settings } = useSettings()
   const location = useLocation()
@@ -20,7 +19,6 @@ export function DnsCheckPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
-
   useEffect(() => {
     const target = location.state?.target;
     if (target) {
@@ -28,16 +26,12 @@ export function DnsCheckPage() {
       performSearch(target);
     }
   }, [location.state]);
-
   const performSearch = async (targetDomain: string) => {
     if (!targetDomain.trim()) return
-
     setStatus('loading')
     setErrorMsg("")
     setResult(null)
-
     const startTime = performance.now();
-
     try {
       const res = await runDnsCheck(targetDomain, settings);
       const queryTime = Math.round(performance.now() - startTime);
@@ -49,12 +43,10 @@ export function DnsCheckPage() {
       setStatus('error')
     }
   }
-
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
   }
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -66,7 +58,6 @@ export function DnsCheckPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">DNS Check</h1>
         <p className="text-muted-foreground mt-2">Runs a parallel query for all core DNS records associated with a domain.</p>
       </div>
-
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -83,13 +74,11 @@ export function DnsCheckPage() {
           </Button>
         </form>
       </Card>
-
       {status === 'loading' && (
         <ResultCard title="Querying 7 DNS record types concurrently..." status="loading">
           <LoadingSkeleton />
         </ResultCard>
       )}
-
       {status === 'error' && (
         <ResultCard title="Analysis Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
@@ -97,7 +86,6 @@ export function DnsCheckPage() {
           </div>
         </ResultCard>
       )}
-
       {status === 'success' && result && (
         <ResultCard
           title="Consolidated DNS Health"

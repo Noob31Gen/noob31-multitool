@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-
 interface ResultCardProps {
   title: React.ReactNode
   description?: string
@@ -11,7 +10,6 @@ interface ResultCardProps {
   action?: React.ReactNode
   className?: string
 }
-
 export function ResultCard({ title, description, status, timeMs, children, action, className }: ResultCardProps) {
   return (
     <Card className={cn("w-full", className)}>

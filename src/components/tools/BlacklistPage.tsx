@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, CheckCircle2, XCircle, AlertCircle } from "lucide-react"
 import { Card } from "@/components/ui/card"
-
 export function BlacklistPage() {
   const { settings } = useSettings()
   const location = useLocation()
@@ -18,7 +17,6 @@ export function BlacklistPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
-
   useEffect(() => {
     const target = location.state?.target;
     if (target) {
@@ -26,16 +24,12 @@ export function BlacklistPage() {
       performSearch(target);
     }
   }, [location.state]);
-
   const performSearch = async (targetIp: string) => {
     if (!targetIp.trim()) return
-
     setStatus('loading')
     setErrorMsg("")
     setResult(null)
-
     const startTime = performance.now();
-
     try {
       const res = await checkBlacklist(targetIp, settings);
       const queryTime = Math.round(performance.now() - startTime);
@@ -47,15 +41,12 @@ export function BlacklistPage() {
       setStatus('error')
     }
   }
-
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(ip)
   }
-
   const listedCount = result?.data?.filter((r: any) => r.listed).length || 0;
   const totalCount = result?.data?.length || 0;
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -67,7 +58,6 @@ export function BlacklistPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Blacklist Check</h1>
         <p className="text-muted-foreground mt-2">Checks an IPv4 address against major DNS-based Blackhole Lists (DNSBLs).</p>
       </div>
-
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -84,13 +74,11 @@ export function BlacklistPage() {
           </Button>
         </form>
       </Card>
-
       {status === 'loading' && (
         <ResultCard title="Querying DNSBLs in parallel..." status="loading">
           <LoadingSkeleton />
         </ResultCard>
       )}
-
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
@@ -98,7 +86,6 @@ export function BlacklistPage() {
           </div>
         </ResultCard>
       )}
-
       {status === 'success' && result && (
         <ResultCard
           title={`Checked ${totalCount} Blacklists`}
@@ -112,7 +99,6 @@ export function BlacklistPage() {
             </div>
           }
         >
-
           <div className={`mb-6 p-4 rounded-md border text-center ${listedCount > 0 ? 'bg-destructive/10 border-destructive/30' : 'bg-green-500/10 border-green-500/30'}`}>
             <h3 className="text-xl font-bold mb-1">
               {listedCount > 0 ? `Listed on ${listedCount} / ${totalCount} blacklists` : 'Clean! Not listed on any checked blacklists.'}
@@ -121,7 +107,6 @@ export function BlacklistPage() {
               {listedCount > 0 ? 'This IP address has reputation issues.' : 'This IP address has a good reputation.'}
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {result.data.map((item: any, i: number) => (
               <div
@@ -145,11 +130,9 @@ export function BlacklistPage() {
                     <p className="text-sm font-medium truncate" title={item.zone}>{item.zone}</p>
                     <p className="text-xs text-muted-foreground truncate">
                       {item.error ? 'Query failed' : item.listed ? 'Listed' : 'Clean'}
-                      {/* Only show raw loopback IPs here if we don't have a specific classification mapping */}
                       {item.listed && item.records?.[0] && !item.classification ? ` (${item.records[0]})` : ''}
                     </p>
                   </div>
-
                   {item.classification && (
                     <div className="w-fit">
                       <span className="text-xs font-semibold text-destructive bg-destructive/10 border border-destructive/20 rounded px-2 py-0.5 inline-block">
@@ -157,7 +140,6 @@ export function BlacklistPage() {
                       </span>
                     </div>
                   )}
-
                   {item.details && (
                     <div className="text-xs font-mono text-muted-foreground break-words whitespace-pre-wrap bg-background/50 p-2.5 rounded border border-border/50 mt-1">
                       {item.details}
@@ -167,7 +149,6 @@ export function BlacklistPage() {
               </div>
             ))}
           </div>
-
         </ResultCard>
       )}
     </div>

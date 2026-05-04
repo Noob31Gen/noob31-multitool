@@ -7,25 +7,20 @@ import { toast } from "sonner"
 import { Copy, RefreshCw, Camera, ScanLine, X, Upload, Image as ImageIcon } from "lucide-react"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { cn } from "@/lib/utils"
-
 export function CodeScannerPage() {
   const [scanResult, setScanResult] = useState<string | null>(null)
   const [isScanning, setIsScanning] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  // Handle camera scanning
   useEffect(() => {
     if (isScanning && !scannerRef.current) {
       const html5QrCode = new Html5Qrcode("reader")
-      
       const qrboxFunction = (viewfinderWidth: number, viewfinderHeight: number) => {
         const minEdge = Math.min(viewfinderWidth, viewfinderHeight)
-        const size = Math.floor(minEdge * 0.85) // 85% of the smallest edge
+        const size = Math.floor(minEdge * 0.85)
         return { width: size, height: size }
       }
-
       const config = { 
         fps: 15, 
         qrbox: qrboxFunction,
@@ -34,7 +29,6 @@ export function CodeScannerPage() {
           useBarCodeDetectorIfSupported: true
         }
       }
-
       html5QrCode.start(
         { facingMode: "environment" },
         config,
@@ -44,30 +38,24 @@ export function CodeScannerPage() {
           toast.success("Code scanned successfully!")
         },
         (_errorMessage) => {
-          // ignore failures
         }
       ).catch((err) => {
         console.error("Camera start error", err)
         toast.error("Could not access camera. Please check permissions.")
         setIsScanning(false)
       })
-
       scannerRef.current = html5QrCode
     }
-
     return () => {
       if (scannerRef.current && scannerRef.current.isScanning) {
         scannerRef.current.stop().catch(err => console.error("Stop error", err))
       }
     }
   }, [isScanning])
-
-  // Handle global paste event
   useEffect(() => {
     const handlePaste = (event: ClipboardEvent) => {
       const items = event.clipboardData?.items
       if (!items) return
-
       for (let i = 0; i < items.length; i++) {
         if (items[i].type.indexOf("image") !== -1) {
           const file = items[i].getAsFile()
@@ -78,16 +66,13 @@ export function CodeScannerPage() {
         }
       }
     }
-
     window.addEventListener("paste", handlePaste)
     return () => window.removeEventListener("paste", handlePaste)
   }, [])
-
   const startScanning = () => {
     setScanResult(null)
     setIsScanning(true)
   }
-
   const stopScanning = () => {
     if (scannerRef.current) {
       if (scannerRef.current.isScanning) {
@@ -103,12 +88,9 @@ export function CodeScannerPage() {
       setIsScanning(false)
     }
   }
-
   const processFile = async (file: File) => {
     const toastId = toast.loading("Processing image...")
-
     try {
-      // 1. Create an image from the file
       const img = await new Promise<HTMLImageElement>((resolve, reject) => {
         const reader = new FileReader()
         reader.onload = (e) => {
@@ -120,13 +102,10 @@ export function CodeScannerPage() {
         reader.onerror = reject
         reader.readAsDataURL(file)
       })
-
-      // 2. Use a canvas to resize if too large (improves detection for high-res images)
       const canvas = document.createElement("canvas")
       const MAX_SIZE = 800
       let width = img.width
       let height = img.height
-
       if (width > height) {
         if (width > MAX_SIZE) {
           height *= MAX_SIZE / width
@@ -138,19 +117,14 @@ export function CodeScannerPage() {
           height = MAX_SIZE
         }
       }
-
       canvas.width = width
       canvas.height = height
       const ctx = canvas.getContext("2d")
       ctx?.drawImage(img, 0, 0, width, height)
-
-      // 3. Convert canvas to blob for scanner
       const blob = await new Promise<Blob>((resolve) => {
         canvas.toBlob((b) => resolve(b!), "image/png")
       })
       const resizedFile = new File([blob], "resized.png", { type: "image/png" })
-
-      // 4. Scan the resized image
       let processor = document.getElementById("file-processor")
       if (!processor) {
         processor = document.createElement("div")
@@ -158,14 +132,11 @@ export function CodeScannerPage() {
         processor.style.display = "none"
         document.body.appendChild(processor)
       }
-
       const html5QrCode = new Html5Qrcode("file-processor")
       const decodedText = await html5QrCode.scanFile(resizedFile, false)
-
       setScanResult(decodedText)
       toast.dismiss(toastId)
       toast.success("Code found in image!")
-
       await html5QrCode.clear()
     } catch (err) {
       console.error("File scan error", err)
@@ -173,24 +144,20 @@ export function CodeScannerPage() {
       toast.error("No valid code found. Try a clearer image.")
     }
   }
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       processFile(file)
     }
   }
-
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(true)
   }
-
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
   }
-
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
@@ -201,14 +168,12 @@ export function CodeScannerPage() {
       toast.error("Please drop a valid image file.")
     }
   }
-
   const copyToClipboard = () => {
     if (scanResult) {
       navigator.clipboard.writeText(scanResult)
       toast.success("Result copied to clipboard")
     }
   }
-
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <SEO 
@@ -220,10 +185,8 @@ export function CodeScannerPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Code Scanner</h1>
         <p className="text-muted-foreground mt-2">Scan QR codes and barcodes using your camera, image files, or by pasting. Note: If camera scan is bugged, please reload the page.</p>
       </div>
-
       {!isScanning && !scanResult && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Camera Card */}
           <Card
             className="p-8 flex flex-col items-center justify-center border-dashed bg-muted/20 cursor-pointer hover:bg-muted/30 transition-all rounded-2xl group"
             onClick={startScanning}
@@ -239,8 +202,6 @@ export function CodeScannerPage() {
               <ScanLine className="h-4 w-4" /> Start Scanner
             </Button>
           </Card>
-
-          {/* Upload/Paste Card */}
           <Card
             className={cn(
               "p-8 flex flex-col items-center justify-center border-dashed transition-all border-2 rounded-2xl",
@@ -270,7 +231,6 @@ export function CodeScannerPage() {
           </Card>
         </div>
       )}
-
       {isScanning && (
         <div className="space-y-4">
           <Card className="overflow-hidden relative bg-black aspect-square max-w-sm mx-auto rounded-2xl border-4 border-primary/20 shadow-2xl">
@@ -290,7 +250,6 @@ export function CodeScannerPage() {
           </div>
         </div>
       )}
-
       {scanResult && (
         <ResultCard
           title="Scan Result"
@@ -311,7 +270,6 @@ export function CodeScannerPage() {
           <div className="p-4 bg-muted rounded-xl border font-mono break-all text-lg">
             {scanResult}
           </div>
-
           {scanResult.startsWith('http') && (
             <div className="mt-4">
               <Button asChild variant="link" className="px-0">
@@ -321,7 +279,6 @@ export function CodeScannerPage() {
           )}
         </ResultCard>
       )}
-
       <div className="bg-muted/40 p-6 rounded-2xl border text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>
           <h4 className="font-semibold text-foreground mb-1">Supported Formats</h4>
@@ -332,7 +289,6 @@ export function CodeScannerPage() {
           <p>Processing happens locally in your browser. No images are uploaded to any server.</p>
         </div>
       </div>
-
       <style dangerouslySetInnerHTML={{
         __html: `
         #reader__scan_region {
@@ -352,4 +308,4 @@ export function CodeScannerPage() {
       `}} />
     </div>
   )
-}
+}

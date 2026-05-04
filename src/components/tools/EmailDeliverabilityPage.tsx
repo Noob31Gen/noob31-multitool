@@ -12,7 +12,6 @@ import { Search, AlertTriangle, XCircle, CheckCircle, Info } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { HealthItem } from "@/components/shared/HealthReportCard"
 import { DNSResultTable } from "@/components/shared/DNSResultTable"
-
 export function EmailDeliverabilityPage() {
   const { settings } = useSettings()
   const location = useLocation();
@@ -21,7 +20,6 @@ export function EmailDeliverabilityPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
-
   useEffect(() => {
     const q = location.state?.target;
     if (q) {
@@ -29,16 +27,12 @@ export function EmailDeliverabilityPage() {
       performSearch(q);
     }
   }, [location.state]);
-
   const performSearch = async (targetDomain: string) => {
     if (!targetDomain.trim()) return
-
     setStatus('loading')
     setErrorMsg("")
     setResult(null)
-
     const startTime = performance.now();
-
     try {
       const res = await runDeliverabilityCheck(targetDomain, selector, settings);
       const queryTime = Math.round(performance.now() - startTime);
@@ -50,12 +44,10 @@ export function EmailDeliverabilityPage() {
       setStatus('error')
     }
   }
-
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
   }
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -67,7 +59,6 @@ export function EmailDeliverabilityPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Email Deliverability</h1>
         <p className="text-muted-foreground mt-2">Checks all DNS-based email authentication records and computes a deliverability score.</p>
       </div>
-
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <Input
@@ -90,13 +81,11 @@ export function EmailDeliverabilityPage() {
           </Button>
         </form>
       </Card>
-
       {status === 'loading' && (
         <ResultCard title="Analyzing email authentication setup..." status="loading">
           <LoadingSkeleton />
         </ResultCard>
       )}
-
       {status === 'error' && (
         <ResultCard title="Analysis Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
@@ -104,11 +93,9 @@ export function EmailDeliverabilityPage() {
           </div>
         </ResultCard>
       )}
-
       {status === 'success' && result && (
         <div className="grid gap-6 md:grid-cols-[1fr_350px] items-start">
           <div className="order-2 md:order-1 space-y-6 min-w-0">
-
             <ResultCard title="Recommendations & Issues" status="success">
               <div className="space-y-3">
                 {result.recommendations.map((rec: any, i: number) => {
@@ -127,7 +114,6 @@ export function EmailDeliverabilityPage() {
                     icon = <CheckCircle className="w-5 h-5 text-green-500" />;
                     bgClass = "bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-900/50";
                   }
-
                   return (
                     <div key={i} className={`flex items-start gap-3 p-3 rounded-md border ${bgClass}`}>
                       <div className="mt-0.5 shrink-0">{icon}</div>
@@ -137,7 +123,6 @@ export function EmailDeliverabilityPage() {
                 })}
               </div>
             </ResultCard>
-
             <ResultCard title="Authentication Records" status="success">
               {result.results.map((r: any) => {
                 const count = r.records?.length || 0;
@@ -155,7 +140,6 @@ export function EmailDeliverabilityPage() {
               })}
             </ResultCard>
           </div>
-
           <div className="order-1 md:order-2 md:sticky md:top-20">
             <Card className="p-6 flex flex-col items-center justify-center text-center">
               <h3 className="font-semibold text-lg text-muted-foreground mb-4">Deliverability Grade</h3>
@@ -170,11 +154,9 @@ export function EmailDeliverabilityPage() {
               </div>
               <div className="text-2xl font-bold mb-1">{result.score} / 100</div>
               <p className="text-sm text-muted-foreground mb-6">Computed in {result.queryTime}ms</p>
-
               <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-md border mb-6 text-left">
                 <strong>Disclaimer:</strong> This checks DNS-based email authentication only. SMTP connectivity testing requires a server-side tool.
               </div>
-
               <div className="flex gap-2 w-full justify-center flex-wrap">
                 <CopyButton data={JSON.stringify(result, null, 2)} text="JSON" />
                 <ExportButton data={result} filename={`${domain}-deliverability.json`} />

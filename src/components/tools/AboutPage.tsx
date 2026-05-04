@@ -1,12 +1,10 @@
 import { Card } from "@/components/ui/card"
 import { SEO } from "@/components/shared/SEO"
-
 const version = import.meta.env.APP_VERSION;
-
 export function AboutPage() {
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title="About Noob31's MultiTools"
         description="Learn more about the developer and the motivation behind this network security toolkit."
         url="https://tools.noob31.com/about/info"
@@ -14,7 +12,6 @@ export function AboutPage() {
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">About Me</h1>
       </div>
-
       <Card className="p-6 bg-muted/40 space-y-4">
         <div>
           <h2 className="text-xl font-semibold mb-2">Noob31's MultiTools</h2>
@@ -35,8 +32,10 @@ export function AboutPage() {
           <p className="text-muted-foreground">
             <span className="font-medium text-foreground">Website:</span> <a className="underline hover:text-foreground" href="https://noob31.com/" target="_blank" rel="noreferrer">noob31.com</a>
           </p>
+          <p className="text-muted-foreground">
+            <span className="font-medium text-foreground">Source:</span> <a className="underline hover:text-foreground" href="https://github.com/Noob31Gen/noob31-multitool" target="_blank" rel="noreferrer">Github</a>
+          </p>
         </div>
-
         <div className="pt-4 border-t border-border/50">
           <p className="text-sm text-muted-foreground">
             This project is built with React.js, Vite, and Tailwind CSS.

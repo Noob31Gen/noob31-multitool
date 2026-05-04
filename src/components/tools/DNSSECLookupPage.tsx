@@ -27,7 +27,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-
 const DNSSEC_INFO: Record<string, { title: string, desc: string }> = {
   DNSKEY: { title: "DNSKEY Lookup", desc: "View the public keys used to verify DNSSEC signatures." },
   DS: { title: "DS Record Lookup", desc: "Check Delegation Signer (DS) records for a domain." },
@@ -35,13 +34,10 @@ const DNSSEC_INFO: Record<string, { title: string, desc: string }> = {
   NSEC3PARAM: { title: "NSEC3PARAM Lookup", desc: "Check NSEC3 parameters for a domain." },
   RRSIG: { title: "RRSIG Record Lookup", desc: "View the cryptographic signatures of DNS records." }
 }
-
-// Helper to parse DNSSEC specific fields from raw data string
 function parseDNSSECData(type: string, data: string) {
   const parts = data.split(' ');
   switch (type) {
     case 'DNSKEY':
-      // flags protocol algorithm publicKey
       return {
         flags: parts[0],
         protocol: parts[1],
@@ -49,7 +45,6 @@ function parseDNSSECData(type: string, data: string) {
         publicKey: parts.slice(3).join(' ')
       }
     case 'DS':
-      // keyTag algorithm digestType digest
       return {
         keyTag: parts[0],
         algorithm: parts[1],
@@ -57,7 +52,6 @@ function parseDNSSECData(type: string, data: string) {
         digest: parts.slice(3).join(' ')
       }
     case 'NSEC3PARAM':
-      // hashAlgo flags iterations salt
       return {
         hashAlgo: parts[0],
         flags: parts[1],
@@ -65,7 +59,6 @@ function parseDNSSECData(type: string, data: string) {
         salt: parts[3]
       }
     case 'RRSIG':
-      // typeCovered algorithm labels originalTTL expiration inception keyTag signer signature
       return {
         typeCovered: parts[0],
         algorithm: parts[1],
@@ -81,13 +74,10 @@ function parseDNSSECData(type: string, data: string) {
       return null
   }
 }
-
 function ParsedDNSSECTable({ records, type }: { records: DNSRecord[], type: string }) {
   if (records.length === 0) return null;
-
   return (
     <div className="w-full min-w-0">
-      {/* Desktop Table */}
       <div className="hidden lg:block rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
@@ -151,8 +141,6 @@ function ParsedDNSSECTable({ records, type }: { records: DNSRecord[], type: stri
           </TableBody>
         </Table>
       </div>
-
-      {/* Mobile Card List */}
       <div className="lg:hidden space-y-4">
         {records.map((record, i) => {
           const parsed = parseDNSSECData(type, record.data);
@@ -187,28 +175,22 @@ function ParsedDNSSECTable({ records, type }: { records: DNSRecord[], type: stri
     </div>
   )
 }
-
-
 export function DNSSECLookupPage() {
   const { type } = useParams<{ type: string }>()
   const navigate = useNavigate()
   const { settings } = useSettings()
-
   const recordType = (type || 'dnskey').toUpperCase()
   const info = DNSSEC_INFO[recordType] || { title: `${recordType} Lookup`, desc: `Check ${recordType} records.` }
-
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<DNSResponse | null>(null)
   const [isSigned, setIsSigned] = useState<boolean | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-
   useEffect(() => {
     setStatus('idle')
     setResult(null)
     setIsSigned(null)
   }, [recordType])
-
   const location = useLocation();
   useEffect(() => {
     const q = location.state?.target;
@@ -217,25 +199,17 @@ export function DNSSECLookupPage() {
       performSearch(q);
     }
   }, [location.state]);
-
   const performSearch = async (targetDomain: string) => {
     if (!targetDomain.trim()) return
-
     setStatus('loading')
     setErrorMsg("")
     setResult(null)
     setIsSigned(null)
-
     try {
       const target = targetDomain.trim();
-      // Query the requested record
       const mainQuery = queryDNS(target, recordType, settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
-
-      // Concurrently query DNSKEY to determine if domain is DNSSEC signed
       const dnskeyQuery = recordType === 'DNSKEY' ? mainQuery : queryDNS(target, 'DNSKEY', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
-
       const [res, dnskeyRes] = await Promise.all([mainQuery, dnskeyQuery]);
-
       setResult(res);
       setIsSigned(dnskeyRes.records && dnskeyRes.records.length > 0);
       setStatus('success')
@@ -245,12 +219,10 @@ export function DNSSECLookupPage() {
       setStatus('error')
     }
   }
-
   const handleSearch = (e: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
   }
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -262,7 +234,6 @@ export function DNSSECLookupPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{info.title}</h1>
         <p className="text-muted-foreground mt-2">{info.desc}</p>
       </div>
-
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <Select value={recordType} onValueChange={(val) => navigate(`/dnssec/${val.toLowerCase()}`)}>
@@ -277,7 +248,6 @@ export function DNSSECLookupPage() {
               <SelectItem value="RRSIG">RRSIG</SelectItem>
             </SelectContent>
           </Select>
-
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -287,19 +257,16 @@ export function DNSSECLookupPage() {
               onChange={(e) => setDomain(e.target.value)}
             />
           </div>
-
           <Button type="submit" disabled={status === 'loading'} className="w-full sm:w-auto">
             {status === 'loading' ? 'Checking...' : `${recordType} Lookup`}
           </Button>
         </form>
       </Card>
-
       {status === 'loading' && (
         <ResultCard title="Querying DNSSEC..." status="loading">
           <LoadingSkeleton />
         </ResultCard>
       )}
-
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
@@ -307,7 +274,6 @@ export function DNSSECLookupPage() {
           </div>
         </ResultCard>
       )}
-
       {status === 'success' && result && (
         <ResultCard
           title="DNSSEC Records"
@@ -343,7 +309,6 @@ export function DNSSECLookupPage() {
                 No {recordType} records found.
               </div>
             )}
-
             {result.authority && result.authority.length > 0 && (
               <div className="mt-6">
                 <h3 className="text-lg font-medium mb-3">Authority Records</h3>
@@ -355,4 +320,4 @@ export function DNSSECLookupPage() {
       )}
     </div>
   )
-}
+}

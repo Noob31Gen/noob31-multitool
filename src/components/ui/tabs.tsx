@@ -1,9 +1,7 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Tabs as TabsPrimitive } from "radix-ui"
-
 import { cn } from "@/lib/utils"
-
 function Tabs({
   className,
   orientation = "horizontal",
@@ -21,7 +19,6 @@ function Tabs({
     />
   )
 }
-
 const tabsListVariants = cva(
   "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none",
   {
@@ -36,7 +33,6 @@ const tabsListVariants = cva(
     },
   }
 )
-
 function TabsList({
   className,
   variant = "default",
@@ -52,7 +48,6 @@ function TabsList({
     />
   )
 }
-
 function TabsTrigger({
   className,
   ...props
@@ -71,7 +66,6 @@ function TabsTrigger({
     />
   )
 }
-
 function TabsContent({
   className,
   ...props
@@ -84,5 +78,4 @@ function TabsContent({
     />
   )
 }
-
 export { Tabs, TabsList, TabsTrigger, TabsContent, tabsListVariants }

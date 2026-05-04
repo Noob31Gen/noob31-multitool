@@ -19,30 +19,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
 export function SettingsSheet() {
   const { settings, setSettings } = useSettings();
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [isOpen, setIsOpen] = useState(false);
-
   useEffect(() => {
     if (isOpen) {
       setLocalSettings(settings);
     }
   }, [isOpen, settings]);
-
   const handleApply = () => {
     setSettings(localSettings);
     safeStorage.setItem('url-scanner-settings', JSON.stringify(localSettings));
     window.location.reload();
   };
-
   const handleReset = () => {
     setSettings(defaultSettings);
     safeStorage.setItem('url-scanner-settings', JSON.stringify(defaultSettings));
     window.location.reload();
   };
-
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
@@ -95,7 +90,6 @@ export function SettingsSheet() {
               disabled={localSettings.dohProvider !== 'custom'}
             />
           </div>
-
           <div className="space-y-3">
             <h3 className="text-sm font-medium">CORS Proxy Provider</h3>
             <Select

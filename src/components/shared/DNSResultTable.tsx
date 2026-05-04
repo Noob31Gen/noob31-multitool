@@ -7,19 +7,15 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { DNSRecord } from "@/lib/doh"
-
 interface DNSResultTableProps {
   records: DNSRecord[]
 }
-
 export function DNSResultTable({ records }: DNSResultTableProps) {
   if (!records || records.length === 0) {
     return <div className="text-sm text-muted-foreground p-4 text-center border rounded-md">No records found.</div>
   }
-
   return (
     <div className="w-full min-w-0">
-      {/* Desktop Table View */}
       <div className="hidden md:block rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
@@ -48,8 +44,6 @@ export function DNSResultTable({ records }: DNSResultTableProps) {
           </TableBody>
         </Table>
       </div>
-
-      {/* Mobile Card/Box View */}
       <div className="md:hidden space-y-4">
         {records.map((record, i) => (
           <div key={i} className="rounded-xl border bg-card overflow-hidden shadow-sm">

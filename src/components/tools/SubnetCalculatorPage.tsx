@@ -6,29 +6,23 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
-
 export function SubnetCalculatorPage() {
   const [input, setInput] = useState("")
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
-
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg("")
-    
     try {
       let ip = input.trim();
-      let cidrStr = "24"; // Default
-      
+      let cidrStr = "24";
       if (ip.includes('/')) {
         const parts = ip.split('/');
         ip = parts[0];
         cidrStr = parts[1];
       }
-      
       const cidr = parseInt(cidrStr, 10);
       if (isNaN(cidr)) throw new Error("Invalid CIDR prefix (e.g. /24)");
-      
       const res = calculateSubnet(ip, cidr);
       setResult(res);
     } catch (err: any) {
@@ -36,7 +30,6 @@ export function SubnetCalculatorPage() {
       setErrorMsg(err.message || "Invalid IP or CIDR format");
     }
   }
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -48,7 +41,6 @@ export function SubnetCalculatorPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">IPv4 Subnet Calculator</h1>
         <p className="text-muted-foreground mt-2">Calculate network ranges, broadcast addresses, and usable hosts from an IP and CIDR mask.</p>
       </div>
-
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleCalculate} className="flex flex-col sm:flex-row gap-3">
           <Input
@@ -62,13 +54,11 @@ export function SubnetCalculatorPage() {
           </Button>
         </form>
       </Card>
-
       {errorMsg && (
         <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
           {errorMsg}
         </div>
       )}
-
       {result && (
         <Card className="overflow-hidden">
           <div className="p-4 bg-muted/50 border-b flex justify-between items-center">

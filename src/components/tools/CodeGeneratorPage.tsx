@@ -19,7 +19,6 @@ import { toast } from "sonner"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Play } from "lucide-react"
-
 export function CodeGeneratorPage() {
   const [activeTab, setActiveTab] = useState<string>("qr")
   const [text, setText] = useState<string>("")
@@ -30,11 +29,8 @@ export function CodeGeneratorPage() {
   const [isGenerationPaused, setIsGenerationPaused] = useState<boolean>(() => {
     const stored = safeStorage.getItem("qr-pause-gen")
     if (stored !== null) return stored === "true"
-    // Default to true if high res is allowed
     return safeStorage.getItem("qr-allow-high-res") === "true"
   })
-
-  // QR Code Settings
   const [qrSize, setQrSize] = useState<number>(() => {
     return parseInt(safeStorage.getItem("qr-size") || "500")
   })
@@ -45,8 +41,6 @@ export function CodeGeneratorPage() {
     return parseInt(safeStorage.getItem("qr-margin") || "2")
   })
   const qrCanvasRef = useRef<HTMLCanvasElement>(null)
-
-  // Barcode Settings
   const [barcodeFormat, setBarcodeFormat] = useState<string>(() => {
     return safeStorage.getItem("barcode-format") || "CODE128"
   })
@@ -57,8 +51,6 @@ export function CodeGeneratorPage() {
     return parseInt(safeStorage.getItem("barcode-height") || "100")
   })
   const barcodeSvgRef = useRef<SVGSVGElement>(null)
-
-  // Generate QR Code
   const generateQRCode = () => {
     if (activeTab === "qr" && qrCanvasRef.current && text) {
       QRCode.toCanvas(
@@ -82,14 +74,11 @@ export function CodeGeneratorPage() {
       )
     }
   }
-
   useEffect(() => {
     if (!isGenerationPaused) {
       generateQRCode()
     }
   }, [text, qrSize, qrLevel, qrMargin, activeTab, isGenerationPaused])
-
-  // Generate Barcode
   useEffect(() => {
     if (activeTab === "barcode" && barcodeSvgRef.current && text) {
       try {
@@ -107,25 +96,19 @@ export function CodeGeneratorPage() {
       }
     }
   }, [text, barcodeFormat, barcodeWidth, barcodeHeight, activeTab])
-
-  // Save settings to storage
   useEffect(() => {
     safeStorage.setItem("qr-allow-high-res", isHighResAllowed.toString())
     safeStorage.setItem("qr-pause-gen", isGenerationPaused.toString())
     safeStorage.setItem("qr-size", qrSize.toString())
     safeStorage.setItem("qr-level", qrLevel)
     safeStorage.setItem("qr-margin", qrMargin.toString())
-
     safeStorage.setItem("barcode-format", barcodeFormat)
     safeStorage.setItem("barcode-width", barcodeWidth.toString())
     safeStorage.setItem("barcode-height", barcodeHeight.toString())
-
-    // Reset size if high res is no longer allowed
     if (!isHighResAllowed && qrSize >= 1000) {
       setQrSize(500)
     }
   }, [isHighResAllowed, qrSize, qrLevel, qrMargin, barcodeFormat, barcodeWidth, barcodeHeight])
-
   const downloadCode = () => {
     if (activeTab === "qr" && qrCanvasRef.current) {
       const url = qrCanvasRef.current.toDataURL("image/png")
@@ -158,10 +141,8 @@ export function CodeGeneratorPage() {
       img.src = "data:image/svg+xml;base64," + btoa(svgData)
     }
   }
-
   const copyImage = async () => {
     let canvas: HTMLCanvasElement | null = null;
-
     if (activeTab === "qr" && qrCanvasRef.current) {
       canvas = qrCanvasRef.current;
     } else if (activeTab === "barcode" && barcodeSvgRef.current) {
@@ -172,7 +153,6 @@ export function CodeGeneratorPage() {
       canvas.height = svgSize.height + 20;
       const ctx = canvas.getContext("2d");
       const img = new Image();
-
       await new Promise((resolve) => {
         img.onload = () => {
           if (ctx) {
@@ -185,7 +165,6 @@ export function CodeGeneratorPage() {
         img.src = "data:image/svg+xml;base64," + btoa(svgData);
       });
     }
-
     if (canvas) {
       canvas.toBlob(async (blob) => {
         if (blob) {
@@ -206,7 +185,6 @@ export function CodeGeneratorPage() {
       });
     }
   };
-
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <SEO 
@@ -218,7 +196,6 @@ export function CodeGeneratorPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Code Generator</h1>
         <p className="text-muted-foreground mt-2">Generate QR codes and barcodes for URLs, text, or data.</p>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 p-6 space-y-6 rounded-2xl">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -230,7 +207,6 @@ export function CodeGeneratorPage() {
                 <BarIcon className="h-4 w-4" /> Barcode
               </TabsTrigger>
             </TabsList>
-
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="code-text">Data to encode</Label>
@@ -242,7 +218,6 @@ export function CodeGeneratorPage() {
                   className="bg-background min-h-[120px] resize-none rounded-xl"
                 />
               </div>
-
               {activeTab === "qr" && (
                 <div className="flex flex-col gap-4 p-3 rounded-md bg-muted/50 border border-muted-foreground/10">
                   <div className="flex items-start gap-3">
@@ -265,7 +240,6 @@ export function CodeGeneratorPage() {
                       </p>
                     </div>
                   </div>
-
                   {isHighResAllowed && (
                     <div className="flex items-start gap-3 pt-2 border-t border-muted-foreground/10">
                       <div className="pt-0.5">
@@ -290,7 +264,6 @@ export function CodeGeneratorPage() {
                   )}
                 </div>
               )}
-
               {activeTab === "qr" && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
@@ -340,7 +313,6 @@ export function CodeGeneratorPage() {
                   </div>
                 </div>
               )}
-
               {activeTab === "barcode" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2 sm:col-span-2">
@@ -395,7 +367,6 @@ export function CodeGeneratorPage() {
               )}
             </div>
           </Tabs>
-
           <div className="pt-4 flex flex-col sm:flex-row justify-center sm:justify-start gap-4">
             {isGenerationPaused && activeTab === "qr" && (
               <Button onClick={generateQRCode} className="gap-2 rounded-2xl h-12 px-8 min-w-[180px] w-full sm:w-auto bg-primary/90 hover:bg-primary">
@@ -418,7 +389,6 @@ export function CodeGeneratorPage() {
             </Button>
           </div>
         </Card>
-
         <Card className="p-6 flex flex-col items-center justify-center bg-muted/30 border-dashed min-h-[300px] lg:h-full overflow-hidden rounded-2xl">
           <div className="bg-white p-4 rounded-lg shadow-sm w-full h-[250px] sm:h-[350px] flex items-center justify-center overflow-hidden">
             {activeTab === "qr" ? (

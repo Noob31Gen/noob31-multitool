@@ -25,18 +25,15 @@ import {
 } from "@/components/ui/table"
 import { parseUrl, visitUrl, type ParsedUrl, type VisitResult } from "@/lib/urlScanner"
 import { SEO } from "@/components/shared/SEO"
-
 export function UrlScannerPage() {
   const { settings } = useSettings()
   const location = useLocation();
-
   const [url, setUrl] = useState("")
   const [visitEnabled, setVisitEnabled] = useState(false)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [parsed, setParsed] = useState<ParsedUrl | null>(null)
   const [visitData, setVisitData] = useState<VisitResult | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-
   useEffect(() => {
     const q = location.state?.target;
     if (q) {
@@ -44,26 +41,20 @@ export function UrlScannerPage() {
       performSearch(q, visitEnabled);
     }
   }, [location.state]);
-
   const performSearch = async (targetUrl: string, doVisit: boolean) => {
     if (!targetUrl.trim()) return
     setStatus('loading')
     setErrorMsg("")
     setParsed(null)
     setVisitData(null)
-
     try {
       const parsedResult = parseUrl(targetUrl);
       setParsed(parsedResult);
-
       const promises: Promise<any>[] = [];
-
       if (doVisit) {
         promises.push(visitUrl(targetUrl, settings).then(res => setVisitData(res)));
       }
-
       await Promise.all(promises);
-
       setStatus('success')
     } catch (err: any) {
       console.error(err)
@@ -71,12 +62,10 @@ export function UrlScannerPage() {
       setStatus('error')
     }
   }
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     performSearch(url, visitEnabled)
   }
-
   const getStatusColor = (code: number) => {
     if (code >= 200 && code < 300) return "bg-green-500 hover:bg-green-600";
     if (code >= 300 && code < 400) return "bg-blue-500 hover:bg-blue-600";
@@ -84,14 +73,12 @@ export function UrlScannerPage() {
     if (code >= 500) return "bg-red-500 hover:bg-red-600";
     return "bg-gray-500 hover:bg-gray-600";
   }
-
   const InfoRow = ({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) => (
     <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-2 border-b border-border/50 last:border-b-0">
       <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground min-w-[140px] shrink-0">{label}</span>
       <span className={`text-sm break-all ${mono ? 'font-mono' : ''}`}>{value || <span className="text-muted-foreground italic">—</span>}</span>
     </div>
   )
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -103,7 +90,6 @@ export function UrlScannerPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">URL Scanner</h1>
         <p className="text-muted-foreground mt-2">Decompose and analyze every component of a URL according to RFC 3986.</p>
       </div>
-
       <Card className="p-4 bg-muted/40 space-y-4">
         <div className="flex items-center space-x-2 px-1">
           <Switch
@@ -115,7 +101,6 @@ export function UrlScannerPage() {
             Live Visit (Fetch HTTP Status & Headers)
           </Label>
         </div>
-
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
@@ -131,19 +116,16 @@ export function UrlScannerPage() {
           </Button>
         </form>
       </Card>
-
       {!settings.corsProvider && visitEnabled && (
         <div className="text-sm text-amber-600 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10">
           <strong>Warning:</strong> Configure a CORS Proxy URL in Settings for the Live Visit to work.
         </div>
       )}
-
       {status === 'loading' && (
         <ResultCard title="Scanning URL..." status="loading">
           <LoadingSkeleton />
         </ResultCard>
       )}
-
       {status === 'error' && (
         <ResultCard title="Scan Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
@@ -151,11 +133,8 @@ export function UrlScannerPage() {
           </div>
         </ResultCard>
       )}
-
       {status === 'success' && parsed && (
         <div className="space-y-6">
-
-          {/* Visual URL Breakdown */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -216,7 +195,6 @@ export function UrlScannerPage() {
               </div>
             </CardContent>
           </Card>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader className="pb-2">
@@ -235,7 +213,6 @@ export function UrlScannerPage() {
                 <InfoRow label="Default Port" value={parsed.scheme.defaultPort || 'N/A'} mono />
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -272,7 +249,6 @@ export function UrlScannerPage() {
                 } />
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -298,7 +274,6 @@ export function UrlScannerPage() {
                 <InfoRow label="Is Directory?" value={parsed.path.isDirectory ? 'Yes' : 'No'} />
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -311,7 +286,6 @@ export function UrlScannerPage() {
                 <InfoRow label="Parameter Count" value={String(parsed.query.count)} />
                 {parsed.query.params.length > 0 && (
                   <div className="mt-3 w-full min-w-0">
-                    {/* Desktop Table */}
                     <div className="hidden md:block rounded-md border overflow-x-auto">
                       <Table>
                         <TableHeader>
@@ -334,8 +308,6 @@ export function UrlScannerPage() {
                         </TableBody>
                       </Table>
                     </div>
-
-                    {/* Mobile Card/Box View */}
                     <div className="md:hidden space-y-3">
                       {parsed.query.params.map((p, i) => (
                         <div key={i} className="p-3 rounded-lg border bg-card shadow-sm">
@@ -366,7 +338,6 @@ export function UrlScannerPage() {
                 )}
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -382,7 +353,6 @@ export function UrlScannerPage() {
                 )}
               </CardContent>
             </Card>
-
             {parsed.authority.userinfo.hasCredentials && (
               <Card>
                 <CardHeader className="pb-2">
@@ -400,7 +370,6 @@ export function UrlScannerPage() {
                 </CardContent>
               </Card>
             )}
-
             <Card className={parsed.authority.userinfo.hasCredentials ? '' : 'lg:col-span-2'}>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -428,8 +397,6 @@ export function UrlScannerPage() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Live Visit Section */}
           {visitEnabled && visitData && (
             <Card>
               <CardHeader className="pb-3">
@@ -458,7 +425,6 @@ export function UrlScannerPage() {
                     </div>
                   </div>
                 )}
-
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-3 rounded-md border bg-muted/20">
                     <div className="text-xs uppercase text-muted-foreground font-semibold mb-1">Content-Type</div>
@@ -473,11 +439,9 @@ export function UrlScannerPage() {
                     <div className="font-mono text-sm">{visitData.responseTime}ms</div>
                   </div>
                 </div>
-
                 <div>
                   <h4 className="font-medium text-sm text-muted-foreground mb-3">Response Headers ({visitData.headers.length})</h4>
                 <div className="w-full min-w-0">
-                  {/* Desktop Table View */}
                   <div className="hidden sm:block rounded-md border overflow-x-auto">
                     <Table>
                       <TableHeader>
@@ -502,8 +466,6 @@ export function UrlScannerPage() {
                       </TableBody>
                     </Table>
                   </div>
-
-                  {/* Mobile Card/Box View */}
                   <div className="sm:hidden space-y-3">
                     {visitData.headers.length > 0 ? visitData.headers.map((h, i) => (
                       <div key={i} className="p-3 rounded-lg border bg-card shadow-sm">

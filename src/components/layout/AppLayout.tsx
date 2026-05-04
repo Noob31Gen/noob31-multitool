@@ -1,10 +1,8 @@
 import { useLocation } from "react-router-dom"
 import { Header } from "./Header"
-
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
   const isHomePage = location.pathname === "/"
-
   return (
     <div className="relative min-h-screen w-full bg-background overflow-x-hidden">
       <Header />

@@ -3,9 +3,7 @@ export interface ParsedRecordField {
   value?: string;
   description?: string;
 }
-
 export function parseSPF(record: string): ParsedRecordField[] {
-  // e.g. "v=spf1 include:_spf.google.com ~all"
   const parts = record.replace(/"/g, '').split(/\s+/).filter(Boolean);
   return parts.map(part => {
     if (part.startsWith('v=')) return { key: 'Version', value: part };
@@ -13,18 +11,14 @@ export function parseSPF(record: string): ParsedRecordField[] {
     if (part === '-all') return { key: 'Mechanism', value: part, description: 'Hard fail' };
     if (part === '~all') return { key: 'Mechanism', value: part, description: 'Soft fail' };
     if (part === '?all') return { key: 'Mechanism', value: part, description: 'Neutral' };
-    
     if (part.includes(':')) {
       const [k, ...rest] = part.split(':');
       return { key: k, value: rest.join(':') };
     }
-    
     return { key: 'Mechanism', value: part };
   });
 }
-
 export function parseKeyValue(record: string): ParsedRecordField[] {
-  // e.g. "v=DMARC1; p=reject; rua=mailto:dmarc@example.com"
   const parts = record.replace(/"/g, '').split(';').map(p => p.trim()).filter(Boolean);
   return parts.map(part => {
     if (part.includes('=')) {
@@ -34,7 +28,6 @@ export function parseKeyValue(record: string): ParsedRecordField[] {
     return { key: 'Unknown', value: part };
   });
 }
-
 export function formatEmailAuthQuery(domain: string, type: string, selector?: string): string {
   domain = domain.trim();
   switch (type) {
@@ -47,7 +40,6 @@ export function formatEmailAuthQuery(domain: string, type: string, selector?: st
     default: return domain;
   }
 }
-
 export function filterEmailAuthRecords(records: any[], type: string): any[] {
   if (!records) return [];
   const prefixMap: Record<string, string> = {
@@ -58,9 +50,7 @@ export function filterEmailAuthRecords(records: any[], type: string): any[] {
     'MTA-STS': 'v=STSv1',
     'TLSRPT': 'v=TLSRPTv1'
   };
-  
   const prefix = prefixMap[type];
   if (!prefix) return records;
-
   return records.filter(r => r.data && r.data.replace(/"/g, '').startsWith(prefix));
 }

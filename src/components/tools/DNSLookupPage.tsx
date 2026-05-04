@@ -18,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
 const DNS_INFO: Record<string, { title: string, desc: string }> = {
   A: { title: "A Record Lookup", desc: "Check IPv4 address (A records) for a domain." },
   AAAA: { title: "AAAA Record Lookup", desc: "Check IPv6 address (AAAA records) for a domain." },
@@ -32,36 +31,27 @@ const DNS_INFO: Record<string, { title: string, desc: string }> = {
   PTR: { title: "Reverse Lookup (PTR)", desc: "Check the hostname associated with an IP address." },
   IPSECKEY: { title: "IPSECKEY Lookup", desc: "Check IPSECKEY records for opportunistic encryption." }
 }
-
-// Utility to convert IP to PTR arpa format
 function formatPtrQuery(input: string): string {
   input = input.trim()
-  // Basic IPv4 check
   if (/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(input)) {
     return input.split('.').reverse().join('.') + '.in-addr.arpa'
   }
   return input
 }
-
 export function DNSLookupPage() {
   const { type } = useParams<{ type: string }>()
   const navigate = useNavigate()
   const { settings } = useSettings()
-
   const recordType = (type || 'a').toUpperCase()
   const info = DNS_INFO[recordType] || { title: `${recordType} Lookup`, desc: `Check ${recordType} records for a domain.` }
-
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<DNSResponse | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-
-  // Clear results when switching tool types
   useEffect(() => {
     setStatus('idle')
     setResult(null)
   }, [recordType])
-
   const location = useLocation();
   useEffect(() => {
     const q = location.state?.target;
@@ -70,14 +60,11 @@ export function DNSLookupPage() {
       performSearch(q);
     }
   }, [location.state]);
-
   const performSearch = async (targetDomain: string) => {
     if (!targetDomain.trim()) return
-
     setStatus('loading')
     setErrorMsg("")
     setResult(null)
-
     try {
       let queryTarget = targetDomain.trim()
       if (recordType === 'PTR') {
@@ -92,12 +79,10 @@ export function DNSLookupPage() {
       setStatus('error')
     }
   }
-
   const handleSearch = (e: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
   }
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -109,7 +94,6 @@ export function DNSLookupPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{info.title}</h1>
         <p className="text-muted-foreground mt-2">{info.desc}</p>
       </div>
-
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <Select value={recordType} onValueChange={(val) => navigate(`/dns/${val.toLowerCase()}`)}>
@@ -129,7 +113,6 @@ export function DNSLookupPage() {
               <SelectItem value="PTR">PTR</SelectItem>
             </SelectContent>
           </Select>
-
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -139,19 +122,16 @@ export function DNSLookupPage() {
               onChange={(e) => setDomain(e.target.value)}
             />
           </div>
-
           <Button type="submit" disabled={status === 'loading'} className="w-full sm:w-auto">
             {status === 'loading' ? 'Checking...' : `${recordType} Lookup`}
           </Button>
         </form>
       </Card>
-
       {status === 'loading' && (
         <ResultCard title="Querying DNS..." status="loading">
           <LoadingSkeleton />
         </ResultCard>
       )}
-
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
@@ -159,7 +139,6 @@ export function DNSLookupPage() {
           </div>
         </ResultCard>
       )}
-
       {status === 'success' && result && (
         <ResultCard
           title="DNS Records"
@@ -175,14 +154,12 @@ export function DNSLookupPage() {
         >
           <div className="space-y-6">
             <DNSResultTable records={result.records} />
-
             {result.authority && result.authority.length > 0 && (
               <div className="mt-6">
                 <h3 className="text-lg font-medium mb-3">Authority Records</h3>
                 <DNSResultTable records={result.authority} />
               </div>
             )}
-
             {result.status !== 0 && result.records.length === 0 && (
               <div className="text-sm text-amber-600 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10">
                 DNS query returned status {result.status}. The domain may not exist or has no records of this type.
@@ -193,5 +170,4 @@ export function DNSLookupPage() {
       )}
     </div>
   )
-}
-
+}

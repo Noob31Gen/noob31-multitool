@@ -38,13 +38,11 @@ import {
   MapPin,
   Clock
 } from "lucide-react"
-
 const REGISTRATION_INFO: Record<string, { title: string, desc: string }> = {
   WHOIS: { title: "WHOIS Lookup", desc: "Check domain registration details via RDAP." },
   ARIN: { title: "ARIN Lookup", desc: "Check IP address registration details via RDAP." },
   ASN: { title: "ASN Lookup", desc: "Check Autonomous System Number and IP geolocation details." }
 }
-
 function RDAPRegistrationCard({ data }: { data: any }) {
   const parsed = parseRDAP(data);
   return (
@@ -60,7 +58,6 @@ function RDAPRegistrationCard({ data }: { data: any }) {
               <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Handle</TableCell>
               <TableCell className="py-2 px-4 break-all">{parsed.handle}</TableCell>
             </TableRow>
-
             {parsed.registrar && (
               <TableRow className="flex flex-col md:table-row">
                 <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Registrar</TableCell>
@@ -80,7 +77,6 @@ function RDAPRegistrationCard({ data }: { data: any }) {
                 <TableCell className="py-2 px-4 break-all">{parsed.registrant}</TableCell>
               </TableRow>
             )}
-
             {parsed.abuseContact && (
               <TableRow className="flex flex-col md:table-row">
                 <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Abuse Contact</TableCell>
@@ -99,7 +95,6 @@ function RDAPRegistrationCard({ data }: { data: any }) {
                 <TableCell className="py-2 px-4 break-all">{parsed.techContact}</TableCell>
               </TableRow>
             )}
-
             {parsed.creationDate && (
               <TableRow className="flex flex-col md:table-row">
                 <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Creation Date</TableCell>
@@ -153,7 +148,6 @@ function RDAPRegistrationCard({ data }: { data: any }) {
           </TableBody>
         </Table>
       </div>
-
       <div className="mt-4">
         <h4 className="font-medium mb-2 text-sm text-muted-foreground">Raw JSON Data:</h4>
         <ScrollArea className="h-[300px] w-full rounded-md border bg-muted/30 p-4">
@@ -165,26 +159,21 @@ function RDAPRegistrationCard({ data }: { data: any }) {
     </div>
   )
 }
-
 export function RegistrationLookupPage() {
   const { tool: paramTool } = useParams<{ tool: string }>()
   const navigate = useNavigate()
   const { settings } = useSettings()
   const location = useLocation();
-
   const tool = (paramTool || 'whois').toUpperCase()
   const info = REGISTRATION_INFO[tool] || { title: `${tool} Lookup`, desc: `Check ${tool} details.` }
-
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
-
   useEffect(() => {
     setStatus('idle')
     setResult(null)
   }, [tool])
-
   useEffect(() => {
     const q = location.state?.target;
     if (q) {
@@ -192,7 +181,6 @@ export function RegistrationLookupPage() {
       performSearch(q);
     }
   }, [location.state]);
-
   const getPlaceholder = () => {
     switch (tool) {
       case 'WHOIS': return 'Enter domain name (e.g., example.com)'
@@ -201,15 +189,12 @@ export function RegistrationLookupPage() {
       default: return 'Enter query...'
     }
   }
-
   const performSearch = async (targetQuery: string) => {
     const q = targetQuery.trim();
     if (!q) return;
-
     const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
     const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
     const isIP = ipv4Regex.test(q) || ipv6Regex.test(q);
-
     const isPrivateIP = (ip: string) => {
       if (ipv4Regex.test(ip)) {
         const parts = ip.split('.');
@@ -222,13 +207,11 @@ export function RegistrationLookupPage() {
       }
       return false;
     };
-
     if (tool === 'ARIN' && !isIP) {
       setErrorMsg("Invalid IP address format.");
       setStatus('error');
       return;
     }
-
     if (tool === 'ASN') {
       const isASNFormat = /^AS\d+$/i.test(q);
       if (!isASNFormat) {
@@ -244,13 +227,10 @@ export function RegistrationLookupPage() {
         }
       }
     }
-
     setStatus('loading');
     setErrorMsg("");
     setResult(null);
-
     const startTime = performance.now();
-
     try {
       let res;
       if (tool === 'ASN') {
@@ -258,7 +238,6 @@ export function RegistrationLookupPage() {
       } else {
         res = await queryRDAP(q, settings);
       }
-
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ data: res, queryTime });
       setStatus('success');
@@ -268,15 +247,11 @@ export function RegistrationLookupPage() {
       setStatus('error');
     }
   }
-
   const handleSearch = (e: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(query)
   }
-
-  // Helper variable for cleaner ASN rendering
   const parsed = result?.data?.parsed;
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -288,7 +263,6 @@ export function RegistrationLookupPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{info.title}</h1>
         <p className="text-muted-foreground mt-2">{info.desc}</p>
       </div>
-
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <Select value={tool} onValueChange={(val) => navigate(`/registration/${val.toLowerCase()}`)}>
@@ -301,7 +275,6 @@ export function RegistrationLookupPage() {
               <SelectItem value="ASN">ASN</SelectItem>
             </SelectContent>
           </Select>
-
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -316,13 +289,11 @@ export function RegistrationLookupPage() {
           </Button>
         </form>
       </Card>
-
       {status === 'loading' && (
         <ResultCard title={`Querying ${tool}...`} status="loading">
           <LoadingSkeleton />
         </ResultCard>
       )}
-
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
@@ -332,7 +303,6 @@ export function RegistrationLookupPage() {
           </div>
         </ResultCard>
       )}
-
       {status === 'success' && result && (
         <ResultCard
           title={`${tool} Results`}
@@ -345,11 +315,8 @@ export function RegistrationLookupPage() {
             </div>
           }
         >
-
           {tool === 'ASN' && parsed && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-
-              {/* 1. Primary Identity Header */}
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 rounded-xl border bg-card shadow-sm gap-4">
                 <div className="space-y-3">
                   <h3 className="text-2xl font-bold tracking-tight">
@@ -381,10 +348,7 @@ export function RegistrationLookupPage() {
                   </div>
                 </div>
               </div>
-
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                {/* 2. Identity & Registration */}
                 <Card className="p-4 space-y-4">
                   <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-zinc-400">
                     <Info className="h-4 w-4" /> Identity & Registration
@@ -412,8 +376,6 @@ export function RegistrationLookupPage() {
                     </div>
                   </div>
                 </Card>
-
-                {/* 3. Security & Abuse */}
                 <Card className="p-4 space-y-4">
                   <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-destructive">
                     <ShieldAlert className="h-4 w-4" /> Security & Abuse
@@ -446,8 +408,6 @@ export function RegistrationLookupPage() {
                     )}
                   </div>
                 </Card>
-
-                {/* 4. Geographic Location */}
                 <Card className="p-4 space-y-4">
                   <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-blue-500">
                     <Globe className="h-4 w-4" /> Geographic Location
@@ -479,8 +439,6 @@ export function RegistrationLookupPage() {
                     </div>
                   </div>
                 </Card>
-
-                {/* 5. Operations & PeeringDB */}
                 <Card className="p-4 space-y-4">
                   <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-purple-500">
                     <Activity className="h-4 w-4" /> Operations (Peering)
@@ -513,8 +471,6 @@ export function RegistrationLookupPage() {
                   </div>
                 </Card>
               </div>
-
-              {/* 6. Subnet/Prefix Explorer */}
               {(parsed.prefixes_v4?.length > 0 || parsed.prefixes_v6?.length > 0) && (
                 <Card className="p-0 overflow-hidden">
                   <div className="bg-muted/50 px-4 py-3 border-b flex justify-between items-center">
@@ -554,8 +510,6 @@ export function RegistrationLookupPage() {
                   </div>
                 </Card>
               )}
-
-              {/* 7. Operational Notes */}
               {parsed.notes && (
                 <Card className="p-4 bg-yellow-50/10 border-yellow-500/20">
                   <h4 className="text-xs font-bold uppercase text-yellow-600 mb-2">Operational Documentation</h4>
@@ -564,8 +518,6 @@ export function RegistrationLookupPage() {
                   </p>
                 </Card>
               )}
-
-              {/* 8. Raw JSON for Full Context */}
               <div className="mt-8">
                 <h4 className="font-medium mb-2 text-sm text-muted-foreground flex items-center gap-2">
                   <Database className="h-4 w-4" /> Complete Data Artifact
@@ -578,11 +530,9 @@ export function RegistrationLookupPage() {
               </div>
             </div>
           )}
-
           {tool !== 'ASN' && (
             <RDAPRegistrationCard data={result.data} />
           )}
-
         </ResultCard>
       )}
     </div>

@@ -1,28 +1,20 @@
 import { queryDNS } from "./doh";
 import { formatEmailAuthQuery, filterEmailAuthRecords } from "./emailAuthParsers";
 import type { AppSettings } from "./settings";
-
-// Helper to validate domain string format
 function isValidFQDN(domain: string): boolean {
   const fqdnRegex = /^(?=.{1,253}$)(?:(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,63}$/;
   return fqdnRegex.test(domain);
 }
-
-// Helper to safely extract and lowercase TXT data
 const extractTxt = (record: any): string => {
   if (!record) return "";
   if (typeof record === 'string') return record.toLowerCase();
   return String(record.data || record.value || "").toLowerCase();
 };
-
 export async function runDeliverabilityCheck(domain: string, selector: string, settings: AppSettings) {
   domain = domain.trim();
   selector = selector || 'default';
-
   const recommendations: { level: 'critical' | 'high' | 'medium' | 'low' | 'good', msg: string }[] = [];
   let score = 100;
-
-  // Pre-flight Validation
   if (!isValidFQDN(domain)) {
     return {
       score: 0,
@@ -31,23 +23,17 @@ export async function runDeliverabilityCheck(domain: string, selector: string, s
       recommendations: [{ level: 'critical', msg: 'Invalid domain format.' }]
     };
   }
-
   const types = ['SPF', 'DKIM', 'DMARC', 'BIMI', 'MTA-STS', 'TLSRPT'];
-
   const promises = types.map(type => {
     const target = formatEmailAuthQuery(domain, type, selector);
     return queryDNS(target, 'TXT', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl)
       .then(res => ({ type, records: filterEmailAuthRecords(res.records, type), raw: res.records }))
       .catch(() => ({ type, records: [], raw: [] }));
   });
-
   const mxPromise = queryDNS(domain, 'MX', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl)
     .then(res => ({ type: 'MX', records: res.records, raw: res.records }))
     .catch(() => ({ type: 'MX', records: [], raw: [] }));
-
   const results = await Promise.all([...promises, mxPromise]);
-
-  // Analysis: MX
   const mx = results.find(r => r.type === 'MX')?.records || [];
   if (mx.length === 0) {
     score -= 30;
@@ -55,8 +41,6 @@ export async function runDeliverabilityCheck(domain: string, selector: string, s
   } else {
     recommendations.push({ level: 'good', msg: "MX records are properly configured." });
   }
-
-  // Analysis: SPF
   const spf = results.find(r => r.type === 'SPF')?.records || [];
   if (spf.length === 0) {
     score -= 20;
@@ -76,8 +60,6 @@ export async function runDeliverabilityCheck(domain: string, selector: string, s
       recommendations.push({ level: 'good', msg: "SPF record is present and well-formed." });
     }
   }
-
-  // Analysis: DMARC
   const dmarc = results.find(r => r.type === 'DMARC')?.records || [];
   if (dmarc.length === 0) {
     score -= 20;
@@ -94,8 +76,6 @@ export async function runDeliverabilityCheck(domain: string, selector: string, s
       recommendations.push({ level: 'good', msg: "DMARC enforcement policy is active." });
     }
   }
-
-  // Analysis: DKIM
   const dkim = results.find(r => r.type === 'DKIM')?.records || [];
   if (dkim.length === 0) {
     score -= 5;
@@ -103,32 +83,24 @@ export async function runDeliverabilityCheck(domain: string, selector: string, s
   } else {
     recommendations.push({ level: 'good', msg: `DKIM record found for selector '${selector}'.` });
   }
-
-  // Analysis: BIMI
   const bimi = results.find(r => r.type === 'BIMI')?.records || [];
   if (bimi.length === 0) {
     recommendations.push({ level: 'low', msg: "No BIMI record found. Add BIMI to show your brand logo in supported email clients." });
   } else {
     recommendations.push({ level: 'good', msg: "BIMI record is configured." });
   }
-
-  // Analysis: MTA-STS
   const mtasts = results.find(r => r.type === 'MTA-STS')?.records || [];
   if (mtasts.length === 0) {
     recommendations.push({ level: 'low', msg: "No MTA-STS record. Adding this enforces TLS encryption for inbound email." });
   } else {
     recommendations.push({ level: 'good', msg: "MTA-STS is configured." });
   }
-
-  // Analysis: TLSRPT
   const tlsrpt = results.find(r => r.type === 'TLSRPT')?.records || [];
   if (tlsrpt.length === 0) {
     recommendations.push({ level: 'low', msg: "No TLSRPT record. Adding this enables reporting for TLS connection failures." });
   } else {
     recommendations.push({ level: 'good', msg: "TLS Reporting (TLSRPT) is configured." });
   }
-
-  // Final Scoring
   score = Math.max(0, score);
   let grade = 'F';
   if (score >= 95) grade = 'A+';
@@ -136,7 +108,6 @@ export async function runDeliverabilityCheck(domain: string, selector: string, s
   else if (score >= 80) grade = 'B';
   else if (score >= 70) grade = 'C';
   else if (score >= 60) grade = 'D';
-
   return {
     score,
     grade,

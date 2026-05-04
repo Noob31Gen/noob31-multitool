@@ -11,14 +11,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Info, ShieldCheck } from "lucide-react"
 import { Card } from "@/components/ui/card"
-
 export function MacLookupPage() {
   const { settings } = useSettings()
   const [input, setInput] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<MacLookupResponse | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-
   const location = useLocation();
   useEffect(() => {
     const q = location.state?.target;
@@ -27,14 +25,11 @@ export function MacLookupPage() {
       performLookup(q);
     }
   }, [location.state]);
-
   const performLookup = async (macAddress: string) => {
     if (!macAddress.trim()) return
-
     setStatus('loading')
     setErrorMsg("")
     setResult(null)
-
     try {
       const res = await lookupMac(macAddress, settings.corsProvider, settings.customCorsUrl)
       if (res.success) {
@@ -49,12 +44,10 @@ export function MacLookupPage() {
       setStatus('error')
     }
   }
-
   const handleSearch = (e: React.FormEvent) => {
     if (e) e.preventDefault()
     performLookup(input)
   }
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -66,7 +59,6 @@ export function MacLookupPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">MAC / OUI Lookup</h1>
         <p className="text-muted-foreground mt-2">Identify device manufacturers and verify OUI registration status.</p>
       </div>
-
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -83,13 +75,11 @@ export function MacLookupPage() {
           </Button>
         </form>
       </Card>
-
       {status === 'loading' && (
         <ResultCard title="Searching Database..." status="loading">
           <LoadingSkeleton />
         </ResultCard>
       )}
-
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
@@ -97,7 +87,6 @@ export function MacLookupPage() {
           </div>
         </ResultCard>
       )}
-
       {status === 'success' && result && (
         <ResultCard
           title="Vendor Identification"
@@ -112,13 +101,11 @@ export function MacLookupPage() {
           }
         >
           <div className="grid gap-8 lg:grid-cols-3">
-            {/* Left Column: Vendor Info */}
             <div className="lg:col-span-2 space-y-6">
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1 uppercase tracking-wider text-[10px]">Manufacturer / Vendor</h3>
                 <p className="text-3xl font-bold text-primary break-words">{result.vendor}</p>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-1 uppercase tracking-wider text-[10px]">OUI Prefix</h3>
@@ -132,7 +119,6 @@ export function MacLookupPage() {
                   <code className="px-2 py-1 bg-muted rounded text-lg font-mono">{formatMac(result.mac)}</code>
                 </div>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                 {result.country && (
                   <div>
@@ -153,14 +139,12 @@ export function MacLookupPage() {
                   </div>
                 )}
               </div>
-
               {result.address && (
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-1 uppercase tracking-wider text-[10px]">Company Address</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{result.address}</p>
                 </div>
               )}
-
               {result.range && (
                 <div className="p-3 bg-muted/30 rounded border border-dashed">
                   <h3 className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-tight">Assigned Address Range</h3>
@@ -173,7 +157,6 @@ export function MacLookupPage() {
                   </div>
                 </div>
               )}
-
               <div className="space-y-4 pt-4 border-t">
                 <h3 className="text-sm font-medium text-muted-foreground mb-1 uppercase tracking-wider text-[10px]">Bit Analysis (First Octet)</h3>
                 <div className="flex items-center gap-2 mb-4">
@@ -194,7 +177,6 @@ export function MacLookupPage() {
                     ))}
                   </div>
                 </div>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className={cn(
                     "p-3 rounded-lg border",
@@ -208,7 +190,6 @@ export function MacLookupPage() {
                         : "Addresses multiple network interfaces."}
                     </p>
                   </div>
-
                   <div className={cn(
                     "p-3 rounded-lg border",
                     result.isUniversal ? "bg-blue-500/5 border-blue-500/20" : "bg-purple-500/5 border-purple-500/20"
@@ -224,8 +205,6 @@ export function MacLookupPage() {
                 </div>
               </div>
             </div>
-
-            {/* Right Column: Knowledge / Help */}
             <div className="space-y-4">
               <Card className="p-4 border-dashed bg-muted/20">
                 <div className="flex items-start gap-3">
@@ -238,7 +217,6 @@ export function MacLookupPage() {
                   </div>
                 </div>
               </Card>
-
               <Card className="p-4 border-dashed bg-muted/20">
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="h-5 w-5 text-green-500 mt-0.5" />
@@ -252,7 +230,6 @@ export function MacLookupPage() {
                   </div>
                 </div>
               </Card>
-
               <div className="p-4 bg-primary/5 rounded-lg border border-primary/10">
                 <h4 className="text-xs font-bold uppercase mb-2 text-primary">Quick Tip</h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">

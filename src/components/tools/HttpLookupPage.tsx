@@ -25,25 +25,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-
 export function HttpLookupPage() {
   const { scheme: paramScheme } = useParams<{ scheme: string }>()
   const navigate = useNavigate()
   const { settings } = useSettings()
   const location = useLocation();
-
   const scheme = (paramScheme || 'http').toLowerCase()
-
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
-
   useEffect(() => {
     setStatus('idle')
     setResult(null)
   }, [scheme])
-
   useEffect(() => {
     const q = location.state?.target;
     if (q) {
@@ -51,25 +46,19 @@ export function HttpLookupPage() {
       performSearch(q);
     }
   }, [location.state]);
-
   const performSearch = async (targetDomain: string) => {
     if (!targetDomain.trim()) return
-
     setStatus('loading')
     setErrorMsg("")
     setResult(null)
-
     const startTime = performance.now();
-
     try {
       let targetUrl = targetDomain.trim();
       if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
         targetUrl = `${scheme}://${targetUrl}`;
       }
-
       const res = await fetchHeaders(targetUrl, settings);
       const queryTime = Math.round(performance.now() - startTime);
-
       setResult({ ...res, queryTime });
       setStatus('success')
     } catch (err: any) {
@@ -78,12 +67,10 @@ export function HttpLookupPage() {
       setStatus('error')
     }
   }
-
   const handleSearch = (e: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
   }
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -95,7 +82,6 @@ export function HttpLookupPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{scheme.toUpperCase()} Headers Lookup</h1>
         <p className="text-muted-foreground mt-2">Retrieve HTTP response headers for a website.</p>
       </div>
-
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <Select value={scheme} onValueChange={(val) => navigate(`/network/http/${val}`)}>
@@ -121,19 +107,16 @@ export function HttpLookupPage() {
           </Button>
         </form>
       </Card>
-
       {!settings.corsProvider && (
         <div className="text-sm text-amber-600 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10">
           <strong>Warning:</strong> You must configure a CORS Proxy URL in Settings for this tool to work in the browser.
         </div>
       )}
-
       {status === 'loading' && (
         <ResultCard title="Fetching headers..." status="loading">
           <LoadingSkeleton />
         </ResultCard>
       )}
-
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
@@ -141,7 +124,6 @@ export function HttpLookupPage() {
           </div>
         </ResultCard>
       )}
-
       {status === 'success' && result && (
         <ResultCard
           title={result.redirected ? `HTTP 3xx Redirect → ${result.status} ${result.statusText}` : `HTTP ${result.status} ${result.statusText}`}
@@ -155,7 +137,6 @@ export function HttpLookupPage() {
           }
         >
           <div className="w-full min-w-0">
-            {/* Desktop Table View */}
             <div className="hidden sm:block rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -180,8 +161,6 @@ export function HttpLookupPage() {
                 </TableBody>
               </Table>
             </div>
-
-            {/* Mobile Card/Box View */}
             <div className="sm:hidden space-y-3">
               {result.headers.length > 0 ? result.headers.map((h: any, i: number) => (
                 <div key={i} className="p-3 rounded-lg border bg-card shadow-sm">
@@ -201,4 +180,4 @@ export function HttpLookupPage() {
       )}
     </div>
   )
-}
+}

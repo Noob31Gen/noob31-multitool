@@ -6,32 +6,26 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
 export function SpfGeneratorPage() {
   const [a, setA] = useState(true)
   const [mx, setMx] = useState(true)
   const [includes, setIncludes] = useState("")
   const [ipv4s, setIpv4s] = useState("")
   const [qualifier, setQualifier] = useState("-all")
-
   const generateSPF = () => {
     let parts = ["v=spf1"];
     if (a) parts.push("a");
     if (mx) parts.push("mx");
-    
     if (ipv4s.trim()) {
       parts.push(...ipv4s.split(',').map(ip => `ip4:${ip.trim()}`).filter(x => x !== 'ip4:'));
     }
     if (includes.trim()) {
       parts.push(...includes.split(',').map(inc => `include:${inc.trim()}`).filter(x => x !== 'include:'));
     }
-    
     parts.push(qualifier);
     return parts.join(" ");
   }
-
   const result = generateSPF();
-
   return (
     <div className="space-y-6">
       <SEO 
@@ -43,10 +37,8 @@ export function SpfGeneratorPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">SPF Generator</h1>
         <p className="text-muted-foreground mt-2">Generate a valid Sender Policy Framework (SPF) TXT record.</p>
       </div>
-
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="p-6 space-y-6 bg-muted/20">
-          
           <div className="space-y-4">
              <h3 className="text-lg font-medium">Standard Mechanisms</h3>
              <div className="flex items-center space-x-2">
@@ -58,7 +50,6 @@ export function SpfGeneratorPage() {
                <Label htmlFor="mx">Allow servers listed in MX records to send email (mx)</Label>
              </div>
           </div>
-
           <div className="space-y-4">
              <div>
                <Label>IPv4 Addresses (comma separated)</Label>
@@ -70,7 +61,6 @@ export function SpfGeneratorPage() {
                />
                <p className="text-xs text-muted-foreground mt-1">Authorized IP addresses (ip4)</p>
              </div>
-             
              <div>
                <Label>Third-party Domains (comma separated)</Label>
                <Input 
@@ -82,7 +72,6 @@ export function SpfGeneratorPage() {
                <p className="text-xs text-muted-foreground mt-1">Authorized third-party sending domains (include)</p>
              </div>
           </div>
-
           <div className="space-y-4">
              <Label>Enforcement Policy (Qualifier)</Label>
              <Select value={qualifier} onValueChange={setQualifier}>
@@ -98,7 +87,6 @@ export function SpfGeneratorPage() {
              </Select>
           </div>
         </Card>
-
         <div>
           <Card className="p-6 md:sticky md:top-20 bg-primary/5 border-primary/20">
             <h3 className="font-semibold text-lg mb-4">Generated SPF Record</h3>

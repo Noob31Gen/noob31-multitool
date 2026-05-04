@@ -1,6 +1,5 @@
 import { Card } from "@/components/ui/card"
 import { SEO } from "@/components/shared/SEO"
-
 export function CreditsPage() {
   return (
     <div className="space-y-6">
@@ -13,7 +12,6 @@ export function CreditsPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Credits</h1>
         <p className="text-muted-foreground mt-2">Special thanks to the following APIs and services that power this project.</p>
       </div>
-
       <Card className="p-6 bg-muted/40 space-y-6">
         <div>
           <h2 className="text-lg font-semibold mb-3">Subdomain Enumeration</h2>
@@ -28,7 +26,6 @@ export function CreditsPage() {
             <li><a href="http://web.archive.org/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Wayback Machine / Internet Archive</a></li>
           </ul>
         </div>
-
         <div>
           <h2 className="text-lg font-semibold mb-3">RDAP & DNS</h2>
           <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
@@ -39,7 +36,6 @@ export function CreditsPage() {
             <li><a href="https://dns.adguard-dns.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">AdGuard DNS</a></li>
           </ul>
         </div>
-
         <div>
           <h2 className="text-lg font-semibold mb-3">ASN Lookup</h2>
           <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
@@ -48,7 +44,6 @@ export function CreditsPage() {
             <li><a href="https://www.peeringdb.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">PeeringDB</a></li>
           </ul>
         </div>
-
         <div>
           <h2 className="text-lg font-semibold mb-3">MAC Address & OUI</h2>
           <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
@@ -56,7 +51,6 @@ export function CreditsPage() {
             <li><a href="https://macvendors.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">MacVendors.com</a></li>
           </ul>
         </div>
-
         <div>
           <h2 className="text-lg font-semibold mb-3">CORS Proxies</h2>
           <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">

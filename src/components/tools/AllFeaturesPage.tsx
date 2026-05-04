@@ -2,7 +2,6 @@ import { Link } from "react-router-dom"
 import { SEO } from "@/components/shared/SEO"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-
 const FEATURE_CATEGORIES = [
   {
     title: "DNS",
@@ -89,7 +88,6 @@ const FEATURE_CATEGORIES = [
     ],
   },
 ]
-
 export function AllFeaturesPage() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-6xl mx-auto">
@@ -104,7 +102,6 @@ export function AllFeaturesPage() {
           Here is everything this project is currently capable of.
         </p>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {FEATURE_CATEGORIES.map((category) => (
           <Card key={category.title} className="flex flex-col h-full shadow-sm hover:shadow-md transition-shadow">

@@ -1,6 +1,5 @@
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
-
 const TOOL_CATEGORIES = [
   {
     title: "Core Lookups",
@@ -50,10 +49,8 @@ const TOOL_CATEGORIES = [
     ],
   },
 ]
-
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const location = useLocation();
-
   return (
     <nav className="grid items-start px-4 text-sm font-medium pb-16">
       <div className="mb-4">
@@ -103,4 +100,3 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     </nav>
   )
 }
-
