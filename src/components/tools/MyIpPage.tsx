@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react"
-import { queryASN } from "@/lib/asn"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { queryASN, type ASNResult } from "@/lib/asn"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -11,30 +11,36 @@ import { Card } from "@/components/ui/card"
 export function MyIpPage() {
   const { settings } = useSettings()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<ASNResult | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-  useEffect(() => {
-    let isMounted = true;
-    async function fetchMyIp() {
-      setStatus('loading');
-      try {
-        const res = await queryASN("", settings);
-        if (isMounted) {
-          setResult(res);
-          setStatus('success');
-        }
-      } catch (err: any) {
-        if (isMounted) {
-          setErrorMsg(err.message || "Failed to fetch network information.");
-          setStatus('error');
-        }
+  const fetchMyIp = useCallback(async (isMounted: boolean) => {
+    setStatus('loading');
+    try {
+      const res = await queryASN("", settings);
+      if (isMounted) {
+        setResult(res);
+        setStatus('success');
+      }
+    } catch (err: unknown) {
+      if (isMounted) {
+        const message = err instanceof Error ? err.message : "Failed to fetch network information.";
+        setErrorMsg(message);
+        setStatus('error');
       }
     }
-    fetchMyIp();
+  }, [settings]);
+
+  const fetched = useRef(false);
+  useEffect(() => {
+    let isMounted = true;
+    if (!fetched.current) {
+      fetched.current = true;
+      fetchMyIp(isMounted);
+    }
     return () => { isMounted = false; };
-  }, []);
+  }, [fetchMyIp]);
   const parsed = result?.parsed;
-  const currentIp = result?.ipapi?.ip || "Unknown IP";
+  const currentIp = (result?.ipapi as { ip?: string })?.ip || "Unknown IP";
   return (
     <div className="space-y-6">
       <SEO 

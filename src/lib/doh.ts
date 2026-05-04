@@ -35,8 +35,8 @@ export async function queryDNS(
   const startTime = performance.now();
   let url = '';
   let headers: HeadersInit = { 'Accept': 'application/dns-json' };
-  let body: BodyInit | null = null;
-  let method = 'GET';
+  const body: BodyInit | null = null;
+  const method = 'GET';
   if (provider === 'google') {
     url = `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`;
   } else if (provider === 'cloudflare') {
@@ -50,7 +50,7 @@ export async function queryDNS(
       type: 'query',
       id: 1,
       flags: dnsPacket.RECURSION_DESIRED,
-      questions: [{ type: type as any, name: domain }]
+      questions: [{ type: type as dnsPacket.RecordType, name: domain }]
     });
     const base64 = btoa(Array.from(packet).map(b => String.fromCharCode(b)).join(''));
     const base64Url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -69,36 +69,36 @@ export async function queryDNS(
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const contentType = response.headers.get('content-type') || '';
-    let data: any;
+    let data: { Status?: number; Answer?: unknown[]; Authority?: unknown[] };
     if (contentType.includes('application/dns-json') || contentType.includes('application/json')) {
       data = await response.json();
     } else {
       const arrayBuffer = await response.arrayBuffer();
       const bufferObj = typeof Buffer !== 'undefined' ? Buffer.from(arrayBuffer) : new Uint8Array(arrayBuffer);
-      const decoded = dnsPacket.decode(bufferObj as any) as any;
+      const decoded = dnsPacket.decode(bufferObj as Buffer) as dnsPacket.Packet;
       const REVERSE_TYPE_MAP: Record<string, number> = Object.entries(TYPE_MAP).reduce((acc, [k, v]) => {
         acc[v] = parseInt(k, 10);
         return acc;
       }, {} as Record<string, number>);
       data = {
-        Status: decoded.rcode === 'NOERROR' ? 0 : -1,
-        Answer: decoded.answers?.map((a: any) => ({
-          name: a.name,
-          type: REVERSE_TYPE_MAP[a.type as string] || 0,
-          TTL: a.ttl,
+        Status: (decoded as { rcode?: string }).rcode === 'NOERROR' ? 0 : -1,
+        Answer: (decoded.answers || []).map((a: { name?: string; type?: string | number; ttl?: number; data?: unknown }) => ({
+          name: a.name || '',
+          type: typeof a.type === 'string' ? (REVERSE_TYPE_MAP[a.type] || 0) : (Number(a.type) || 0),
+          TTL: a.ttl || 0,
           data: a.data
-        })) || [],
-        Authority: decoded.authorities?.map((a: any) => ({
-          name: a.name,
-          type: REVERSE_TYPE_MAP[a.type as string] || 0,
-          TTL: a.ttl,
+        })),
+        Authority: (decoded.authorities || []).map((a: { name?: string; type?: string | number; ttl?: number; data?: unknown }) => ({
+          name: a.name || '',
+          type: typeof a.type === 'string' ? (REVERSE_TYPE_MAP[a.type] || 0) : (Number(a.type) || 0),
+          TTL: a.ttl || 0,
           data: a.data
-        })) || []
+        })),
       };
     }
     const queryTime = Math.round(performance.now() - startTime);
-    const mapRecords = (records: any[] = []): DNSRecord[] => {
-      return records.map((r: any) => ({
+    const mapRecords = (records: { name: string; type: number; TTL: number; data: unknown }[] = []): DNSRecord[] => {
+      return records.map((r: { name: string; type: number; TTL: number; data: unknown }) => ({
         name: r.name,
         type: r.type,
         typeName: typeof getTypeName === 'function' ? getTypeName(r.type) : `TYPE${r.type}`,
@@ -108,8 +108,8 @@ export async function queryDNS(
     };
     return {
       status: data.Status ?? -1,
-      records: mapRecords(data.Answer),
-      authority: mapRecords(data.Authority),
+      records: mapRecords(data.Answer as DNSRecord[]),
+      authority: mapRecords(data.Authority as DNSRecord[]),
       queryTime,
       provider,
     };

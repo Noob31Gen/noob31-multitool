@@ -37,7 +37,8 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
             u.password = "";
             finalUrl = u.toString();
         }
-    } catch (e) {
+    } catch {
+        // Fallback if URL parsing fails
     }
     finalOptions.headers = headers;
     if (!options.credentials) {
@@ -55,7 +56,8 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
             u.password = "";
             finalUrl = u.toString();
         }
-    } catch (e) {
+    } catch {
+        // Fallback if URL parsing fails
     }
     return fetch(finalUrl, finalOptions);
 }

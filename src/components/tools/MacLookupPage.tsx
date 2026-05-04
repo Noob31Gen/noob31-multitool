@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useLocation } from "react-router-dom"
 import { lookupMac, type MacLookupResponse, formatMac, isValidMac } from "@/lib/macLookup"
 import { useSettings } from "@/lib/settings"
@@ -18,14 +18,7 @@ export function MacLookupPage() {
   const [result, setResult] = useState<MacLookupResponse | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
   const location = useLocation();
-  useEffect(() => {
-    const q = location.state?.target;
-    if (q) {
-      setInput(q);
-      performLookup(q);
-    }
-  }, [location.state]);
-  const performLookup = async (macAddress: string) => {
+  const performLookup = useCallback(async (macAddress: string) => {
     if (!macAddress.trim()) return
     setStatus('loading')
     setErrorMsg("")
@@ -39,11 +32,22 @@ export function MacLookupPage() {
         setErrorMsg(res.error || "Lookup failed")
         setStatus('error')
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || "An error occurred during lookup.")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An error occurred during lookup.";
+      setErrorMsg(message)
       setStatus('error')
     }
-  }
+  }, [settings.corsProvider, settings.customCorsUrl]);
+
+  const lastHandledTarget = useRef<string | null>(null);
+  useEffect(() => {
+    const q = location.state?.target;
+    if (q && q !== lastHandledTarget.current) {
+      lastHandledTarget.current = q;
+      setInput(q);
+      performLookup(q);
+    }
+  }, [location.state, performLookup]);
   const handleSearch = (e: React.FormEvent) => {
     if (e) e.preventDefault()
     performLookup(input)

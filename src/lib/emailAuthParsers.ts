@@ -40,7 +40,7 @@ export function formatEmailAuthQuery(domain: string, type: string, selector?: st
     default: return domain;
   }
 }
-export function filterEmailAuthRecords(records: any[], type: string): any[] {
+export function filterEmailAuthRecords<T extends { data: string }>(records: T[], type: string): T[] {
   if (!records) return [];
   const prefixMap: Record<string, string> = {
     'SPF': 'v=spf1',

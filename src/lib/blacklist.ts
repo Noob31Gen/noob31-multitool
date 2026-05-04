@@ -28,15 +28,16 @@ export async function checkBlacklist(ip: string, settings: AppSettings) {
       if (resA.status === 3 || resA.records.length === 0) {
         return { zone, listed: false, records: [], details: null, classification: null, error: false };
       }
-      const returnIps = resA.records.map((r: any) => r.data);
-      let classification = returnIps.join(', ');
+      const returnIps = resA.records.map((r: { data: string }) => r.data);
+      const classification = returnIps.join(', ');
       let txtDetails = null;
       try {
         const resTxt = await queryDNS(target, 'TXT', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
         if (resTxt.records && resTxt.records.length > 0) {
-          txtDetails = resTxt.records.map((r: any) => r.data.replace(/(^"|"$)/g, '')).join(' | ');
+          txtDetails = resTxt.records.map((r: { data: string }) => r.data.replace(/(^"|"$)/g, '')).join(' | ');
         }
-      } catch (txtErr) {
+      } catch {
+        // Fallback for TXT records failing
       }
       return {
         zone,
@@ -46,7 +47,7 @@ export async function checkBlacklist(ip: string, settings: AppSettings) {
         details: txtDetails,
         error: false
       };
-    } catch (err) {
+    } catch {
       return { zone, listed: false, records: [], details: null, classification: null, error: true };
     }
   });

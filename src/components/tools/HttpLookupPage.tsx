@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { fetchHeaders } from "@/lib/http"
 import { useSettings } from "@/lib/settings"
@@ -33,20 +33,17 @@ export function HttpLookupPage() {
   const scheme = (paramScheme || 'http').toLowerCase()
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<{ headers: { key: string; value: string }[]; status: number; statusText: string; redirected: boolean; queryTime: number } | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-  useEffect(() => {
+
+  const [lastScheme, setLastScheme] = useState(scheme)
+  if (scheme !== lastScheme) {
+    setLastScheme(scheme)
     setStatus('idle')
     setResult(null)
-  }, [scheme])
-  useEffect(() => {
-    const q = location.state?.target;
-    if (q) {
-      setDomain(q);
-      performSearch(q);
-    }
-  }, [location.state]);
-  const performSearch = async (targetDomain: string) => {
+  }
+
+  const performSearch = useCallback(async (targetDomain: string) => {
     if (!targetDomain.trim()) return
     setStatus('loading')
     setErrorMsg("")
@@ -61,12 +58,23 @@ export function HttpLookupPage() {
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ ...res, queryTime });
       setStatus('success')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      setErrorMsg(err.message || "An error occurred while fetching HTTP headers.")
+      const message = err instanceof Error ? err.message : "An error occurred while fetching HTTP headers.";
+      setErrorMsg(message)
       setStatus('error')
     }
-  }
+  }, [scheme, settings]);
+
+  const lastHandledTarget = useRef<string | null>(null);
+  useEffect(() => {
+    const q = location.state?.target;
+    if (q && q !== lastHandledTarget.current) {
+      lastHandledTarget.current = q;
+      setDomain(q);
+      performSearch(q);
+    }
+  }, [location.state, performSearch]);
   const handleSearch = (e: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
@@ -146,7 +154,7 @@ export function HttpLookupPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {result.headers.length > 0 ? result.headers.map((h: any, i: number) => (
+                  {result.headers.length > 0 ? result.headers.map((h: { key: string; value: string }, i: number) => (
                     <TableRow key={i}>
                       <TableCell className="font-medium whitespace-nowrap">{h.key}</TableCell>
                       <TableCell className="font-mono text-xs break-all">{h.value}</TableCell>
@@ -162,7 +170,7 @@ export function HttpLookupPage() {
               </Table>
             </div>
             <div className="sm:hidden space-y-3">
-              {result.headers.length > 0 ? result.headers.map((h: any, i: number) => (
+              {result.headers.length > 0 ? result.headers.map((h: { key: string; value: string }, i: number) => (
                 <div key={i} className="p-3 rounded-lg border bg-card shadow-sm">
                   <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-tight">{h.key}</p>
                   <div className="p-2 bg-muted/50 rounded border border-border/50 font-mono text-xs break-all leading-relaxed text-foreground/90">

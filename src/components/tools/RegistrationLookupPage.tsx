@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { queryRDAP } from "@/lib/rdap"
-import { queryASN } from "@/lib/asn"
+import { queryASN, type ASNResult } from "@/lib/asn"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -43,7 +43,7 @@ const REGISTRATION_INFO: Record<string, { title: string, desc: string }> = {
   ARIN: { title: "ARIN Lookup", desc: "Check IP address registration details via RDAP." },
   ASN: { title: "ASN Lookup", desc: "Check Autonomous System Number and IP geolocation details." }
 }
-function RDAPRegistrationCard({ data }: { data: any }) {
+function RDAPRegistrationCard({ data }: { data: Record<string, unknown> }) {
   const parsed = parseRDAP(data);
   return (
     <div className="space-y-6">
@@ -164,32 +164,20 @@ export function RegistrationLookupPage() {
   const navigate = useNavigate()
   const { settings } = useSettings()
   const location = useLocation();
+  const getPlaceholder = () => {
+    switch (tool) {
+      case 'ARIN': return "1.1.1.1";
+      case 'ASN': return "AS13335 or 1.1.1.1";
+      default: return "example.com";
+    }
+  };
   const tool = (paramTool || 'whois').toUpperCase()
   const info = REGISTRATION_INFO[tool] || { title: `${tool} Lookup`, desc: `Check ${tool} details.` }
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<{ data: unknown; queryTime: number } | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-  useEffect(() => {
-    setStatus('idle')
-    setResult(null)
-  }, [tool])
-  useEffect(() => {
-    const q = location.state?.target;
-    if (q) {
-      setQuery(q);
-      performSearch(q);
-    }
-  }, [location.state]);
-  const getPlaceholder = () => {
-    switch (tool) {
-      case 'WHOIS': return 'Enter domain name (e.g., example.com)'
-      case 'ARIN': return 'Enter IP address (e.g., 8.8.8.8)'
-      case 'ASN': return 'Enter IP or ASN (e.g., AS15169 or 8.8.8.8)'
-      default: return 'Enter query...'
-    }
-  }
-  const performSearch = async (targetQuery: string) => {
+  const performSearch = useCallback(async (targetQuery: string) => {
     const q = targetQuery.trim();
     if (!q) return;
     const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
@@ -241,17 +229,34 @@ export function RegistrationLookupPage() {
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ data: res, queryTime });
       setStatus('success');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setErrorMsg(err.message || "An error occurred while fetching registration data.");
+      const message = err instanceof Error ? err.message : "An error occurred while fetching registration data.";
+      setErrorMsg(message);
       setStatus('error');
     }
+  }, [tool, settings]);
+
+  const [lastTool, setLastTool] = useState(tool)
+  if (tool !== lastTool) {
+    setLastTool(tool)
+    setStatus('idle')
+    setResult(null)
   }
+
+  const lastHandledTarget = useRef<string | null>(null);
+  useEffect(() => {
+    const q = location.state?.target;
+    if (q && q !== lastHandledTarget.current) {
+      lastHandledTarget.current = q;
+      setQuery(q);
+      performSearch(q);
+    }
+  }, [location.state, performSearch]);
   const handleSearch = (e: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(query)
   }
-  const parsed = result?.data?.parsed;
   return (
     <div className="space-y-6">
       <SEO 
@@ -315,12 +320,14 @@ export function RegistrationLookupPage() {
             </div>
           }
         >
-          {tool === 'ASN' && parsed && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+          {tool === 'ASN' && (result.data as ASNResult).parsed && (() => {
+            const parsed = (result.data as ASNResult).parsed!;
+            return (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 rounded-xl border bg-card shadow-sm gap-4">
                 <div className="space-y-3">
                   <h3 className="text-2xl font-bold tracking-tight">
-                    {parsed.org || "Unknown Entity"}
+                    {(result.data as ASNResult).parsed?.org || "Unknown Entity"}
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {parsed.is_datacenter && <Badge variant="destructive">Datacenter</Badge>}
@@ -471,15 +478,15 @@ export function RegistrationLookupPage() {
                   </div>
                 </Card>
               </div>
-              {(parsed.prefixes_v4?.length > 0 || parsed.prefixes_v6?.length > 0) && (
+              {((parsed.prefixes_v4?.length || 0) > 0 || (parsed.prefixes_v6?.length || 0) > 0) && (
                 <Card className="p-0 overflow-hidden">
                   <div className="bg-muted/50 px-4 py-3 border-b flex justify-between items-center">
                     <h4 className="text-sm font-bold uppercase flex items-center gap-2">
                       <List className="h-4 w-4" /> Announced Prefix Explorer
                     </h4>
                     <div className="flex gap-2">
-                      <Badge variant="outline">{parsed.prefixes_v4.length} IPv4</Badge>
-                      <Badge variant="outline">{parsed.prefixes_v6.length} IPv6</Badge>
+                      <Badge variant="outline">{(parsed.prefixes_v4 || []).length} IPv4</Badge>
+                      <Badge variant="outline">{(parsed.prefixes_v6 || []).length} IPv6</Badge>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2">
@@ -487,7 +494,7 @@ export function RegistrationLookupPage() {
                       <p className="text-[10px] font-bold text-muted-foreground uppercase mb-2">IPv4 Subnets</p>
                       <ScrollArea className="h-48 w-full rounded border bg-zinc-950 p-2">
                         <div className="grid grid-cols-2 gap-1">
-                          {parsed.prefixes_v4.map((p: string, i: number) => (
+                          {(parsed.prefixes_v4 || []).map((p: string, i: number) => (
                             <div key={i} className="text-[10px] font-mono text-zinc-400 hover:text-primary transition-colors cursor-default">
                               {p}
                             </div>
@@ -499,7 +506,7 @@ export function RegistrationLookupPage() {
                       <p className="text-[10px] font-bold text-muted-foreground uppercase mb-2">IPv6 Subnets</p>
                       <ScrollArea className="h-48 w-full rounded border bg-zinc-950 p-2">
                         <div className="space-y-1">
-                          {parsed.prefixes_v6.map((p: string, i: number) => (
+                          {(parsed.prefixes_v6 || []).map((p: string, i: number) => (
                             <div key={i} className="text-[10px] font-mono text-zinc-400 hover:text-primary transition-colors cursor-default">
                               {p}
                             </div>
@@ -529,9 +536,9 @@ export function RegistrationLookupPage() {
                 </ScrollArea>
               </div>
             </div>
-          )}
+          )})()}
           {tool !== 'ASN' && (
-            <RDAPRegistrationCard data={result.data} />
+            <RDAPRegistrationCard data={result.data as Record<string, unknown>} />
           )}
         </ResultCard>
       )}

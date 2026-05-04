@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useLocation } from "react-router-dom"
 import { querySubdomains, type SubdomainResult } from "@/lib/subdomains"
 import { useSettings } from "@/lib/settings"
@@ -23,18 +23,11 @@ export function SubdomainScannerPage() {
   const location = useLocation()
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<{ data: SubdomainResult[]; queryTime: number } | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
   const [currentSource, setCurrentSource] = useState("")
   const [scanErrors, setScanErrors] = useState<string[]>([])
-  useEffect(() => {
-    const target = location.state?.target;
-    if (target) {
-      setDomain(target);
-      performSearch(target);
-    }
-  }, [location.state]);
-  const performSearch = async (targetDomain: string) => {
+  const performSearch = useCallback(async (targetDomain: string) => {
     if (!targetDomain.trim()) return
     setStatus('loading')
     setErrorMsg("")
@@ -49,12 +42,23 @@ export function SubdomainScannerPage() {
         setCurrentSource(`Queried ${sourceName}...`);
       });
       setStatus('success')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      setErrorMsg(err.message || "An error occurred while scanning for subdomains.")
+      const message = err instanceof Error ? err.message : "An error occurred while scanning for subdomains.";
+      setErrorMsg(message)
       setStatus('error')
     }
-  }
+  }, [settings]);
+
+  const lastHandledTarget = useRef<string | null>(null);
+  useEffect(() => {
+    const target = location.state?.target;
+    if (target && target !== lastHandledTarget.current) {
+      lastHandledTarget.current = target;
+      setDomain(target);
+      performSearch(target);
+    }
+  }, [location.state, performSearch]);
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)

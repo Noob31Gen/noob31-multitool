@@ -118,7 +118,8 @@ export async function lookupMac(
       binary,
       queryTime,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to lookup MAC address.";
     return {
       mac,
       vendor: "",
@@ -127,7 +128,7 @@ export async function lookupMac(
       isUnicast: true,
       isUniversal: true,
       binary: "",
-      error: error.message || "Failed to lookup MAC address.",
+      error: message,
       queryTime: Date.now() - startTime,
     };
   }

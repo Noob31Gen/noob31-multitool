@@ -4,7 +4,7 @@ export async function queryRDAP(query: string, settings: AppSettings) {
   query = query.trim();
   const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(query) || (query.includes(':') && !query.includes('.'));
   const basePath = isIP ? `ip/${query}` : `domain/${query}`;
-  let url = `https://rdap.org/${basePath}`;
+  const url = `https://rdap.org/${basePath}`;
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -12,8 +12,9 @@ export async function queryRDAP(query: string, settings: AppSettings) {
     clearTimeout(timeoutId);
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     return await res.json();
-  } catch (err: any) {
-    if (settings.corsProvider !== 'none' && err.name === 'TypeError') {
+  } catch (err: unknown) {
+    const isTypeError = err instanceof TypeError;
+    if (settings.corsProvider !== 'none' && isTypeError) {
       const proxyUrl = getProxiedUrl(url, settings.corsProvider, settings.customCorsUrl);
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);

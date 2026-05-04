@@ -49,8 +49,9 @@ export async function querySubdomains(
         }
         subdomainMap.get(subdomain)!.add(source);
       });
-    } catch (err: any) {
-      errors.push(`${source.name}: ${err.message}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      errors.push(`${source.name}: ${message}`);
     }
     const currentResults: SubdomainResult[] = Array.from(subdomainMap.entries()).map(([subdomain, sourcesSet]) => ({
       subdomain,
@@ -88,9 +89,10 @@ async function fetchHackerTarget(domain: string, settings: AppSettings): Promise
       }
     }
     return results;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
-    throw new Error(`HackerTarget: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`${message}`);
   }
 }
 async function fetchUrlScan(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
@@ -122,9 +124,10 @@ async function fetchUrlScan(domain: string, settings: AppSettings): Promise<{ su
       }
     }
     return results;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
-    throw new Error(`URLScan.io: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Source Error: ${message}`);
   }
 }
 async function fetchCrtSh(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
@@ -165,9 +168,10 @@ async function fetchCrtSh(domain: string, settings: AppSettings): Promise<{ subd
       }
     }
     return results;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
-    throw new Error(`crt.sh: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`crt.sh: ${message}`);
   }
 }
 async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
@@ -204,9 +208,10 @@ async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<
       }
     }
     return results;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
-    throw new Error(`CertSpotter: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`CertSpotter: ${message}`);
   }
 }
 async function fetchAnubis(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
@@ -233,9 +238,10 @@ async function fetchAnubis(domain: string, settings: AppSettings): Promise<{ sub
       }
     }
     return results;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
-    throw new Error(`Anubis: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Anubis: ${message}`);
   }
 }
 async function fetchMnemonic(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
@@ -262,9 +268,10 @@ async function fetchMnemonic(domain: string, settings: AppSettings): Promise<{ s
       }
     }
     return results;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
-    throw new Error(`Mnemonic: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Mnemonic: ${message}`);
   }
 }
 async function fetchWaybackMachine(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
@@ -296,15 +303,17 @@ async function fetchWaybackMachine(domain: string, settings: AppSettings): Promi
             }
             const validSub = extractValidSubdomain(hostname, domain);
             if (validSub) results.push({ subdomain: validSub, source: 'Wayback Machine' });
-          } catch (e) {
+          } catch {
+            // Ignore individual URL parsing failures
           }
         }
       }
     }
     return results;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
-    throw new Error(`Wayback Machine: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Wayback Machine: ${message}`);
   }
 }
 async function fetchBufferOver(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
@@ -332,8 +341,9 @@ async function fetchBufferOver(domain: string, settings: AppSettings): Promise<{
       }
     }
     return results;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
-    throw new Error(`BufferOver: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`BufferOver: ${message}`);
   }
 }

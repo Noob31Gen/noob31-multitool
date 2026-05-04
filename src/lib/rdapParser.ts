@@ -16,11 +16,28 @@ export interface ParsedRDAP {
   ipRange?: string;
   country?: string;
 }
-function processEntities(entities: any[], parsed: ParsedRDAP) {
+interface RDAPData {
+  ldhName?: string;
+  name?: string;
+  handle?: string;
+  objectClassName?: string;
+  status?: string[];
+  startAddress?: string;
+  endAddress?: string;
+  country?: string;
+  nameservers?: { ldhName: string }[];
+  events?: { eventAction: string; eventDate: string }[];
+  entities?: RDAPData[];
+  roles?: string[];
+  vcardArray?: unknown[];
+  publicIds?: { type: string; identifier: string }[];
+}
+
+function processEntities(entities: RDAPData[], parsed: ParsedRDAP) {
   if (!entities || !Array.isArray(entities)) return;
   for (const entity of entities) {
     const roles = entity.roles || [];
-    const vcard = entity.vcardArray?.[1] || [];
+    const vcard = (entity.vcardArray?.[1] as [string, Record<string, unknown>, string, string][]) || [];
     let fn = '';
     let email = '';
     let org = '';
@@ -34,7 +51,7 @@ function processEntities(entities: any[], parsed: ParsedRDAP) {
     if (roles.includes('registrar')) {
       if (!parsed.registrar) parsed.registrar = nameToUse;
       if (entity.publicIds && Array.isArray(entity.publicIds)) {
-        const iana = entity.publicIds.find((id: any) =>
+        const iana = entity.publicIds.find((id: { type: string; identifier: string }) =>
           id.type && id.type.toLowerCase() === 'iana registrar id'
         );
         if (iana) parsed.registrarIanaId = iana.identifier;
@@ -57,7 +74,8 @@ function processEntities(entities: any[], parsed: ParsedRDAP) {
     }
   }
 }
-export function parseRDAP(data: any): ParsedRDAP {
+
+export function parseRDAP(data: RDAPData): ParsedRDAP {
   const parsed: ParsedRDAP = {
     name: data.ldhName || data.name || '',
     handle: data.handle || '',
@@ -72,7 +90,7 @@ export function parseRDAP(data: any): ParsedRDAP {
     parsed.country = data.country;
   }
   if (data.nameservers && Array.isArray(data.nameservers)) {
-    parsed.nameservers = data.nameservers.map((ns: any) => ns.ldhName).filter(Boolean);
+    parsed.nameservers = data.nameservers.map((ns: { ldhName: string }) => ns.ldhName).filter(Boolean);
   }
   if (data.events && Array.isArray(data.events)) {
     for (const event of data.events) {

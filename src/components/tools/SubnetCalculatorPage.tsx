@@ -6,9 +6,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
+interface SubnetResult {
+  ip: string;
+  cidr: number;
+  network: string;
+  firstHost: string;
+  lastHost: string;
+  broadcast: string;
+  totalHosts: number;
+  mask: string;
+  wildcard: string;
+  maskBinary: string | undefined;
+}
 export function SubnetCalculatorPage() {
   const [input, setInput] = useState("")
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<SubnetResult | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,9 +37,10 @@ export function SubnetCalculatorPage() {
       if (isNaN(cidr)) throw new Error("Invalid CIDR prefix (e.g. /24)");
       const res = calculateSubnet(ip, cidr);
       setResult(res);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setResult(null);
-      setErrorMsg(err.message || "Invalid IP or CIDR format");
+      const message = err instanceof Error ? err.message : "Invalid IP or CIDR format";
+      setErrorMsg(message);
     }
   }
   return (

@@ -7,9 +7,19 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Mail, ShieldCheck, Clock, Server, ArrowDown, User, Hash } from "lucide-react"
+interface EmailHeaderResult {
+  from: string;
+  to: string;
+  subject: string;
+  date: string;
+  messageId: string;
+  spf: string;
+  authResults: string[];
+  hops: string[];
+}
 export function EmailHeaderAnalyzerPage() {
   const [input, setInput] = useState("")
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<EmailHeaderResult | null>(null)
   const handleAnalyze = () => {
     if (!input.trim()) return;
     const res = parseEmailHeaders(input);

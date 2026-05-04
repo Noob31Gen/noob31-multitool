@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useLocation } from "react-router-dom"
 import { checkBlacklist } from "@/lib/blacklist"
 import { useSettings } from "@/lib/settings"
@@ -10,21 +10,28 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, CheckCircle2, XCircle, AlertCircle } from "lucide-react"
 import { Card } from "@/components/ui/card"
+
+interface BlacklistResultItem {
+  zone: string;
+  listed: boolean;
+  records: string[];
+  details: string | null;
+  classification: string | null;
+  error: boolean;
+}
+
+interface BlacklistResult {
+  data: BlacklistResultItem[];
+  queryTime: number;
+}
 export function BlacklistPage() {
   const { settings } = useSettings()
   const location = useLocation()
   const [ip, setIp] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<BlacklistResult | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-  useEffect(() => {
-    const target = location.state?.target;
-    if (target) {
-      setIp(target);
-      performSearch(target);
-    }
-  }, [location.state]);
-  const performSearch = async (targetIp: string) => {
+  const performSearch = useCallback(async (targetIp: string) => {
     if (!targetIp.trim()) return
     setStatus('loading')
     setErrorMsg("")
@@ -35,17 +42,28 @@ export function BlacklistPage() {
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ data: res, queryTime });
       setStatus('success')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      setErrorMsg(err.message || "An error occurred during blacklist check.")
+      const message = err instanceof Error ? err.message : "An error occurred during blacklist check.";
+      setErrorMsg(message)
       setStatus('error')
     }
-  }
+  }, [settings]);
+
+  const lastHandledTarget = useRef<string | null>(null);
+  useEffect(() => {
+    const target = (location.state as { target?: string })?.target;
+    if (target && target !== lastHandledTarget.current) {
+      lastHandledTarget.current = target;
+      setIp(target);
+      performSearch(target);
+    }
+  }, [location, performSearch]);
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(ip)
   }
-  const listedCount = result?.data?.filter((r: any) => r.listed).length || 0;
+  const listedCount = result?.data?.filter((r: BlacklistResultItem) => r.listed).length || 0;
   const totalCount = result?.data?.length || 0;
   return (
     <div className="space-y-6">
@@ -108,7 +126,7 @@ export function BlacklistPage() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {result.data.map((item: any, i: number) => (
+            {result.data.map((item: BlacklistResultItem, i: number) => (
               <div
                 key={i}
                 className={`flex items-start gap-3 p-3 rounded-md border transition-colors ${item.listed

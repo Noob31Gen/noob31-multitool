@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { queryDNS, type DNSResponse } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
@@ -48,19 +48,14 @@ export function DNSLookupPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<DNSResponse | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-  useEffect(() => {
+  const [lastRecordType, setLastRecordType] = useState(recordType)
+  if (recordType !== lastRecordType) {
+    setLastRecordType(recordType)
     setStatus('idle')
     setResult(null)
-  }, [recordType])
-  const location = useLocation();
-  useEffect(() => {
-    const q = location.state?.target;
-    if (q) {
-      setDomain(q);
-      performSearch(q);
-    }
-  }, [location.state]);
-  const performSearch = async (targetDomain: string) => {
+  }
+
+  const performSearch = useCallback(async (targetDomain: string) => {
     if (!targetDomain.trim()) return
     setStatus('loading')
     setErrorMsg("")
@@ -73,12 +68,24 @@ export function DNSLookupPage() {
       const res = await queryDNS(queryTarget, recordType, settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl)
       setResult(res)
       setStatus('success')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      setErrorMsg(err.message || "An error occurred while fetching DNS records.")
+      const message = err instanceof Error ? err.message : "An error occurred while fetching DNS records.";
+      setErrorMsg(message)
       setStatus('error')
     }
-  }
+  }, [recordType, settings]);
+
+  const location = useLocation()
+  const lastHandledTarget = useRef<string | null>(null);
+  useEffect(() => {
+    const q = (location.state as { target?: string })?.target;
+    if (q && q !== lastHandledTarget.current) {
+      lastHandledTarget.current = q;
+      setDomain(q);
+      performSearch(q);
+    }
+  }, [location, performSearch]);
   const handleSearch = (e: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)

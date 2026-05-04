@@ -9,7 +9,7 @@ export interface NormalizedCert {
 export async function queryCert(domain: string, settings: AppSettings): Promise<NormalizedCert[]> {
   domain = domain.trim().toLowerCase();
   return new Promise((resolve, reject) => {
-    let errors: string[] = [];
+    const errors: string[] = [];
     let completed = 0;
     let emptyResults = 0;
     const checkDone = () => {
@@ -47,7 +47,7 @@ async function fetchCrtSh(domain: string, settings: AppSettings): Promise<Normal
   const targetUrl = `https://crt.sh/?q=${domain}&output=json`;
   const proxyUrl = getProxiedUrl(
     targetUrl,
-    settings.corsProvider as any,
+    settings.corsProvider as AppSettings['corsProvider'],
     settings.customCorsUrl
   );
   const controller = new AbortController();
@@ -62,13 +62,13 @@ async function fetchCrtSh(domain: string, settings: AppSettings): Promise<Normal
   try {
     const data = JSON.parse(text);
     if (!Array.isArray(data)) return [];
-    return data.map((cert: any) => ({
+    return data.map((cert: { not_before?: string; not_after?: string; common_name?: string; name_value?: string; issuer_name?: string }) => ({
       not_before: cert.not_before || '',
       not_after: cert.not_after || '',
       common_name: cert.common_name || cert.name_value || '',
       issuer_name: cert.issuer_name || ''
     }));
-  } catch (err) {
+  } catch {
     throw new Error('Returned HTML instead of JSON. The server is likely under heavy load.');
   }
 }
@@ -76,7 +76,7 @@ async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<
   const targetUrl = `https://api.certspotter.com/v1/issuances?domain=${domain}&include_subdomains=true&expand=dns_names&expand=issuer`;
   const proxyUrl = getProxiedUrl(
     targetUrl,
-    settings.corsProvider as any,
+    settings.corsProvider as AppSettings['corsProvider'],
     settings.customCorsUrl
   );
   const controller = new AbortController();
@@ -95,13 +95,13 @@ async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<
   try {
     const data = JSON.parse(text);
     if (!Array.isArray(data)) return [];
-    return data.map((cert: any) => ({
+    return data.map((cert: { not_before?: string; not_after?: string; dns_names?: string[]; issuer?: { name?: string } }) => ({
       not_before: cert.not_before ? cert.not_before.split('T')[0] : '',
       not_after: cert.not_after ? cert.not_after.split('T')[0] : '',
       common_name: cert.dns_names?.[0] || domain,
       issuer_name: cert.issuer?.name || ''
     }));
-  } catch (err) {
+  } catch {
     throw new Error('Returned HTML instead of JSON. The proxy failed to route the request.');
   }
 }

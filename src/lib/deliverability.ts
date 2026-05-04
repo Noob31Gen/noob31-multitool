@@ -5,7 +5,7 @@ function isValidFQDN(domain: string): boolean {
   const fqdnRegex = /^(?=.{1,253}$)(?:(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,63}$/;
   return fqdnRegex.test(domain);
 }
-const extractTxt = (record: any): string => {
+const extractTxt = (record: { data?: string; value?: string } | string | null | undefined): string => {
   if (!record) return "";
   if (typeof record === 'string') return record.toLowerCase();
   return String(record.data || record.value || "").toLowerCase();

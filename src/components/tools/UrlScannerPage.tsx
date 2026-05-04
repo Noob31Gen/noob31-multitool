@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useLocation } from "react-router-dom"
 import { useSettings } from "@/lib/settings"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -25,6 +25,21 @@ import {
 } from "@/components/ui/table"
 import { parseUrl, visitUrl, type ParsedUrl, type VisitResult } from "@/lib/urlScanner"
 import { SEO } from "@/components/shared/SEO"
+
+const getStatusColor = (code: number) => {
+  if (code >= 200 && code < 300) return "bg-green-500 hover:bg-green-600";
+  if (code >= 300 && code < 400) return "bg-blue-500 hover:bg-blue-600";
+  if (code >= 400 && code < 500) return "bg-orange-500 hover:bg-orange-600";
+  if (code >= 500) return "bg-red-500 hover:bg-red-600";
+  return "bg-gray-500 hover:bg-gray-600";
+}
+
+const InfoRow = ({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) => (
+  <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-2 border-b border-border/50 last:border-b-0">
+    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground min-w-[140px] shrink-0">{label}</span>
+    <span className={`text-sm break-all ${mono ? 'font-mono' : ''}`}>{value || <span className="text-muted-foreground italic">—</span>}</span>
+  </div>
+)
 export function UrlScannerPage() {
   const { settings } = useSettings()
   const location = useLocation();
@@ -34,14 +49,7 @@ export function UrlScannerPage() {
   const [parsed, setParsed] = useState<ParsedUrl | null>(null)
   const [visitData, setVisitData] = useState<VisitResult | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-  useEffect(() => {
-    const q = location.state?.target;
-    if (q) {
-      setUrl(q);
-      performSearch(q, visitEnabled);
-    }
-  }, [location.state]);
-  const performSearch = async (targetUrl: string, doVisit: boolean) => {
+  const performSearch = useCallback(async (targetUrl: string, doVisit: boolean) => {
     if (!targetUrl.trim()) return
     setStatus('loading')
     setErrorMsg("")
@@ -50,35 +58,33 @@ export function UrlScannerPage() {
     try {
       const parsedResult = parseUrl(targetUrl);
       setParsed(parsedResult);
-      const promises: Promise<any>[] = [];
+      const promises: Promise<unknown>[] = [];
       if (doVisit) {
         promises.push(visitUrl(targetUrl, settings).then(res => setVisitData(res)));
       }
       await Promise.all(promises);
       setStatus('success')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      setErrorMsg(err.message || "An error occurred during URL scanning.")
+      const message = err instanceof Error ? err.message : "An error occurred during URL scanning.";
+      setErrorMsg(message)
       setStatus('error')
     }
-  }
+  }, [settings]);
+
+  const lastHandledTarget = useRef<string | null>(null);
+  useEffect(() => {
+    const q = location.state?.target;
+    if (q && q !== lastHandledTarget.current) {
+      lastHandledTarget.current = q;
+      setUrl(q);
+      performSearch(q, visitEnabled);
+    }
+  }, [location.state, performSearch, visitEnabled]);
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     performSearch(url, visitEnabled)
   }
-  const getStatusColor = (code: number) => {
-    if (code >= 200 && code < 300) return "bg-green-500 hover:bg-green-600";
-    if (code >= 300 && code < 400) return "bg-blue-500 hover:bg-blue-600";
-    if (code >= 400 && code < 500) return "bg-orange-500 hover:bg-orange-600";
-    if (code >= 500) return "bg-red-500 hover:bg-red-600";
-    return "bg-gray-500 hover:bg-gray-600";
-  }
-  const InfoRow = ({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) => (
-    <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-2 border-b border-border/50 last:border-b-0">
-      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground min-w-[140px] shrink-0">{label}</span>
-      <span className={`text-sm break-all ${mono ? 'font-mono' : ''}`}>{value || <span className="text-muted-foreground italic">—</span>}</span>
-    </div>
-  )
   return (
     <div className="space-y-6">
       <SEO 

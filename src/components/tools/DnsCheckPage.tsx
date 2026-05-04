@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useLocation } from "react-router-dom"
 import { runDnsCheck } from "@/lib/health"
+import type { DNSRecord } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -17,16 +18,9 @@ export function DnsCheckPage() {
   const location = useLocation()
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<{ results: ({ type: string; success: boolean; data?: { records: DNSRecord[] }; error?: string })[]; queryTime: number } | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-  useEffect(() => {
-    const target = location.state?.target;
-    if (target) {
-      setDomain(target);
-      performSearch(target);
-    }
-  }, [location.state]);
-  const performSearch = async (targetDomain: string) => {
+  const performSearch = useCallback(async (targetDomain: string) => {
     if (!targetDomain.trim()) return
     setStatus('loading')
     setErrorMsg("")
@@ -37,12 +31,23 @@ export function DnsCheckPage() {
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ results: res, queryTime });
       setStatus('success')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      setErrorMsg(err.message || "An error occurred during the DNS check.")
+      const message = err instanceof Error ? err.message : "An error occurred during the DNS check.";
+      setErrorMsg(message)
       setStatus('error')
     }
-  }
+  }, [settings]);
+
+  const lastHandledTarget = useRef<string | null>(null);
+  useEffect(() => {
+    const target = (location.state as { target?: string })?.target;
+    if (target && target !== lastHandledTarget.current) {
+      lastHandledTarget.current = target;
+      setDomain(target);
+      performSearch(target);
+    }
+  }, [location, performSearch]);
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
@@ -94,7 +99,7 @@ export function DnsCheckPage() {
           action={<CopyButton data={JSON.stringify(result.results, null, 2)} text="Copy JSON" />}
         >
           <div className="space-y-2">
-            {result.results.map((r: any) => {
+            {result.results.map((r: { type: string; success: boolean; data?: { records: DNSRecord[] }; error?: string }) => {
               const count = r.data?.records?.length || 0;
               const pass = count > 0;
               return (
@@ -103,7 +108,7 @@ export function DnsCheckPage() {
                   title={`${r.type} Records`}
                   status={pass ? 'pass' : (['SOA', 'NS'].includes(r.type) ? 'fail' : 'warn')}
                   message={pass ? `Found ${count} records` : `No records found`}
-                  details={pass ? <DNSResultTable records={r.data.records} /> : null}
+                  details={pass ? <DNSResultTable records={r.data!.records} /> : null}
                 />
               )
             })}

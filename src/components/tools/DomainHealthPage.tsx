@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useLocation } from "react-router-dom"
 import { runDomainHealth } from "@/lib/health"
+import type { DNSRecord } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -18,16 +19,9 @@ export function DomainHealthPage() {
   const [domain, setDomain] = useState("")
   const [selector] = useState("default")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<{ recommendations: { level: string; msg: string }[]; dnsResults: ({ type: string; success: boolean; data?: { records: DNSRecord[] }; error?: string })[]; emailResults: ({ type: string; success: boolean; records: DNSRecord[]; allRecords: DNSRecord[]; error?: string })[]; grade: string; score: number; queryTime: number } | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-  useEffect(() => {
-    const q = location.state?.target;
-    if (q) {
-      setDomain(q);
-      performSearch(q);
-    }
-  }, [location.state]);
-  const performSearch = async (targetDomain: string) => {
+  const performSearch = useCallback(async (targetDomain: string) => {
     if (!targetDomain.trim()) return
     setStatus('loading')
     setErrorMsg("")
@@ -38,12 +32,23 @@ export function DomainHealthPage() {
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ ...res, queryTime });
       setStatus('success')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      setErrorMsg(err.message || "An error occurred during the health check.")
+      const message = err instanceof Error ? err.message : "An error occurred during the health check.";
+      setErrorMsg(message)
       setStatus('error')
     }
-  }
+  }, [selector, settings]);
+
+  const lastHandledTarget = useRef<string | null>(null);
+  useEffect(() => {
+    const q = (location.state as { target?: string })?.target;
+    if (q && q !== lastHandledTarget.current) {
+      lastHandledTarget.current = q;
+      setDomain(q);
+      performSearch(q);
+    }
+  }, [location, performSearch]);
   const handleSearch = (e: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
@@ -93,7 +98,7 @@ export function DomainHealthPage() {
             {result.recommendations && result.recommendations.length > 0 && (
               <ResultCard title="Actionable Insights" status="success">
                 <div className="space-y-3">
-                  {result.recommendations.map((rec: any, idx: number) => {
+                  {result.recommendations.map((rec: { level: string; msg: string }, idx: number) => {
                     const bgMap: Record<string, string> = {
                       critical: 'bg-destructive/10 border-destructive/20 text-destructive',
                       high: 'bg-orange-500/10 border-orange-500/20 text-orange-600 dark:text-orange-400',
@@ -101,7 +106,7 @@ export function DomainHealthPage() {
                       low: 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400',
                       good: 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400'
                     };
-                    const IconMap: Record<string, any> = {
+                    const IconMap: Record<string, React.ElementType> = {
                       critical: XCircle,
                       high: AlertTriangle,
                       medium: AlertTriangle,
@@ -122,7 +127,7 @@ export function DomainHealthPage() {
               </ResultCard>
             )}
             <ResultCard title="Core DNS Health" status="success">
-              {result.dnsResults.map((r: any) => {
+              {result.dnsResults.map((r: { type: string; success: boolean; data?: { records: DNSRecord[] }; error?: string }) => {
                 const count = r.data?.records?.length || 0;
                 const pass = count > 0;
                 return (
@@ -131,13 +136,13 @@ export function DomainHealthPage() {
                     title={`${r.type} Records`}
                     status={pass ? 'pass' : (['SOA', 'NS'].includes(r.type) ? 'fail' : 'warn')}
                     message={pass ? `Found ${count} records` : `No records found`}
-                    details={pass ? <DNSResultTable records={r.data.records} /> : null}
+                    details={pass ? <DNSResultTable records={r.data!.records} /> : null}
                   />
                 )
               })}
             </ResultCard>
             <ResultCard title="Email Authentication" status="success">
-              {result.emailResults.map((r: any) => {
+              {result.emailResults.map((r: { type: string; success: boolean; records: DNSRecord[]; allRecords: DNSRecord[]; error?: string }) => {
                 const count = r.records?.length || 0;
                 const pass = count > 0;
                 const isCritical = ['SPF', 'DMARC'].includes(r.type);

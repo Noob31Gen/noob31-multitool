@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -23,11 +23,12 @@ export function SettingsSheet() {
   const { settings, setSettings } = useSettings();
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [isOpen, setIsOpen] = useState(false);
-  useEffect(() => {
-    if (isOpen) {
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (open) {
       setLocalSettings(settings);
     }
-  }, [isOpen, settings]);
+  };
   const handleApply = () => {
     setSettings(localSettings);
     safeStorage.setItem('url-scanner-settings', JSON.stringify(localSettings));
@@ -39,7 +40,7 @@ export function SettingsSheet() {
     window.location.reload();
   };
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon">
           <Settings className="h-5 w-5" />
@@ -67,7 +68,7 @@ export function SettingsSheet() {
             <h3 className="text-sm font-medium">DoH Provider</h3>
             <Select
               value={localSettings.dohProvider}
-              onValueChange={(val: any) => setLocalSettings({ ...localSettings, dohProvider: val })}
+              onValueChange={(val: string) => setLocalSettings({ ...localSettings, dohProvider: val as AppSettings['dohProvider'] })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select provider" />
@@ -94,7 +95,7 @@ export function SettingsSheet() {
             <h3 className="text-sm font-medium">CORS Proxy Provider</h3>
             <Select
               value={localSettings.corsProvider}
-              onValueChange={(val: any) => setLocalSettings({ ...localSettings, corsProvider: val })}
+              onValueChange={(val: string) => setLocalSettings({ ...localSettings, corsProvider: val as AppSettings['corsProvider'] })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select proxy" />

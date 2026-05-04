@@ -13,7 +13,7 @@ export function SpfGeneratorPage() {
   const [ipv4s, setIpv4s] = useState("")
   const [qualifier, setQualifier] = useState("-all")
   const generateSPF = () => {
-    let parts = ["v=spf1"];
+    const parts = ["v=spf1"];
     if (a) parts.push("a");
     if (mx) parts.push("mx");
     if (ipv4s.trim()) {
@@ -42,11 +42,11 @@ export function SpfGeneratorPage() {
           <div className="space-y-4">
              <h3 className="text-lg font-medium">Standard Mechanisms</h3>
              <div className="flex items-center space-x-2">
-               <Checkbox id="a" checked={a} onCheckedChange={(c: any) => setA(!!c)} />
+               <Checkbox id="a" checked={a} onCheckedChange={(c: boolean | 'indeterminate') => setA(!!c)} />
                <Label htmlFor="a">Allow servers listed in A records to send email (a)</Label>
              </div>
              <div className="flex items-center space-x-2">
-               <Checkbox id="mx" checked={mx} onCheckedChange={(c: any) => setMx(!!c)} />
+               <Checkbox id="mx" checked={mx} onCheckedChange={(c: boolean | 'indeterminate') => setMx(!!c)} />
                <Label htmlFor="mx">Allow servers listed in MX records to send email (mx)</Label>
              </div>
           </div>

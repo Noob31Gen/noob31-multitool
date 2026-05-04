@@ -6,7 +6,7 @@ export function CopyButton({ data, text = "Copy" }: { data: string, text?: strin
     try {
       await navigator.clipboard.writeText(data)
       toast.success("Copied to clipboard")
-    } catch (err) {
+    } catch {
       toast.error("Failed to copy")
     }
   }
@@ -17,7 +17,7 @@ export function CopyButton({ data, text = "Copy" }: { data: string, text?: strin
     </Button>
   )
 }
-export function ExportButton({ data, filename, text = "Export JSON" }: { data: any, filename: string, text?: string }) {
+export function ExportButton({ data, filename, text = "Export JSON" }: { data: unknown, filename: string, text?: string }) {
   const handleExport = () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
     const url = URL.createObjectURL(blob)

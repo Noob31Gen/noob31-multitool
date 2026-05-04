@@ -2,7 +2,7 @@ export function parseEmailHeaders(raw: string) {
   const unfolded = raw.replace(/\r?\n[ \t]+/g, ' ');
   const lines = unfolded.split(/\r?\n/);
   const headers: Record<string, string[]> = {};
-  const hops: any[] = [];
+  const hops: string[] = [];
   for (const line of lines) {
     if (!line.trim()) continue;
     const colonIdx = line.indexOf(':');

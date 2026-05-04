@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { SEO } from "@/components/shared/SEO"
 import QRCode from "qrcode"
 import JsBarcode from "jsbarcode"
@@ -32,7 +32,9 @@ export function CodeGeneratorPage() {
     return safeStorage.getItem("qr-allow-high-res") === "true"
   })
   const [qrSize, setQrSize] = useState<number>(() => {
-    return parseInt(safeStorage.getItem("qr-size") || "500")
+    const stored = parseInt(safeStorage.getItem("qr-size") || "500")
+    if (safeStorage.getItem("qr-allow-high-res") !== "true" && stored >= 1000) return 500
+    return stored
   })
   const [qrLevel, setQrLevel] = useState<"L" | "M" | "Q" | "H">(() => {
     return (safeStorage.getItem("qr-level") as "L" | "M" | "Q" | "H") || "M"
@@ -51,7 +53,7 @@ export function CodeGeneratorPage() {
     return parseInt(safeStorage.getItem("barcode-height") || "100")
   })
   const barcodeSvgRef = useRef<SVGSVGElement>(null)
-  const generateQRCode = () => {
+  const generateQRCode = useCallback(() => {
     if (activeTab === "qr" && qrCanvasRef.current && text) {
       QRCode.toCanvas(
         qrCanvasRef.current,
@@ -73,12 +75,13 @@ export function CodeGeneratorPage() {
         }
       )
     }
-  }
+  }, [activeTab, text, qrSize, qrMargin, qrLevel]);
   useEffect(() => {
     if (!isGenerationPaused) {
       generateQRCode()
     }
-  }, [text, qrSize, qrLevel, qrMargin, activeTab, isGenerationPaused])
+  }, [isGenerationPaused, generateQRCode])
+
   useEffect(() => {
     if (activeTab === "barcode" && barcodeSvgRef.current && text) {
       try {
@@ -105,10 +108,7 @@ export function CodeGeneratorPage() {
     safeStorage.setItem("barcode-format", barcodeFormat)
     safeStorage.setItem("barcode-width", barcodeWidth.toString())
     safeStorage.setItem("barcode-height", barcodeHeight.toString())
-    if (!isHighResAllowed && qrSize >= 1000) {
-      setQrSize(500)
-    }
-  }, [isHighResAllowed, qrSize, qrLevel, qrMargin, barcodeFormat, barcodeWidth, barcodeHeight])
+  }, [isHighResAllowed, isGenerationPaused, qrSize, qrLevel, qrMargin, barcodeFormat, barcodeWidth, barcodeHeight])
   const downloadCode = () => {
     if (activeTab === "qr" && qrCanvasRef.current) {
       const url = qrCanvasRef.current.toDataURL("image/png")
@@ -225,7 +225,13 @@ export function CodeGeneratorPage() {
                       <Checkbox
                         id="high-res-allow"
                         checked={isHighResAllowed}
-                        onCheckedChange={(checked) => setIsHighResAllowed(!!checked)}
+                        onCheckedChange={(checked) => {
+                          const val = !!checked;
+                          setIsHighResAllowed(val);
+                          if (!val && qrSize >= 1000) {
+                            setQrSize(500);
+                          }
+                        }}
                       />
                     </div>
                     <div className="grid gap-1.5 leading-none">
@@ -268,7 +274,7 @@ export function CodeGeneratorPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Error Correction</Label>
-                    <Select value={qrLevel} onValueChange={(val: any) => setQrLevel(val)}>
+                    <Select value={qrLevel} onValueChange={(val: "L" | "M" | "Q" | "H") => setQrLevel(val)}>
                       <SelectTrigger className="bg-background">
                         <SelectValue />
                       </SelectTrigger>

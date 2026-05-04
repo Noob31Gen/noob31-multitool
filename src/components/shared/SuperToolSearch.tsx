@@ -44,7 +44,7 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
       try {
         const url = new URL(`https://${q}`)
         parsedQ = url.hostname
-      } catch (e) {
+      } catch {
         parsedQ = q.split('/')[0]
       }
     }

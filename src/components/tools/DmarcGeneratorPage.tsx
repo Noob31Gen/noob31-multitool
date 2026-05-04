@@ -12,7 +12,7 @@ export function DmarcGeneratorPage() {
   const [ruf, setRuf] = useState("")
   const [pct, setPct] = useState("100")
   const generateDMARC = () => {
-    let parts = ["v=DMARC1"];
+    const parts = ["v=DMARC1"];
     parts.push(`p=${policy}`);
     if (sp !== "same") parts.push(`sp=${sp}`);
     if (pct !== "100" && pct !== "") parts.push(`pct=${pct}`);

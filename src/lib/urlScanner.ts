@@ -153,7 +153,9 @@ export function parseUrl(input: string): ParsedUrl {
         encoded: match[0],
         position: match.index,
       });
-    } catch {  }
+    } catch {
+      // Ignore characters that cannot be URI decoded
+    }
   }
   const idn = hostname.startsWith('xn--') || labels.some(l => l.startsWith('xn--'));
   return {
@@ -245,7 +247,7 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
       contentType: res.headers.get('content-type') || '',
       server: res.headers.get('server') || '',
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     clearTimeout(timeoutId);
     throw err;
   }

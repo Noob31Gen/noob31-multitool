@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { SEO } from "@/components/shared/SEO"
 import { Html5Qrcode } from "html5-qrcode"
 import { Card } from "@/components/ui/card"
@@ -13,67 +13,7 @@ export function CodeScannerPage() {
   const [isDragging, setIsDragging] = useState(false)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  useEffect(() => {
-    if (isScanning && !scannerRef.current) {
-      const html5QrCode = new Html5Qrcode("reader")
-      const qrboxFunction = (viewfinderWidth: number, viewfinderHeight: number) => {
-        const minEdge = Math.min(viewfinderWidth, viewfinderHeight)
-        const size = Math.floor(minEdge * 0.85)
-        return { width: size, height: size }
-      }
-      const config = { 
-        fps: 15, 
-        qrbox: qrboxFunction,
-        aspectRatio: 1.0,
-        experimentalFeatures: {
-          useBarCodeDetectorIfSupported: true
-        }
-      }
-      html5QrCode.start(
-        { facingMode: "environment" },
-        config,
-        (decodedText) => {
-          setScanResult(decodedText)
-          stopScanning()
-          toast.success("Code scanned successfully!")
-        },
-        (_errorMessage) => {
-        }
-      ).catch((err) => {
-        console.error("Camera start error", err)
-        toast.error("Could not access camera. Please check permissions.")
-        setIsScanning(false)
-      })
-      scannerRef.current = html5QrCode
-    }
-    return () => {
-      if (scannerRef.current && scannerRef.current.isScanning) {
-        scannerRef.current.stop().catch(err => console.error("Stop error", err))
-      }
-    }
-  }, [isScanning])
-  useEffect(() => {
-    const handlePaste = (event: ClipboardEvent) => {
-      const items = event.clipboardData?.items
-      if (!items) return
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf("image") !== -1) {
-          const file = items[i].getAsFile()
-          if (file) {
-            processFile(file)
-            break
-          }
-        }
-      }
-    }
-    window.addEventListener("paste", handlePaste)
-    return () => window.removeEventListener("paste", handlePaste)
-  }, [])
-  const startScanning = () => {
-    setScanResult(null)
-    setIsScanning(true)
-  }
-  const stopScanning = () => {
+  const stopScanning = useCallback(() => {
     if (scannerRef.current) {
       if (scannerRef.current.isScanning) {
         scannerRef.current.stop().then(() => {
@@ -87,8 +27,9 @@ export function CodeScannerPage() {
     } else {
       setIsScanning(false)
     }
-  }
-  const processFile = async (file: File) => {
+  }, []);
+
+  const processFile = useCallback(async (file: File) => {
     const toastId = toast.loading("Processing image...")
     try {
       const img = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -143,7 +84,71 @@ export function CodeScannerPage() {
       toast.dismiss(toastId)
       toast.error("No valid code found. Try a clearer image.")
     }
+  }, []);
+
+  useEffect(() => {
+    if (isScanning && !scannerRef.current) {
+      const html5QrCode = new Html5Qrcode("reader")
+      const qrboxFunction = (viewfinderWidth: number, viewfinderHeight: number) => {
+        const minEdge = Math.min(viewfinderWidth, viewfinderHeight)
+        const size = Math.floor(minEdge * 0.85)
+        return { width: size, height: size }
+      }
+      const config = { 
+        fps: 15, 
+        qrbox: qrboxFunction,
+        aspectRatio: 1.0,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true
+        }
+      }
+      html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        (decodedText) => {
+          setScanResult(decodedText)
+          stopScanning()
+          toast.success("Code scanned successfully!")
+        },
+        () => {
+        }
+      ).catch((err) => {
+        console.error("Camera start error", err)
+        toast.error("Could not access camera. Please check permissions.")
+        setIsScanning(false)
+      })
+      scannerRef.current = html5QrCode
+    }
+    return () => {
+      if (scannerRef.current && scannerRef.current.isScanning) {
+        scannerRef.current.stop().catch(err => console.error("Stop error", err))
+      }
+    }
+  }, [isScanning, stopScanning])
+
+  useEffect(() => {
+    const handlePaste = (event: ClipboardEvent) => {
+      const items = event.clipboardData?.items
+      if (!items) return
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf("image") !== -1) {
+          const file = items[i].getAsFile()
+          if (file) {
+            processFile(file)
+            break
+          }
+        }
+      }
+    }
+    window.addEventListener("paste", handlePaste)
+    return () => window.removeEventListener("paste", handlePaste)
+  }, [processFile])
+
+  const startScanning = () => {
+    setScanResult(null)
+    setIsScanning(true)
   }
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {

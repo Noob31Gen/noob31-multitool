@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useLocation } from "react-router-dom"
 import { runDeliverabilityCheck } from "@/lib/deliverability"
+import type { DNSRecord } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -18,16 +19,9 @@ export function EmailDeliverabilityPage() {
   const [domain, setDomain] = useState("")
   const [selector, setSelector] = useState("default")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<{ recommendations: { level: string; msg: string }[]; results: { type: string; records?: unknown[] }[]; grade: string; score: number; queryTime: number } | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-  useEffect(() => {
-    const q = location.state?.target;
-    if (q) {
-      setDomain(q);
-      performSearch(q);
-    }
-  }, [location.state]);
-  const performSearch = async (targetDomain: string) => {
+  const performSearch = useCallback(async (targetDomain: string) => {
     if (!targetDomain.trim()) return
     setStatus('loading')
     setErrorMsg("")
@@ -38,12 +32,23 @@ export function EmailDeliverabilityPage() {
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ ...res, queryTime });
       setStatus('success')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      setErrorMsg(err.message || "An error occurred during deliverability check.")
+      const message = err instanceof Error ? err.message : "An error occurred during deliverability check.";
+      setErrorMsg(message)
       setStatus('error')
     }
-  }
+  }, [selector, settings]);
+
+  const lastHandledTarget = useRef<string | null>(null);
+  useEffect(() => {
+    const q = location.state?.target;
+    if (q && q !== lastHandledTarget.current) {
+      lastHandledTarget.current = q;
+      setDomain(q);
+      performSearch(q);
+    }
+  }, [location.state, performSearch]);
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
@@ -98,7 +103,7 @@ export function EmailDeliverabilityPage() {
           <div className="order-2 md:order-1 space-y-6 min-w-0">
             <ResultCard title="Recommendations & Issues" status="success">
               <div className="space-y-3">
-                {result.recommendations.map((rec: any, i: number) => {
+                {result.recommendations.map((rec: { level: string; msg: string }, i: number) => {
                   let icon = <Info className="w-5 h-5 text-blue-500" />;
                   let bgClass = "bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-900/50";
                   if (rec.level === 'critical') {
@@ -124,7 +129,7 @@ export function EmailDeliverabilityPage() {
               </div>
             </ResultCard>
             <ResultCard title="Authentication Records" status="success">
-              {result.results.map((r: any) => {
+              {result.results.map((r: { type: string; records?: unknown[] }) => {
                 const count = r.records?.length || 0;
                 const pass = count > 0;
                 const isCritical = ['MX', 'SPF', 'DMARC'].includes(r.type);
@@ -134,7 +139,7 @@ export function EmailDeliverabilityPage() {
                     title={`${r.type} Record`}
                     status={pass ? 'pass' : (isCritical ? 'fail' : 'info')}
                     message={pass ? `Found valid ${r.type}` : `Missing ${r.type} record`}
-                    details={pass ? <DNSResultTable records={r.records} /> : null}
+                    details={pass ? <DNSResultTable records={r.records as DNSRecord[]} /> : null}
                   />
                 )
               })}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useLocation } from "react-router-dom"
 import { queryCert } from "@/lib/cert"
 import { useSettings } from "@/lib/settings"
@@ -18,21 +18,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import type { NormalizedCert } from "@/lib/cert"
+
+interface CertResult {
+  data: NormalizedCert[];
+  queryTime: number;
+}
 export function CertLookupPage() {
   const { settings } = useSettings()
   const location = useLocation()
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<CertResult | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-  useEffect(() => {
-    const target = location.state?.target;
-    if (target) {
-      setDomain(target);
-      performSearch(target);
-    }
-  }, [location.state]);
-  const performSearch = async (targetDomain: string) => {
+  const performSearch = useCallback(async (targetDomain: string) => {
     if (!targetDomain.trim()) return
     setStatus('loading')
     setErrorMsg("")
@@ -43,12 +42,23 @@ export function CertLookupPage() {
       const queryTime = Math.round(performance.now() - startTime);
       setResult({ data: res, queryTime });
       setStatus('success')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      setErrorMsg(err.message || "An error occurred while fetching certificate data.")
+      const message = err instanceof Error ? err.message : "An error occurred while fetching certificate data.";
+      setErrorMsg(message)
       setStatus('error')
     }
-  }
+  }, [settings]);
+
+  const lastHandledTarget = useRef<string | null>(null);
+  useEffect(() => {
+    const target = (location.state as { target?: string })?.target;
+    if (target && target !== lastHandledTarget.current) {
+      lastHandledTarget.current = target;
+      setDomain(target);
+      performSearch(target);
+    }
+  }, [location, performSearch]);
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
@@ -121,7 +131,7 @@ export function CertLookupPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((cert: any, i: number) => (
+                  {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((cert: NormalizedCert, i: number) => (
                     <TableRow key={i}>
                       <TableCell className="whitespace-nowrap text-xs">{cert.not_before}</TableCell>
                       <TableCell className="whitespace-nowrap text-xs">{cert.not_after}</TableCell>
@@ -139,7 +149,7 @@ export function CertLookupPage() {
               </Table>
             </div>
             <div className="md:hidden space-y-4">
-              {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((cert: any, i: number) => (
+              {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((cert: NormalizedCert, i: number) => (
                 <div key={i} className="rounded-xl border bg-card overflow-hidden shadow-sm">
                   <div className="px-4 py-2 bg-muted/30 border-b flex justify-between items-center">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase">Validity Period</span>
