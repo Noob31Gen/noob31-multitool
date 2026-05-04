@@ -58,6 +58,11 @@ export interface ParsedUrl {
     decoded: string;
     hasFragment: boolean;
   };
+  passiveRedirects: {
+    key: string;
+    url: string;
+    host: string;
+  }[];
   meta: {
     isEncoded: boolean;
     hasTrailingSlash: boolean;
@@ -85,6 +90,46 @@ const DEFAULT_PORTS: Record<string, string> = {
   'ws:': '80',
   'wss:': '443',
 };
+
+// Common TLDs as fallback
+let TLD_LIST = new Set(['com', 'org', 'net', 'edu', 'gov', 'mil', 'co', 'io', 'ai', 'dev', 'app', 'xyz', 'info', 'me', 'in', 'uk', 'us', 'de', 'fr', 'jp', 'cn', 'ru', 'br', 'au', 'ca', 'it', 'nl', 'es', 'ch', 'se', 'no', 'fi', 'dk', 'at', 'be', 'pt', 'pl', 'gr', 'ie', 'cz', 'hu', 'ro', 'tr', 'kr', 'id', 'th', 'vn', 'my', 'ph', 'sg', 'hk', 'tw', 'mx', 'ar', 'cl', 'co', 'pe', 've', 'za', 'ng', 'eg', 'ke', 'ma', 'dz', 'tn', 'ly', 'sd', 'gh', 'ci', 'sn', 'cm', 'et', 'tz', 'ug', 'zm', 'zw', 'na', 'bw', 'mu', 'sc', 're', 'yt', 'km', 'mg', 'mr', 'ml', 'bf', 'ne', 'td', 'cf', 'ss', 'dj', 'er', 'so', 'gw', 'sl', 'lr', 'tg', 'bj', 'gx', 'ga', 'st', 'ao', 'na', 'ls', 'sz', 'mw', 'mz', 'bi', 'rw']);
+
+/**
+ * Updates the global TLD list from IANA.
+ * Falls back to common defaults if it fails or hits CORS issues.
+ */
+export async function refreshTldList() {
+  try {
+    const res = await fetch('https://data.iana.org/TLD/tlds-alpha-by-domain.txt');
+    if (!res.ok) return;
+    const text = await res.text();
+    const tlds = text.split('\n')
+      .filter(line => line && !line.startsWith('#'))
+      .map(line => line.trim().toLowerCase());
+    if (tlds.length > 0) {
+      TLD_LIST = new Set(tlds);
+    }
+  } catch (e) {
+    console.warn('Failed to fetch IANA TLD list, using defaults:', e);
+  }
+}
+
+// Initial refresh (fire and forget)
+refreshTldList();
+
+function looksLikeDomain(text: string): boolean {
+  // Simple check for something.tld
+  const parts = text.split('/');
+  const possibleDomain = parts[0];
+  if (!possibleDomain.includes('.')) return false;
+  
+  const domainParts = possibleDomain.split('.');
+  const tld = domainParts[domainParts.length - 1].toLowerCase();
+  
+  // Must have at least two parts and a valid TLD
+  return domainParts.length >= 2 && TLD_LIST.has(tld);
+}
+
 export function parseUrl(input: string): ParsedUrl {
   let urlToParse = input.trim();
   const isDataUri = urlToParse.toLowerCase().startsWith('data:');
@@ -141,6 +186,24 @@ export function parseUrl(input: string): ParsedUrl {
       value,
       decoded: decodeURIComponent(value),
     });
+  });
+
+  const passiveRedirects: { key: string; url: string; host: string }[] = [];
+  params.forEach(p => {
+    const val = p.decoded.trim();
+    const isFullUrl = val.startsWith('http://') || val.startsWith('https://');
+    
+    if (isFullUrl || looksLikeDomain(val)) {
+      try {
+        const urlToParse = isFullUrl ? val : 'https://' + val;
+        const u = new URL(urlToParse);
+        passiveRedirects.push({
+          key: p.key,
+          url: val,
+          host: u.hostname,
+        });
+      } catch { /* ignore */ }
+    }
   });
   const fragment = url.hash.replace('#', '');
   const encodedChars: { char: string; encoded: string; position: number }[] = [];
@@ -207,6 +270,7 @@ export function parseUrl(input: string): ParsedUrl {
       decoded: fragment ? decodeURIComponent(fragment) : '',
       hasFragment: !!fragment,
     },
+    passiveRedirects,
     meta: {
       isEncoded: encodedChars.length > 0,
       hasTrailingSlash: url.pathname.endsWith('/') && url.pathname !== '/',
@@ -228,7 +292,9 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
   const startTime = performance.now();
   try {
     let res = await authenticatedFetch(proxyUrl, { method: 'HEAD', signal: controller.signal });
-    if (res.status === 405) {
+    
+    // If HEAD fails (400, 403, 405, etc.), fallback to GET as many sites/proxies restrict HEAD
+    if (res.status >= 400 && res.status !== 404) {
       res = await authenticatedFetch(proxyUrl, { method: 'GET', signal: controller.signal });
     }
     clearTimeout(timeoutId);
@@ -239,10 +305,25 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
     });
 
     // Extract the actual final URL from the (possibly) proxied response URL
-    const finalUrl = extractTargetUrl(res.url, settings.corsProvider, settings.customCorsUrl);
+    const extractedFinal = extractTargetUrl(res.url, settings.corsProvider, settings.customCorsUrl);
     
-    // Redirect is detected if browser says so, OR if our extracted final URL differs from target
-    const redirected = res.redirected || (finalUrl !== targetUrl);
+    // Normalize both for comparison (handles trailing slashes, case, etc.)
+    let finalUrl = extractedFinal;
+    let redirected = false; // Ignore res.redirected as proxies often trigger it for their own routing
+    
+    try {
+      const targetNorm = new URL(targetUrl).href;
+      const finalNorm = new URL(extractedFinal).href;
+      if (targetNorm !== finalNorm) {
+        redirected = true;
+        finalUrl = finalNorm;
+      }
+    } catch {
+      // Fallback to string comparison if URL parsing fails
+      if (extractedFinal !== targetUrl) {
+        redirected = true;
+      }
+    }
 
     return {
       status: res.status,

@@ -66,12 +66,23 @@ export function extractTargetUrl(proxiedUrl: string, provider: CorsProvider, cus
     
     let target = proxiedUrl;
     try {
+        const urlObj = new URL(proxiedUrl);
+        
         switch (provider) {
             case 'allorigins':
-                target = new URL(proxiedUrl).searchParams.get('url') || proxiedUrl;
+                target = urlObj.searchParams.get('url') || proxiedUrl;
                 break;
             case 'codetabs':
-                target = new URL(proxiedUrl).searchParams.get('quest') || proxiedUrl;
+                target = urlObj.searchParams.get('quest') || proxiedUrl;
+                break;
+            case 'corsproxy':
+                // corsproxy.io can use ?https://... or /https://...
+                // If the proxy redirects, it often moves to the / format
+                if (proxiedUrl.includes('corsproxy.io/')) {
+                    const parts = proxiedUrl.split('corsproxy.io/');
+                    const potential = parts[parts.length - 1];
+                    target = potential.startsWith('?') ? potential.substring(1) : potential;
+                }
                 break;
             case 'thingproxy':
                 target = proxiedUrl.replace('https://thingproxy.freeboard.io/fetch/', '');
@@ -79,18 +90,29 @@ export function extractTargetUrl(proxiedUrl: string, provider: CorsProvider, cus
             case 'corsanywhere':
                 target = proxiedUrl.replace('https://cors-anywhere.herokuapp.com/', '');
                 break;
-            case 'corsproxy':
-                target = proxiedUrl.replace('https://corsproxy.io/?', '');
-                break;
             case 'custom':
                 if (customProxyUrl) {
-                    target = proxiedUrl.replace(customProxyUrl, '');
+                    // Try to extract by splitting at the custom proxy URL
+                    if (proxiedUrl.includes(customProxyUrl)) {
+                        target = proxiedUrl.split(customProxyUrl).pop() || target;
+                    } else {
+                        // Fallback: try to remove it if it's a prefix
+                        target = proxiedUrl.replace(customProxyUrl, '');
+                    }
                 }
                 break;
         }
         
-        // Some proxies might double-encode or just return the encoded string
-        return decodeURIComponent(target);
+        // If the target still looks like a full URL with a protocol but was part of a query string,
+        // it might still be encoded.
+        let decoded = target;
+        try {
+            decoded = decodeURIComponent(target);
+        } catch { /* ignore */ }
+
+        // If the decoded version looks like a valid URL, use it.
+        // Otherwise stick with the best match we found.
+        return (decoded.startsWith('http://') || decoded.startsWith('https://')) ? decoded : target;
     } catch {
         return target;
     }

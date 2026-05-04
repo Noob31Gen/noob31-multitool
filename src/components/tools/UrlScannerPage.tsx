@@ -91,7 +91,7 @@ export function UrlScannerPage() {
   }
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title="URL Scanner & Parser"
         description="Decompose and analyze every component of a URL according to RFC 3986. Check HTTP status, headers, and redirects."
         url="https://tools.noob31.com/network/url-scanner"
@@ -108,8 +108,8 @@ export function UrlScannerPage() {
             onCheckedChange={setVisitEnabled}
             disabled={!canVisit}
           />
-          <Label 
-            htmlFor="visit-mode" 
+          <Label
+            htmlFor="visit-mode"
             className={`cursor-pointer ${!canVisit ? 'text-muted-foreground' : ''}`}
           >
             Live Visit (Fetch HTTP Status & Headers) {!canVisit && "(Requires Proxy)"}
@@ -209,6 +209,30 @@ export function UrlScannerPage() {
               </div>
             </CardContent>
           </Card>
+          {parsed.passiveRedirects.length > 0 && (
+            <Card className="border-amber-200 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-900/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base text-amber-700 dark:text-amber-400">
+                  <AlertTriangle className="w-4 h-4" />
+                  Possible Redirect Detected
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {parsed.passiveRedirects.map((pr, i) => (
+                  <div key={i} className="p-3 rounded-md border bg-background/50 space-y-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-semibold uppercase text-muted-foreground">Parameter: {pr.key}</span>
+                      <Badge variant="outline" className="font-mono">{pr.host}</Badge>
+                    </div>
+                    <div className="font-mono text-xs break-all text-primary">{pr.url}</div>
+                  </div>
+                ))}
+                <p className="text-xs text-muted-foreground italic">
+                  This URL contains other URLs in its parameters. This is common for redirectors, tracking links, and interstitial pages.
+                </p>
+              </CardContent>
+            </Card>
+          )}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader className="pb-2">
@@ -439,6 +463,17 @@ export function UrlScannerPage() {
                     </div>
                   </div>
                 )}
+                {parsed.passiveRedirects.length > 0 && !visitData.redirected && (
+                  <div className="p-4 border border-blue-200 dark:border-blue-900/50 rounded-md bg-blue-50 dark:bg-blue-900/10 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-semibold text-sm">
+                      <HelpCircle className="w-5 h-5" />
+                      POSSIBLE REDIRECT DETECTED
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Possible redirect detected. This might be shown correctly because of the CORS proxy which is necessary.
+                    </p>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-3 rounded-md border bg-muted/20">
                     <div className="text-xs uppercase text-muted-foreground font-semibold mb-1">Content-Type</div>
@@ -455,46 +490,46 @@ export function UrlScannerPage() {
                 </div>
                 <div>
                   <h4 className="font-medium text-sm text-muted-foreground mb-3">Response Headers ({visitData.headers.length})</h4>
-                <div className="w-full min-w-0">
-                  <div className="hidden sm:block rounded-md border overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[250px]">Header</TableHead>
-                          <TableHead>Value</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {visitData.headers.length > 0 ? visitData.headers.map((h, i) => (
-                          <TableRow key={i}>
-                            <TableCell className="font-medium whitespace-nowrap">{h.key}</TableCell>
-                            <TableCell className="font-mono text-xs break-all">{h.value}</TableCell>
-                          </TableRow>
-                        )) : (
+                  <div className="w-full min-w-0">
+                    <div className="hidden sm:block rounded-md border overflow-x-auto">
+                      <Table>
+                        <TableHeader>
                           <TableRow>
-                            <TableCell colSpan={2} className="text-center text-muted-foreground h-24">
-                              No headers returned.
-                            </TableCell>
+                            <TableHead className="w-[250px]">Header</TableHead>
+                            <TableHead>Value</TableHead>
                           </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  <div className="sm:hidden space-y-3">
-                    {visitData.headers.length > 0 ? visitData.headers.map((h, i) => (
-                      <div key={i} className="p-3 rounded-lg border bg-card shadow-sm">
-                        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-tight">{h.key}</p>
-                        <div className="p-2 bg-muted/50 rounded border border-border/50 font-mono text-xs break-all leading-relaxed text-foreground/90">
-                          {h.value}
+                        </TableHeader>
+                        <TableBody>
+                          {visitData.headers.length > 0 ? visitData.headers.map((h, i) => (
+                            <TableRow key={i}>
+                              <TableCell className="font-medium whitespace-nowrap">{h.key}</TableCell>
+                              <TableCell className="font-mono text-xs break-all">{h.value}</TableCell>
+                            </TableRow>
+                          )) : (
+                            <TableRow>
+                              <TableCell colSpan={2} className="text-center text-muted-foreground h-24">
+                                No headers returned.
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    <div className="sm:hidden space-y-3">
+                      {visitData.headers.length > 0 ? visitData.headers.map((h, i) => (
+                        <div key={i} className="p-3 rounded-lg border bg-card shadow-sm">
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-tight">{h.key}</p>
+                          <div className="p-2 bg-muted/50 rounded border border-border/50 font-mono text-xs break-all leading-relaxed text-foreground/90">
+                            {h.value}
+                          </div>
                         </div>
-                      </div>
-                    )) : (
-                      <div className="text-center text-muted-foreground p-8 border rounded-lg bg-muted/20">
-                        No headers returned.
-                      </div>
-                    )}
+                      )) : (
+                        <div className="text-center text-muted-foreground p-8 border rounded-lg bg-muted/20">
+                          No headers returned.
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
                 </div>
               </CardContent>
             </Card>
