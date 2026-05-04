@@ -216,7 +216,7 @@ export function parseUrl(input: string): ParsedUrl {
     },
   };
 }
-import { getProxiedUrl, authenticatedFetch } from "./cors"
+import { getProxiedUrl, authenticatedFetch, extractTargetUrl } from "./cors"
 export async function visitUrl(url: string, settings: AppSettings): Promise<VisitResult> {
   let targetUrl = url.trim();
   if (!targetUrl.match(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//)) {
@@ -237,12 +237,19 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
     res.headers.forEach((value, key) => {
       headers.push({ key, value });
     });
+
+    // Extract the actual final URL from the (possibly) proxied response URL
+    const finalUrl = extractTargetUrl(res.url, settings.corsProvider, settings.customCorsUrl);
+    
+    // Redirect is detected if browser says so, OR if our extracted final URL differs from target
+    const redirected = res.redirected || (finalUrl !== targetUrl);
+
     return {
       status: res.status,
       statusText: res.statusText,
       headers,
-      redirected: res.redirected,
-      finalUrl: res.url,
+      redirected,
+      finalUrl,
       responseTime,
       contentType: res.headers.get('content-type') || '',
       server: res.headers.get('server') || '',

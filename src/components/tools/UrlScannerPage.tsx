@@ -49,6 +49,9 @@ export function UrlScannerPage() {
   const [parsed, setParsed] = useState<ParsedUrl | null>(null)
   const [visitData, setVisitData] = useState<VisitResult | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
+
+  const canVisit = settings.corsProvider !== 'none'
+  const isVisitActive = visitEnabled && canVisit
   const performSearch = useCallback(async (targetUrl: string, doVisit: boolean) => {
     if (!targetUrl.trim()) return
     setStatus('loading')
@@ -78,12 +81,13 @@ export function UrlScannerPage() {
     if (q && q !== lastHandledTarget.current) {
       lastHandledTarget.current = q;
       setUrl(q);
-      performSearch(q, visitEnabled);
+      performSearch(q, isVisitActive);
     }
-  }, [location.state, performSearch, visitEnabled]);
+  }, [location.state, performSearch, isVisitActive]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    performSearch(url, visitEnabled)
+    performSearch(url, isVisitActive)
   }
   return (
     <div className="space-y-6">
@@ -100,11 +104,15 @@ export function UrlScannerPage() {
         <div className="flex items-center space-x-2 px-1">
           <Switch
             id="visit-mode"
-            checked={visitEnabled}
+            checked={isVisitActive}
             onCheckedChange={setVisitEnabled}
+            disabled={!canVisit}
           />
-          <Label htmlFor="visit-mode" className="cursor-pointer">
-            Live Visit (Fetch HTTP Status & Headers)
+          <Label 
+            htmlFor="visit-mode" 
+            className={`cursor-pointer ${!canVisit ? 'text-muted-foreground' : ''}`}
+          >
+            Live Visit (Fetch HTTP Status & Headers) {!canVisit && "(Requires Proxy)"}
           </Label>
         </div>
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
@@ -122,9 +130,9 @@ export function UrlScannerPage() {
           </Button>
         </form>
       </Card>
-      {!settings.corsProvider && visitEnabled && (
+      {settings.corsProvider === 'none' && (
         <div className="text-sm text-amber-600 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-900/50 rounded-md bg-amber-50 dark:bg-amber-900/10">
-          <strong>Warning:</strong> Configure a CORS Proxy URL in Settings for the Live Visit to work.
+          <strong>Notice:</strong> Configure a CORS Proxy in Settings to enable the Live Visit (HTTP headers & status) feature.
         </div>
       )}
       {status === 'loading' && (
@@ -403,7 +411,7 @@ export function UrlScannerPage() {
               </CardContent>
             </Card>
           </div>
-          {visitEnabled && visitData && (
+          {isVisitActive && visitData && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex flex-wrap items-center gap-2 sm:gap-3 text-lg">

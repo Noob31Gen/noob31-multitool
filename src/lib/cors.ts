@@ -28,30 +28,19 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
     let finalUrl = url;
     const finalOptions: RequestInit = { ...options };
     const headers = new Headers(finalOptions.headers || {});
+
     try {
         const u = new URL(url);
         if (u.username || u.password) {
             const auth = btoa(`${u.username}:${u.password}`);
             headers.set("Authorization", `Basic ${auth}`);
-            u.username = "";
-            u.password = "";
-            finalUrl = u.toString();
-        }
-    } catch {
-        // Fallback if URL parsing fails
-    }
-    finalOptions.headers = headers;
-    if (!options.credentials) {
-        finalOptions.credentials = 'same-origin';
-    }
-    try {
-        const u = new URL(url);
-        if (u.username || u.password) {
-            const auth = btoa(`${u.username}:${u.password}`);
-            headers.set("Authorization", `Basic ${auth}`);
+            
+            // If authentication is embedded in the URL, we typically need 'include' 
+            // to ensure credentials (like cookies/headers) are passed through CORS proxies correctly
             if (!options.credentials) {
                 finalOptions.credentials = 'include';
             }
+            
             u.username = "";
             u.password = "";
             finalUrl = u.toString();
@@ -59,5 +48,50 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
     } catch {
         // Fallback if URL parsing fails
     }
+
+    finalOptions.headers = headers;
+    if (!finalOptions.credentials) {
+        finalOptions.credentials = 'same-origin';
+    }
+
     return fetch(finalUrl, finalOptions);
+}
+
+/**
+ * Reverses getProxiedUrl to extract the original target URL from a proxied URL.
+ * Useful for detecting the final destination after redirects when a proxy is involved.
+ */
+export function extractTargetUrl(proxiedUrl: string, provider: CorsProvider, customProxyUrl: string = ''): string {
+    if (provider === 'none') return proxiedUrl;
+    
+    let target = proxiedUrl;
+    try {
+        switch (provider) {
+            case 'allorigins':
+                target = new URL(proxiedUrl).searchParams.get('url') || proxiedUrl;
+                break;
+            case 'codetabs':
+                target = new URL(proxiedUrl).searchParams.get('quest') || proxiedUrl;
+                break;
+            case 'thingproxy':
+                target = proxiedUrl.replace('https://thingproxy.freeboard.io/fetch/', '');
+                break;
+            case 'corsanywhere':
+                target = proxiedUrl.replace('https://cors-anywhere.herokuapp.com/', '');
+                break;
+            case 'corsproxy':
+                target = proxiedUrl.replace('https://corsproxy.io/?', '');
+                break;
+            case 'custom':
+                if (customProxyUrl) {
+                    target = proxiedUrl.replace(customProxyUrl, '');
+                }
+                break;
+        }
+        
+        // Some proxies might double-encode or just return the encoded string
+        return decodeURIComponent(target);
+    } catch {
+        return target;
+    }
 }
