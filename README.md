@@ -48,11 +48,11 @@ To run this project locally, follow these steps:
    npm run build
    ```
 
-## 📄 License
+## License
 
 This project is licensed under the [GNU Affero General Public License v3.0](LICENSE) - see the LICENSE file for details.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
