@@ -107,7 +107,7 @@ export function EmailDeliverabilityPage() {
 
       {status === 'success' && result && (
         <div className="grid gap-6 md:grid-cols-[1fr_350px] items-start">
-          <div className="order-2 md:order-1 space-y-6">
+          <div className="order-2 md:order-1 space-y-6 min-w-0">
 
             <ResultCard title="Recommendations & Issues" status="success">
               <div className="space-y-3">

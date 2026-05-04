@@ -122,33 +122,71 @@ export function CertLookupPage() {
             </div>
           }
         >
-          <div className="rounded-md border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Not Before</TableHead>
-                  <TableHead>Not After</TableHead>
-                  <TableHead>Common Name</TableHead>
-                  <TableHead>Issuer Name</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((cert: any, i: number) => (
-                  <TableRow key={i}>
-                    <TableCell className="whitespace-nowrap text-xs">{cert.not_before}</TableCell>
-                    <TableCell className="whitespace-nowrap text-xs">{cert.not_after}</TableCell>
-                    <TableCell className="font-medium text-xs break-all">{cert.common_name}</TableCell>
-                    <TableCell className="text-xs break-all text-muted-foreground">{cert.issuer_name}</TableCell>
-                  </TableRow>
-                )) : (
+          <div className="w-full min-w-0">
+            {/* Desktop Table View */}
+            <div className="hidden md:block rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground h-24">
-                      No certificates found.
-                    </TableCell>
+                    <TableHead>Not Before</TableHead>
+                    <TableHead>Not After</TableHead>
+                    <TableHead>Common Name</TableHead>
+                    <TableHead>Issuer Name</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((cert: any, i: number) => (
+                    <TableRow key={i}>
+                      <TableCell className="whitespace-nowrap text-xs">{cert.not_before}</TableCell>
+                      <TableCell className="whitespace-nowrap text-xs">{cert.not_after}</TableCell>
+                      <TableCell className="font-medium text-xs break-all">{cert.common_name}</TableCell>
+                      <TableCell className="text-xs break-all text-muted-foreground">{cert.issuer_name}</TableCell>
+                    </TableRow>
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground h-24">
+                        No certificates found.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card/Box View */}
+            <div className="md:hidden space-y-4">
+              {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((cert: any, i: number) => (
+                <div key={i} className="rounded-xl border bg-card overflow-hidden shadow-sm">
+                  <div className="px-4 py-2 bg-muted/30 border-b flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">Validity Period</span>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <p className="text-[9px] uppercase font-bold text-muted-foreground mb-1">Not Before</p>
+                        <p className="text-[10px] font-mono">{cert.not_before}</p>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[9px] uppercase font-bold text-muted-foreground mb-1">Not After</p>
+                        <p className="text-[10px] font-mono">{cert.not_after}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase font-bold text-muted-foreground mb-1">Common Name</p>
+                      <p className="text-xs font-semibold break-all leading-tight">{cert.common_name}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase font-bold text-muted-foreground mb-1">Issuer Name</p>
+                      <p className="text-[10px] text-muted-foreground break-all leading-relaxed">{cert.issuer_name}</p>
+                    </div>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center text-muted-foreground p-8 border rounded-lg bg-muted/20">
+                  No certificates found.
+                </div>
+              )}
+            </div>
           </div>
         </ResultCard>
       )}

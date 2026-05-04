@@ -86,68 +86,104 @@ function ParsedDNSSECTable({ records, type }: { records: DNSRecord[], type: stri
   if (records.length === 0) return null;
 
   return (
-    <div className="rounded-md border overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Domain Name</TableHead>
-            <TableHead>TTL</TableHead>
-            {type === 'DNSKEY' && <><TableHead>Flags</TableHead><TableHead>Protocol</TableHead><TableHead>Algo</TableHead><TableHead>Public Key</TableHead></>}
-            {type === 'DS' && <><TableHead>Key Tag</TableHead><TableHead>Algo</TableHead><TableHead>Digest Type</TableHead><TableHead>Digest</TableHead></>}
-            {type === 'NSEC3PARAM' && <><TableHead>Hash Algo</TableHead><TableHead>Flags</TableHead><TableHead>Iterations</TableHead><TableHead>Salt</TableHead></>}
-            {type === 'RRSIG' && <><TableHead>Type Covered</TableHead><TableHead>Algo</TableHead><TableHead>Labels</TableHead><TableHead>Orig TTL</TableHead><TableHead>Expiration</TableHead><TableHead>Inception</TableHead><TableHead>Key Tag</TableHead><TableHead>Signer</TableHead><TableHead>Signature</TableHead></>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {records.map((record, i) => {
-            const parsed = parseDNSSECData(type, record.data);
-            return (
-              <TableRow key={i}>
-                <TableCell className="whitespace-nowrap">{record.name}</TableCell>
-                <TableCell>{record.TTL}</TableCell>
-                {type === 'DNSKEY' && parsed && (
-                  <>
-                    <TableCell>{parsed.flags}</TableCell>
-                    <TableCell>{parsed.protocol}</TableCell>
-                    <TableCell>{parsed.algorithm}</TableCell>
-                    <TableCell className="max-w-[200px] truncate font-mono text-xs" title={parsed.publicKey}>{parsed.publicKey}</TableCell>
-                  </>
+    <div className="w-full min-w-0">
+      {/* Desktop Table */}
+      <div className="hidden lg:block rounded-md border overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Domain Name</TableHead>
+              <TableHead>TTL</TableHead>
+              {type === 'DNSKEY' && <><TableHead>Flags</TableHead><TableHead>Protocol</TableHead><TableHead>Algo</TableHead><TableHead>Public Key</TableHead></>}
+              {type === 'DS' && <><TableHead>Key Tag</TableHead><TableHead>Algo</TableHead><TableHead>Digest Type</TableHead><TableHead>Digest</TableHead></>}
+              {type === 'NSEC3PARAM' && <><TableHead>Hash Algo</TableHead><TableHead>Flags</TableHead><TableHead>Iterations</TableHead><TableHead>Salt</TableHead></>}
+              {type === 'RRSIG' && <><TableHead>Type Covered</TableHead><TableHead>Algo</TableHead><TableHead>Labels</TableHead><TableHead>Orig TTL</TableHead><TableHead>Expiration</TableHead><TableHead>Inception</TableHead><TableHead>Key Tag</TableHead><TableHead>Signer</TableHead><TableHead>Signature</TableHead></>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {records.map((record, i) => {
+              const parsed = parseDNSSECData(type, record.data);
+              return (
+                <TableRow key={i}>
+                  <TableCell className="whitespace-nowrap font-mono text-xs">{record.name}</TableCell>
+                  <TableCell className="text-muted-foreground">{record.TTL}</TableCell>
+                  {type === 'DNSKEY' && parsed && (
+                    <>
+                      <TableCell>{parsed.flags}</TableCell>
+                      <TableCell>{parsed.protocol}</TableCell>
+                      <TableCell>{parsed.algorithm}</TableCell>
+                      <TableCell className="max-w-[200px] truncate font-mono text-xs" title={parsed.publicKey}>{parsed.publicKey}</TableCell>
+                    </>
+                  )}
+                  {type === 'DS' && parsed && (
+                    <>
+                      <TableCell>{parsed.keyTag}</TableCell>
+                      <TableCell>{parsed.algorithm}</TableCell>
+                      <TableCell>{parsed.digestType}</TableCell>
+                      <TableCell className="max-w-[200px] truncate font-mono text-xs" title={parsed.digest}>{parsed.digest}</TableCell>
+                    </>
+                  )}
+                  {type === 'NSEC3PARAM' && parsed && (
+                    <>
+                      <TableCell>{parsed.hashAlgo}</TableCell>
+                      <TableCell>{parsed.flags}</TableCell>
+                      <TableCell>{parsed.iterations}</TableCell>
+                      <TableCell className="font-mono text-xs">{parsed.salt}</TableCell>
+                    </>
+                  )}
+                  {type === 'RRSIG' && parsed && (
+                    <>
+                      <TableCell>{parsed.typeCovered}</TableCell>
+                      <TableCell>{parsed.algorithm}</TableCell>
+                      <TableCell>{parsed.labels}</TableCell>
+                      <TableCell>{parsed.originalTTL}</TableCell>
+                      <TableCell>{parsed.expiration}</TableCell>
+                      <TableCell>{parsed.inception}</TableCell>
+                      <TableCell>{parsed.keyTag}</TableCell>
+                      <TableCell>{parsed.signer}</TableCell>
+                      <TableCell className="max-w-[200px] truncate font-mono text-xs" title={parsed.signature}>{parsed.signature}</TableCell>
+                    </>
+                  )}
+                  {!parsed && <TableCell colSpan={10} className="font-mono text-xs break-all">{record.data}</TableCell>}
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile Card List */}
+      <div className="lg:hidden space-y-4">
+        {records.map((record, i) => {
+          const parsed = parseDNSSECData(type, record.data);
+          return (
+            <div key={i} className="rounded-xl border bg-card overflow-hidden shadow-sm">
+              <div className="flex items-center justify-between px-4 py-2 bg-muted/30 border-b">
+                <span className="text-xs font-mono font-bold truncate max-w-[200px]">{record.name}</span>
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase">TTL: {record.TTL}</span>
+              </div>
+              <div className="p-4 space-y-3">
+                {parsed ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    {Object.entries(parsed).map(([key, val]) => (
+                      <div key={key} className={key.toLowerCase().includes('key') || key.toLowerCase().includes('signature') || key.toLowerCase().includes('digest') ? "col-span-2" : ""}>
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-tight">{key.replace(/([A-Z])/g, ' $1')}</p>
+                        <div className={`font-mono text-xs break-all ${key.toLowerCase().includes('key') || key.toLowerCase().includes('signature') || key.toLowerCase().includes('digest') ? "p-2 bg-muted/50 rounded border" : ""}`}>
+                          {val}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-3 bg-muted/50 rounded-lg border font-mono text-xs break-all">
+                    {record.data}
+                  </div>
                 )}
-                {type === 'DS' && parsed && (
-                  <>
-                    <TableCell>{parsed.keyTag}</TableCell>
-                    <TableCell>{parsed.algorithm}</TableCell>
-                    <TableCell>{parsed.digestType}</TableCell>
-                    <TableCell className="max-w-[200px] truncate font-mono text-xs" title={parsed.digest}>{parsed.digest}</TableCell>
-                  </>
-                )}
-                {type === 'NSEC3PARAM' && parsed && (
-                  <>
-                    <TableCell>{parsed.hashAlgo}</TableCell>
-                    <TableCell>{parsed.flags}</TableCell>
-                    <TableCell>{parsed.iterations}</TableCell>
-                    <TableCell className="font-mono text-xs">{parsed.salt}</TableCell>
-                  </>
-                )}
-                {type === 'RRSIG' && parsed && (
-                  <>
-                    <TableCell>{parsed.typeCovered}</TableCell>
-                    <TableCell>{parsed.algorithm}</TableCell>
-                    <TableCell>{parsed.labels}</TableCell>
-                    <TableCell>{parsed.originalTTL}</TableCell>
-                    <TableCell>{parsed.expiration}</TableCell>
-                    <TableCell>{parsed.inception}</TableCell>
-                    <TableCell>{parsed.keyTag}</TableCell>
-                    <TableCell>{parsed.signer}</TableCell>
-                    <TableCell className="max-w-[200px] truncate font-mono text-xs" title={parsed.signature}>{parsed.signature}</TableCell>
-                  </>
-                )}
-                {!parsed && <TableCell colSpan={10} className="font-mono text-xs">{record.data}</TableCell>}
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -279,14 +315,16 @@ export function DNSSECLookupPage() {
           timeMs={result.queryTime}
           description={`Resolved by ${result.provider} DNS`}
           action={
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-              {isSigned !== null && (
-                <Badge variant={isSigned ? "default" : "secondary"} className={isSigned ? "bg-green-500 hover:bg-green-600 gap-1" : "gap-1"}>
-                  {isSigned ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
-                  {isSigned ? "DNSSEC Signed" : "Unsigned"}
-                </Badge>
-              )}
-              <div className="flex gap-2 flex-wrap">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="min-w-0">
+                {isSigned !== null && (
+                  <Badge variant={isSigned ? "default" : "secondary"} className={isSigned ? "bg-green-500 hover:bg-green-600 gap-1" : "gap-1"}>
+                    {isSigned ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
+                    {isSigned ? "DNSSEC Signed" : "Unsigned"}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex gap-2 flex-wrap justify-end">
                 <CopyButton data={JSON.stringify(result.records, null, 2)} text="Copy JSON" />
                 <ExportButton data={result} filename={`${domain}-${recordType}-dnssec.json`} />
               </div>

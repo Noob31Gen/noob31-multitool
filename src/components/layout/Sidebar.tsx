@@ -55,7 +55,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const location = useLocation();
 
   return (
-    <nav className="grid items-start px-4 text-sm font-medium">
+    <nav className="grid items-start px-4 text-sm font-medium pb-16">
       <div className="mb-4">
         <Link
           to="/"

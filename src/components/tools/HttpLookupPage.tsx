@@ -154,29 +154,48 @@ export function HttpLookupPage() {
             </div>
           }
         >
-          <div className="rounded-md border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[250px]">Header</TableHead>
-                  <TableHead>Value</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {result.headers.length > 0 ? result.headers.map((h: any, i: number) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-medium whitespace-nowrap">{h.key}</TableCell>
-                    <TableCell className="font-mono text-xs break-all">{h.value}</TableCell>
-                  </TableRow>
-                )) : (
+          <div className="w-full min-w-0">
+            {/* Desktop Table View */}
+            <div className="hidden sm:block rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={2} className="text-center text-muted-foreground h-24">
-                      No headers returned. This might be a limitation of the CORS proxy you are using.
-                    </TableCell>
+                    <TableHead className="w-[250px]">Header</TableHead>
+                    <TableHead>Value</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {result.headers.length > 0 ? result.headers.map((h: any, i: number) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-medium whitespace-nowrap">{h.key}</TableCell>
+                      <TableCell className="font-mono text-xs break-all">{h.value}</TableCell>
+                    </TableRow>
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={2} className="text-center text-muted-foreground h-24">
+                        No headers returned. This might be a limitation of the CORS proxy you are using.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card/Box View */}
+            <div className="sm:hidden space-y-3">
+              {result.headers.length > 0 ? result.headers.map((h: any, i: number) => (
+                <div key={i} className="p-3 rounded-lg border bg-card shadow-sm">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-tight">{h.key}</p>
+                  <div className="p-2 bg-muted/50 rounded border border-border/50 font-mono text-xs break-all leading-relaxed text-foreground/90">
+                    {h.value}
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center text-muted-foreground p-8 border rounded-lg bg-muted/20">
+                  No headers returned.
+                </div>
+              )}
+            </div>
           </div>
         </ResultCard>
       )}

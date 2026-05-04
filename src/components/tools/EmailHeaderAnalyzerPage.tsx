@@ -63,7 +63,7 @@ export function EmailHeaderAnalyzerPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Summary Card */}
-            <Card>
+            <Card className="min-w-0">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Mail className="w-5 h-5 text-primary" />
@@ -71,21 +71,21 @@ export function EmailHeaderAnalyzerPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-[100px_1fr] gap-1 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-x-4 gap-y-2 text-sm">
                   <span className="font-medium text-muted-foreground flex items-center gap-1"><User className="w-3 h-3" /> From</span>
-                  <span className="font-medium truncate" title={result.from}>{result.from}</span>
+                  <span className="font-medium break-all" title={result.from}>{result.from}</span>
                   
-                  <span className="font-medium text-muted-foreground flex items-center gap-1 mt-2"><User className="w-3 h-3" /> To</span>
-                  <span className="font-medium truncate mt-2" title={result.to}>{result.to}</span>
+                  <span className="font-medium text-muted-foreground flex items-center gap-1"><User className="w-3 h-3" /> To</span>
+                  <span className="font-medium break-all" title={result.to}>{result.to}</span>
                   
-                  <span className="font-medium text-muted-foreground flex items-center gap-1 mt-2"><Mail className="w-3 h-3" /> Subject</span>
-                  <span className="font-medium truncate mt-2" title={result.subject}>{result.subject}</span>
+                  <span className="font-medium text-muted-foreground flex items-center gap-1"><Mail className="w-3 h-3" /> Subject</span>
+                  <span className="font-medium break-all" title={result.subject}>{result.subject}</span>
                   
-                  <span className="font-medium text-muted-foreground flex items-center gap-1 mt-2"><Clock className="w-3 h-3" /> Date</span>
-                  <span className="truncate mt-2">{result.date}</span>
+                  <span className="font-medium text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Date</span>
+                  <span className="break-all">{result.date}</span>
                   
-                  <span className="font-medium text-muted-foreground flex items-center gap-1 mt-2"><Hash className="w-3 h-3" /> Msg ID</span>
-                  <span className="font-mono text-xs truncate mt-2 text-muted-foreground" title={result.messageId}>{result.messageId}</span>
+                  <span className="font-medium text-muted-foreground flex items-center gap-1"><Hash className="w-3 h-3" /> Msg ID</span>
+                  <span className="font-mono text-xs break-all text-muted-foreground" title={result.messageId}>{result.messageId}</span>
                 </div>
               </CardContent>
             </Card>

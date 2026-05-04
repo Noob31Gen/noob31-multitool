@@ -171,7 +171,7 @@ export function UrlScannerPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="p-4 rounded-md bg-muted/30 border overflow-x-auto">
+              <div className="p-4 rounded-md bg-muted/30 border overflow-x-auto w-full min-w-0">
                 <div className="font-mono text-sm flex flex-wrap items-center gap-0 leading-loose">
                   <span className="bg-blue-500/20 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-l-md border border-blue-500/30" title="Scheme">{parsed.scheme.value}://</span>
                   {parsed.authority.userinfo.hasCredentials && (
@@ -310,27 +310,58 @@ export function UrlScannerPage() {
                 <InfoRow label="Raw Query" value={parsed.query.full || <span className="text-muted-foreground italic">none</span>} mono />
                 <InfoRow label="Parameter Count" value={String(parsed.query.count)} />
                 {parsed.query.params.length > 0 && (
-                  <div className="mt-3 rounded-md border overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[40px]">#</TableHead>
-                          <TableHead className="w-[180px]">Key</TableHead>
-                          <TableHead>Value</TableHead>
-                          <TableHead>Decoded</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {parsed.query.params.map((p, i) => (
-                          <TableRow key={i}>
-                            <TableCell className="text-muted-foreground">{i + 1}</TableCell>
-                            <TableCell className="font-mono text-xs font-medium break-all">{p.key}</TableCell>
-                            <TableCell className="font-mono text-xs break-all">{p.value}</TableCell>
-                            <TableCell className="font-mono text-xs break-all text-muted-foreground">{p.decoded !== p.value ? p.decoded : '—'}</TableCell>
+                  <div className="mt-3 w-full min-w-0">
+                    {/* Desktop Table */}
+                    <div className="hidden md:block rounded-md border overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[40px]">#</TableHead>
+                            <TableHead className="w-[180px]">Key</TableHead>
+                            <TableHead>Value</TableHead>
+                            <TableHead>Decoded</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {parsed.query.params.map((p, i) => (
+                            <TableRow key={i}>
+                              <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                              <TableCell className="font-mono text-xs font-medium break-all">{p.key}</TableCell>
+                              <TableCell className="font-mono text-xs break-all">{p.value}</TableCell>
+                              <TableCell className="font-mono text-xs break-all text-muted-foreground">{p.decoded !== p.value ? p.decoded : '—'}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {/* Mobile Card/Box View */}
+                    <div className="md:hidden space-y-3">
+                      {parsed.query.params.map((p, i) => (
+                        <div key={i} className="p-3 rounded-lg border bg-card shadow-sm">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Parameter {i + 1}</span>
+                            <span className="text-xs font-mono font-bold text-primary break-all ml-4">{p.key}</span>
+                          </div>
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-[9px] uppercase font-bold text-muted-foreground mb-1">Raw Value</p>
+                              <div className="p-2 bg-muted/50 rounded border border-border/50 font-mono text-xs break-all leading-relaxed">
+                                {p.value}
+                              </div>
+                            </div>
+                            {p.decoded !== p.value && (
+                              <div>
+                                <p className="text-[9px] uppercase font-bold text-muted-foreground mb-1">Decoded</p>
+                                <div className="p-2 bg-primary/5 rounded border border-primary/20 font-mono text-xs break-all leading-relaxed">
+                                  {p.decoded}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -445,7 +476,9 @@ export function UrlScannerPage() {
 
                 <div>
                   <h4 className="font-medium text-sm text-muted-foreground mb-3">Response Headers ({visitData.headers.length})</h4>
-                  <div className="rounded-md border overflow-x-auto">
+                <div className="w-full min-w-0">
+                  {/* Desktop Table View */}
+                  <div className="hidden sm:block rounded-md border overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -469,6 +502,23 @@ export function UrlScannerPage() {
                       </TableBody>
                     </Table>
                   </div>
+
+                  {/* Mobile Card/Box View */}
+                  <div className="sm:hidden space-y-3">
+                    {visitData.headers.length > 0 ? visitData.headers.map((h, i) => (
+                      <div key={i} className="p-3 rounded-lg border bg-card shadow-sm">
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-tight">{h.key}</p>
+                        <div className="p-2 bg-muted/50 rounded border border-border/50 font-mono text-xs break-all leading-relaxed text-foreground/90">
+                          {h.value}
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="text-center text-muted-foreground p-8 border rounded-lg bg-muted/20">
+                        No headers returned.
+                      </div>
+                    )}
+                  </div>
+                </div>
                 </div>
               </CardContent>
             </Card>

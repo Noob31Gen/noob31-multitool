@@ -42,10 +42,13 @@ function ParsedAuthTable({ record, type }: { record: DNSRecord, type: string }) 
 
   return (
     <div className="space-y-4">
-      <div className="p-3 bg-muted/50 rounded-md font-mono text-sm break-all">
+      <div className="p-3 bg-muted/50 rounded-md font-mono text-sm break-all border border-border/50">
+        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2">Raw Record</p>
         {record.data}
       </div>
-      <div className="rounded-md border overflow-x-auto">
+      
+      {/* Desktop Table View */}
+      <div className="hidden sm:block rounded-md border overflow-x-auto w-full min-w-0">
         <Table>
           <TableHeader>
             <TableRow>
@@ -64,6 +67,25 @@ function ParsedAuthTable({ record, type }: { record: DNSRecord, type: string }) 
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile Card/Box View */}
+      <div className="sm:hidden space-y-3">
+        {parsedFields.map((field, i) => (
+          <div key={i} className="p-3 rounded-lg border bg-card shadow-sm">
+            <div className="flex justify-between items-start mb-2">
+              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">{field.key}</span>
+            </div>
+            {field.value && (
+              <div className="p-2 bg-muted/50 rounded border border-border/50 font-mono text-xs break-all mb-2 leading-relaxed">
+                {field.value}
+              </div>
+            )}
+            {type === 'SPF' && field.description && (
+              <p className="text-xs text-muted-foreground italic leading-snug">{field.description}</p>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )

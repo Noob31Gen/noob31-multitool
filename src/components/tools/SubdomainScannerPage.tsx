@@ -134,37 +134,60 @@ export function SubdomainScannerPage() {
                 <strong>Some sources failed:</strong> {scanErrors.join(' | ')}
               </div>
             )}
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Subdomain</TableHead>
-                    <TableHead>Found In</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((item: SubdomainResult, i: number) => (
-                    <TableRow key={i}>
-                      <TableCell className="font-medium text-xs break-all">{item.subdomain}</TableCell>
-                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                        <div className="flex gap-1 flex-wrap">
-                          {item.sources.map(src => (
-                            <span key={src} className="px-1.5 py-0.5 rounded-md bg-secondary text-secondary-foreground">
-                              {src}
-                            </span>
-                          ))}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )) : (
+            <div className="w-full min-w-0">
+              {/* Desktop Table View */}
+              <div className="hidden sm:block rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={2} className="text-center text-muted-foreground h-24">
-                        No subdomains found yet.
-                      </TableCell>
+                      <TableHead>Subdomain</TableHead>
+                      <TableHead>Found In</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((item: SubdomainResult, i: number) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium text-xs break-all">{item.subdomain}</TableCell>
+                        <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                          <div className="flex gap-1 flex-wrap">
+                            {item.sources.map(src => (
+                              <span key={src} className="px-1.5 py-0.5 rounded-md bg-secondary text-secondary-foreground">
+                                {src}
+                              </span>
+                            ))}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={2} className="text-center text-muted-foreground h-24">
+                          No subdomains found yet.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card/Box View */}
+              <div className="sm:hidden space-y-3">
+                {Array.isArray(result.data) && result.data.length > 0 ? result.data.map((item: SubdomainResult, i: number) => (
+                  <div key={i} className="p-3 rounded-lg border bg-card shadow-sm">
+                    <p className="text-xs font-semibold break-all mb-2 leading-relaxed">{item.subdomain}</p>
+                    <div className="flex gap-1 flex-wrap">
+                      {item.sources.map(src => (
+                        <span key={src} className="text-[9px] px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground uppercase font-bold tracking-tight">
+                          {src}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )) : (
+                  <div className="text-center text-muted-foreground p-8 border rounded-lg bg-muted/20">
+                    No subdomains found yet.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </ResultCard>

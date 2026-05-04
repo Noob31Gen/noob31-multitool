@@ -49,22 +49,22 @@ function RDAPRegistrationCard({ data }: { data: any }) {
   const parsed = parseRDAP(data);
   return (
     <div className="space-y-6">
-      <div className="rounded-md border overflow-x-auto">
+      <div className="rounded-md border overflow-hidden w-full min-w-0">
         <Table>
           <TableBody>
-            <TableRow>
-              <TableCell className="font-medium bg-muted/50 w-1/3">Name</TableCell>
-              <TableCell>{parsed.name}</TableCell>
+            <TableRow className="flex flex-col md:table-row">
+              <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Name</TableCell>
+              <TableCell className="py-2 px-4 break-all">{parsed.name}</TableCell>
             </TableRow>
-            <TableRow>
-              <TableCell className="font-medium bg-muted/50">Handle</TableCell>
-              <TableCell>{parsed.handle}</TableCell>
+            <TableRow className="flex flex-col md:table-row">
+              <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Handle</TableCell>
+              <TableCell className="py-2 px-4 break-all">{parsed.handle}</TableCell>
             </TableRow>
 
             {parsed.registrar && (
-              <TableRow>
-                <TableCell className="font-medium bg-muted/50">Registrar</TableCell>
-                <TableCell>
+              <TableRow className="flex flex-col md:table-row">
+                <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Registrar</TableCell>
+                <TableCell className="py-2 px-4 break-all">
                   {parsed.registrar}
                   {parsed.registrarIanaId && (
                     <span className="ml-2 text-xs font-mono text-muted-foreground border bg-muted/30 px-1.5 py-0.5 rounded">
@@ -75,77 +75,77 @@ function RDAPRegistrationCard({ data }: { data: any }) {
               </TableRow>
             )}
             {parsed.registrant && (
-              <TableRow>
-                <TableCell className="font-medium bg-muted/50">Registrant</TableCell>
-                <TableCell>{parsed.registrant}</TableCell>
+              <TableRow className="flex flex-col md:table-row">
+                <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Registrant</TableCell>
+                <TableCell className="py-2 px-4 break-all">{parsed.registrant}</TableCell>
               </TableRow>
             )}
 
             {parsed.abuseContact && (
-              <TableRow>
-                <TableCell className="font-medium bg-muted/50">Abuse Contact</TableCell>
-                <TableCell>{parsed.abuseContact}</TableCell>
+              <TableRow className="flex flex-col md:table-row">
+                <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Abuse Contact</TableCell>
+                <TableCell className="py-2 px-4 break-all">{parsed.abuseContact}</TableCell>
               </TableRow>
             )}
             {parsed.adminContact && (
-              <TableRow>
-                <TableCell className="font-medium bg-muted/50">Admin Contact</TableCell>
-                <TableCell>{parsed.adminContact}</TableCell>
+              <TableRow className="flex flex-col md:table-row">
+                <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Admin Contact</TableCell>
+                <TableCell className="py-2 px-4 break-all">{parsed.adminContact}</TableCell>
               </TableRow>
             )}
             {parsed.techContact && (
-              <TableRow>
-                <TableCell className="font-medium bg-muted/50">Tech Contact</TableCell>
-                <TableCell>{parsed.techContact}</TableCell>
+              <TableRow className="flex flex-col md:table-row">
+                <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Tech Contact</TableCell>
+                <TableCell className="py-2 px-4 break-all">{parsed.techContact}</TableCell>
               </TableRow>
             )}
 
             {parsed.creationDate && (
-              <TableRow>
-                <TableCell className="font-medium bg-muted/50">Creation Date</TableCell>
-                <TableCell>{new Date(parsed.creationDate).toLocaleString()}</TableCell>
+              <TableRow className="flex flex-col md:table-row">
+                <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Creation Date</TableCell>
+                <TableCell className="py-2 px-4">{new Date(parsed.creationDate).toLocaleString()}</TableCell>
               </TableRow>
             )}
             {parsed.expirationDate && (
-              <TableRow>
-                <TableCell className="font-medium bg-muted/50">Expiration Date</TableCell>
-                <TableCell>{new Date(parsed.expirationDate).toLocaleString()}</TableCell>
+              <TableRow className="flex flex-col md:table-row">
+                <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Expiration Date</TableCell>
+                <TableCell className="py-2 px-4">{new Date(parsed.expirationDate).toLocaleString()}</TableCell>
               </TableRow>
             )}
             {parsed.updatedDate && (
-              <TableRow>
-                <TableCell className="font-medium bg-muted/50">Updated Date</TableCell>
-                <TableCell>{new Date(parsed.updatedDate).toLocaleString()}</TableCell>
+              <TableRow className="flex flex-col md:table-row">
+                <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Updated Date</TableCell>
+                <TableCell className="py-2 px-4">{new Date(parsed.updatedDate).toLocaleString()}</TableCell>
               </TableRow>
             )}
             {parsed.ipRange && (
-              <TableRow>
-                <TableCell className="font-medium bg-muted/50">IP Range</TableCell>
-                <TableCell>{parsed.ipRange}</TableCell>
+              <TableRow className="flex flex-col md:table-row">
+                <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">IP Range</TableCell>
+                <TableCell className="py-2 px-4 font-mono text-xs break-all">{parsed.ipRange}</TableCell>
               </TableRow>
             )}
             {parsed.country && (
-              <TableRow>
-                <TableCell className="font-medium bg-muted/50">Country</TableCell>
-                <TableCell>{parsed.country}</TableCell>
+              <TableRow className="flex flex-col md:table-row">
+                <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0">Country</TableCell>
+                <TableCell className="py-2 px-4">{parsed.country}</TableCell>
               </TableRow>
             )}
             {parsed.nameservers.length > 0 && (
-              <TableRow>
-                <TableCell className="font-medium bg-muted/50 align-top">Name Servers</TableCell>
-                <TableCell>
+              <TableRow className="flex flex-col md:table-row">
+                <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0 align-top">Name Servers</TableCell>
+                <TableCell className="py-2 px-4">
                   <ul className="list-disc pl-4 text-sm">
-                    {parsed.nameservers.map((ns, i) => <li key={i}>{ns}</li>)}
+                    {parsed.nameservers.map((ns, i) => <li key={i} className="break-all">{ns}</li>)}
                   </ul>
                 </TableCell>
               </TableRow>
             )}
             {parsed.statuses.length > 0 && (
-              <TableRow>
-                <TableCell className="font-medium bg-muted/50 align-top">Domain Status</TableCell>
-                <TableCell>
+              <TableRow className="flex flex-col md:table-row">
+                <TableCell className="font-medium bg-muted/50 md:w-1/3 py-2 px-4 border-b md:border-b-0 align-top">Domain Status</TableCell>
+                <TableCell className="py-2 px-4">
                   <ul className="list-disc pl-4 text-sm">
-                    {parsed.statuses.map((s, i) => <li key={i}>{s}</li>)}
+                    {parsed.statuses.map((s, i) => <li key={i} className="break-all">{s}</li>)}
                   </ul>
                 </TableCell>
               </TableRow>
