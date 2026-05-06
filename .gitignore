@@ -49,3 +49,4 @@ vt_full_report.json
 vt-asn-test.py
 vtscan.py
 subscan.py
+refresh.mjs
