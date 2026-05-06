@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { SEO } from "@/components/shared/SEO"
 import { Html5Qrcode } from "html5-qrcode"
 import { Card } from "@/components/ui/card"
@@ -10,6 +10,14 @@ import { ResultCard } from "@/components/shared/ResultCard"
 import { cn } from "@/lib/utils"
 export function CodeScannerPage() {
   const [scanResult, setScanResult] = useState<string | null>(null)
+  
+  const detectedUrls = useMemo(() => {
+    if (!scanResult) return [];
+    const urlRegex = /https?:\/\/[^\s]+/gi;
+    const matches = scanResult.match(urlRegex) || [];
+    return Array.from(new Set(matches)); // Unique URLs
+  }, [scanResult]);
+
   const [isScanning, setIsScanning] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const scannerRef = useRef<Html5Qrcode | null>(null)
@@ -276,20 +284,27 @@ export function CodeScannerPage() {
           <div className="p-4 bg-muted rounded-xl border font-mono break-all text-lg">
             {scanResult}
           </div>
-          {scanResult && /^https?:\/\//i.test(scanResult) && (
+          {detectedUrls.length > 0 && (
             <div className="mt-6 space-y-4">
               <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400">
                 <ShieldAlert className="h-5 w-5 shrink-0 mt-0.5" />
-                <p className="text-xs leading-relaxed">
-                  <span className="font-bold block mb-0.5">Warning:</span>
-                  URL Link detected. Be careful while opening random links from QR codes.
-                </p>
+                <div className="text-xs leading-relaxed">
+                  <p className="font-bold mb-0.5">
+                    {detectedUrls.length === 1 ? 'Link Detected' : `${detectedUrls.length} Links Detected`}
+                  </p>
+                  <p>Opening links from QR codes can be dangerous. Always verify the destination before proceeding.</p>
+                </div>
               </div>
-              <Button asChild variant="default" className="gap-2 rounded-2xl h-12 px-8 w-full sm:w-auto shadow-lg shadow-primary/20">
-                <a href={scanResult} target="_blank" rel="noreferrer">
-                  Open Link <ArrowRight className="h-4 w-4" />
-                </a>
-              </Button>
+              <div className="flex flex-col gap-2">
+                {detectedUrls.map((url, i) => (
+                  <Button key={i} asChild variant="default" className="gap-2 rounded-2xl h-12 px-6 w-full shadow-lg shadow-primary/20 justify-between overflow-hidden">
+                    <a href={url} target="_blank" rel="noreferrer" className="flex items-center w-full min-w-0">
+                      <span className="truncate flex-1 text-left">{url}</span>
+                      <ArrowRight className="h-4 w-4 shrink-0 ml-2" />
+                    </a>
+                  </Button>
+                ))}
+              </div>
             </div>
           )}
         </ResultCard>
