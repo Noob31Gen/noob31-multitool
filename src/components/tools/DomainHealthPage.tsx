@@ -56,13 +56,13 @@ export function DomainHealthPage() {
   }
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title="Domain Health Check"
         description="Comprehensive analysis of DNS, SPF, DKIM, and DMARC records to compute a domain health grade and identify issues."
         url="https://tools.noob31.com/health/domain"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Domain Health Check</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">Domain Health Check</h1>
         <p className="text-muted-foreground mt-2">Aggregates DNS and Email Auth records to compute a health grade.</p>
       </div>
       <Card className="p-4 bg-muted/40">

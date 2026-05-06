@@ -45,13 +45,13 @@ export function SubnetCalculatorPage() {
   }
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title="IPv4 Subnet Calculator"
         description="Calculate IP address ranges, broadcast addresses, and usable host counts for any IPv4 network with CIDR notation support."
         url="https://tools.noob31.com/bonus/subnet"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">IPv4 Subnet Calculator</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">IPv4 Subnet Calculator</h1>
         <p className="text-muted-foreground mt-2">Calculate network ranges, broadcast addresses, and usable hosts from an IP and CIDR mask.</p>
       </div>
       <Card className="p-4 bg-muted/40">

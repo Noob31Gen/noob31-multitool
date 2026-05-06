@@ -54,13 +54,13 @@ export function MacLookupPage() {
   }
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title="MAC / OUI Address Lookup"
         description="Identify device manufacturers and check OUI registration details. Analyze MAC address bits for unicast/multicast and universal/local status."
         url="https://tools.noob31.com/network/mac-lookup"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">MAC / OUI Lookup</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">MAC / OUI Lookup</h1>
         <p className="text-muted-foreground mt-2">Identify device manufacturers and verify OUI registration status.</p>
       </div>
       <Card className="p-4 bg-muted/40">

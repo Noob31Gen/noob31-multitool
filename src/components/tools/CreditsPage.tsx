@@ -3,13 +3,13 @@ import { SEO } from "@/components/shared/SEO"
 export function CreditsPage() {
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title="Credits & Data Sources"
         description="A list of APIs, services, and libraries that power Noob31's MultiTools. Special thanks to all the providers."
         url="https://tools.noob31.com/about/credits"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Credits</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">Credits</h1>
         <p className="text-muted-foreground mt-2">Special thanks to the following APIs and services that power this project.</p>
       </div>
       <Card className="p-6 bg-muted/40 space-y-6">
@@ -59,6 +59,12 @@ export function CreditsPage() {
             <li><a href="https://thingproxy.freeboard.io/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">ThingProxy</a></li>
             <li><a href="https://cors-anywhere.herokuapp.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Cors-Anywhere</a></li>
             <li><a href="https://corsproxy.io/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Corsproxy.io</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold mb-3">Title Font</h2>
+          <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+            <li><a href="https://fonts.google.com/specimen/Pacifico" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Pacifico</a></li>
           </ul>
         </div>
       </Card>

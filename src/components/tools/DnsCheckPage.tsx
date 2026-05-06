@@ -55,13 +55,13 @@ export function DnsCheckPage() {
   }
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title="Comprehensive DNS Check"
         description="Run a parallel query for all core DNS records (A, AAAA, MX, TXT, NS, SOA) to audit a domain's DNS health."
         url="https://tools.noob31.com/health/dns"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">DNS Check</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">DNS Check</h1>
         <p className="text-muted-foreground mt-2">Runs a parallel query for all core DNS records associated with a domain.</p>
       </div>
       <Card className="p-4 bg-muted/40">

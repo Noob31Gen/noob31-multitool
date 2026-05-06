@@ -66,13 +66,13 @@ export function CertLookupPage() {
   }
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title="Certificate Lookup (crt.sh)"
         description="Find historical SSL/TLS certificates and Certificate Transparency (CT) logs for any domain."
         url="https://tools.noob31.com/security/cert"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Certificate (crt.sh) Lookup</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">Certificate (crt.sh) Lookup</h1>
         <p className="text-muted-foreground mt-2">Find historical SSL/TLS certificates for a domain using Certificate Transparency logs.</p>
       </div>
       <Card className="p-4 bg-muted/40">
@@ -187,4 +187,4 @@ export function CertLookupPage() {
       )}
     </div>
   )
-}
+}

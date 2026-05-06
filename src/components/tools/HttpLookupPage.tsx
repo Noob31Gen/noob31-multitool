@@ -82,13 +82,13 @@ export function HttpLookupPage() {
   }
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title={`${scheme.toUpperCase()} Headers Lookup`}
         description={`Retrieve and analyze HTTP/HTTPS response headers for any website to check server configuration and security headers.`}
         url={`https://tools.noob31.com/network/http/${scheme}`}
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{scheme.toUpperCase()} Headers Lookup</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">{scheme.toUpperCase()} Headers Lookup</h1>
         <p className="text-muted-foreground mt-2">Retrieve HTTP response headers for a website.</p>
       </div>
       <Card className="p-4 bg-muted/40">
@@ -189,4 +189,4 @@ export function HttpLookupPage() {
       )}
     </div>
   )
-}
+}

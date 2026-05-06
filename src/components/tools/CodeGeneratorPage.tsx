@@ -187,13 +187,13 @@ export function CodeGeneratorPage() {
   };
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <SEO 
+      <SEO
         title="QR & Barcode Generator"
         description="Create high-resolution QR codes and barcodes (CODE128, EAN-13, UPC) for URLs, text, or data with customizable settings."
         url="https://tools.noob31.com/bonus/code-generator"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Code Generator</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">Code Generator</h1>
         <p className="text-muted-foreground mt-2">Generate QR codes and barcodes for URLs, text, or data.</p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

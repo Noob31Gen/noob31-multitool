@@ -98,7 +98,7 @@ export function UrlScannerPage() {
         url="https://tools.noob31.com/network/url-scanner"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">URL Scanner</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">URL Scanner</h1>
         <p className="text-muted-foreground mt-2">Decompose and analyze every component of a URL according to RFC 3986.</p>
       </div>
       <Card className="p-4 bg-muted/40 space-y-4">

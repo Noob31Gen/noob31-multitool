@@ -196,7 +196,7 @@ export function CodeScannerPage() {
         url="https://tools.noob31.com/bonus/code-scanner"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Code Scanner</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">Code Scanner</h1>
         <p className="text-muted-foreground mt-2">Scan QR codes and barcodes using your camera, image files, or by pasting. Note: If camera scan is bugged, please reload the page.</p>
       </div>
       {!isScanning && !scanResult && (

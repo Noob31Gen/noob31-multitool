@@ -260,13 +260,13 @@ export function RegistrationLookupPage() {
   }
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title={info.title}
         description={info.desc}
         url={`https://tools.noob31.com/registration/${tool.toLowerCase()}`}
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{info.title}</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">{info.title}</h1>
         <p className="text-muted-foreground mt-2">{info.desc}</p>
       </div>
       <Card className="p-4 bg-muted/40">
@@ -325,219 +325,220 @@ export function RegistrationLookupPage() {
             const parsed = (result.data as ASNResult).parsed!;
             return (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 rounded-xl border bg-card shadow-sm gap-4">
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-bold tracking-tight">
-                    {(result.data as ASNResult).parsed?.org || "Unknown Entity"}
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {parsed.is_datacenter && <Badge variant="destructive">Datacenter</Badge>}
-                    {parsed.is_vpn && <Badge variant="destructive">VPN</Badge>}
-                    {parsed.is_proxy && <Badge variant="destructive">Proxy</Badge>}
-                    {parsed.is_tor && <Badge variant="destructive">Tor</Badge>}
-                    {parsed.is_abuser && <Badge variant="destructive">Abuser</Badge>}
-                    {parsed.is_bogon && <Badge variant="destructive">Bogon</Badge>}
-                    {parsed.is_crawler && <Badge variant="secondary">Crawler</Badge>}
-                    {parsed.is_satellite && <Badge variant="secondary">Satellite</Badge>}
-                    {parsed.is_mobile && <Badge variant="secondary">Mobile</Badge>}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-4xl font-black font-mono leading-none">
-                    {parsed.asn}
-                  </div>
-                  <div className="flex gap-2 justify-end mt-2">
-                    <span className="text-xs border px-2 py-0.5 rounded bg-primary/10 text-primary uppercase font-bold">
-                      {parsed.rir || "NO RIR"}
-                    </span>
-                    <span className="text-xs border px-2 py-0.5 rounded bg-muted uppercase font-bold">
-                      {parsed.type || "Consumer"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="p-4 space-y-4">
-                  <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-zinc-400">
-                    <Info className="h-4 w-4" /> Identity & Registration
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Description</span>
-                      <span className="text-right max-w-[200px] truncate" title={parsed.description}>{parsed.description || "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Domain</span>
-                      <span>{parsed.domain || "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Route</span>
-                      <span className="font-mono">{parsed.route || "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Created</span>
-                      <span>{parsed.created || "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Updated</span>
-                      <span>{parsed.updated || "N/A"}</span>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 rounded-xl border bg-card shadow-sm gap-4">
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold tracking-tight">
+                      {(result.data as ASNResult).parsed?.org || "Unknown Entity"}
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {parsed.is_datacenter && <Badge variant="destructive">Datacenter</Badge>}
+                      {parsed.is_vpn && <Badge variant="destructive">VPN</Badge>}
+                      {parsed.is_proxy && <Badge variant="destructive">Proxy</Badge>}
+                      {parsed.is_tor && <Badge variant="destructive">Tor</Badge>}
+                      {parsed.is_abuser && <Badge variant="destructive">Abuser</Badge>}
+                      {parsed.is_bogon && <Badge variant="destructive">Bogon</Badge>}
+                      {parsed.is_crawler && <Badge variant="secondary">Crawler</Badge>}
+                      {parsed.is_satellite && <Badge variant="secondary">Satellite</Badge>}
+                      {parsed.is_mobile && <Badge variant="secondary">Mobile</Badge>}
                     </div>
                   </div>
-                </Card>
-                <Card className="p-4 space-y-4">
-                  <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-destructive">
-                    <ShieldAlert className="h-4 w-4" /> Security & Abuse
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Abuser Score</span>
-                      <span className={`font-bold ${parsed.is_abuser ? 'text-destructive' : 'text-green-600'}`}>
-                        {parsed.abuser_score || "N/A"} {parsed.is_abuser && "(Flagged as Abuser)"}
+                  <div className="text-right">
+                    <div className="text-4xl font-black font-mono leading-none">
+                      {parsed.asn}
+                    </div>
+                    <div className="flex gap-2 justify-end mt-2">
+                      <span className="text-xs border px-2 py-0.5 rounded bg-primary/10 text-primary uppercase font-bold">
+                        {parsed.rir || "NO RIR"}
+                      </span>
+                      <span className="text-xs border px-2 py-0.5 rounded bg-muted uppercase font-bold">
+                        {parsed.type || "Consumer"}
                       </span>
                     </div>
-                    {(parsed.dc_name || parsed.dc_network) && (
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card className="p-4 space-y-4">
+                    <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-zinc-400">
+                      <Info className="h-4 w-4" /> Identity & Registration
+                    </h4>
+                    <div className="space-y-2 text-sm">
                       <div className="flex justify-between border-b border-border/50 pb-1">
-                        <span className="text-muted-foreground flex items-center gap-1"><Server className="w-3 h-3" /> Datacenter</span>
-                        <span className="text-right">
-                          {parsed.dc_name} <span className="font-mono text-xs block text-muted-foreground">{parsed.dc_network}</span>
+                        <span className="text-muted-foreground">Description</span>
+                        <span className="text-right max-w-[200px] truncate" title={parsed.description}>{parsed.description || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-border/50 pb-1">
+                        <span className="text-muted-foreground">Domain</span>
+                        <span>{parsed.domain || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-border/50 pb-1">
+                        <span className="text-muted-foreground">Route</span>
+                        <span className="font-mono">{parsed.route || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-border/50 pb-1">
+                        <span className="text-muted-foreground">Created</span>
+                        <span>{parsed.created || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Updated</span>
+                        <span>{parsed.updated || "N/A"}</span>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card className="p-4 space-y-4">
+                    <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-destructive">
+                      <ShieldAlert className="h-4 w-4" /> Security & Abuse
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between border-b border-border/50 pb-1">
+                        <span className="text-muted-foreground">Abuser Score</span>
+                        <span className={`font-bold ${parsed.is_abuser ? 'text-destructive' : 'text-green-600'}`}>
+                          {parsed.abuser_score || "N/A"} {parsed.is_abuser && "(Flagged as Abuser)"}
                         </span>
                       </div>
-                    )}
-                    <div className="flex flex-col border-b border-border/50 pb-1 pt-1">
-                      <span className="text-muted-foreground text-xs uppercase font-bold mb-1">Abuse Contact</span>
-                      <span className="font-mono text-xs break-all">{parsed.abuse_email || "N/A"}</span>
-                      {parsed.abuse_phone && <span className="text-xs mt-0.5 text-muted-foreground">{parsed.abuse_phone}</span>}
-                    </div>
-                    {parsed.abuse_address && (
-                      <div className="flex flex-col pt-1">
-                        <span className="text-muted-foreground text-xs uppercase font-bold mb-1">Abuse Address</span>
-                        <span className="text-xs leading-tight">{parsed.abuse_address}</span>
+                      {(parsed.dc_name || parsed.dc_network) && (
+                        <div className="flex justify-between border-b border-border/50 pb-1">
+                          <span className="text-muted-foreground flex items-center gap-1"><Server className="w-3 h-3" /> Datacenter</span>
+                          <span className="text-right">
+                            {parsed.dc_name} <span className="font-mono text-xs block text-muted-foreground">{parsed.dc_network}</span>
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex flex-col border-b border-border/50 pb-1 pt-1">
+                        <span className="text-muted-foreground text-xs uppercase font-bold mb-1">Abuse Contact</span>
+                        <span className="font-mono text-xs break-all">{parsed.abuse_email || "N/A"}</span>
+                        {parsed.abuse_phone && <span className="text-xs mt-0.5 text-muted-foreground">{parsed.abuse_phone}</span>}
                       </div>
-                    )}
-                  </div>
-                </Card>
-                <Card className="p-4 space-y-4">
-                  <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-blue-500">
-                    <Globe className="h-4 w-4" /> Geographic Location
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Country / Continent</span>
-                      <span className="uppercase font-bold tracking-wider">
-                        {parsed.country || "N/A"} {parsed.continent ? `(${parsed.continent})` : ''}
-                      </span>
+                      {parsed.abuse_address && (
+                        <div className="flex flex-col pt-1">
+                          <span className="text-muted-foreground text-xs uppercase font-bold mb-1">Abuse Address</span>
+                          <span className="text-xs leading-tight">{parsed.abuse_address}</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">City / State</span>
-                      <span>
-                        {parsed.city ? `${parsed.city}, ` : ''}{parsed.state || "Global"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Zip Code</span>
-                      <span>{parsed.zip || "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" /> Coordinates</span>
-                      <span className="font-mono text-xs">{parsed.lat && parsed.lon ? `${parsed.lat}, ${parsed.lon}` : "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Timezone</span>
-                      <span className="text-xs">{parsed.timezone || "N/A"}</span>
-                    </div>
-                  </div>
-                </Card>
-                <Card className="p-4 space-y-4">
-                  <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-purple-500">
-                    <Activity className="h-4 w-4" /> Operations (Peering)
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Website</span>
-                      {parsed.website ? (
-                        <a href={parsed.website} target="_blank" className="text-primary hover:underline truncate max-w-[180px]">{parsed.website}</a>
-                      ) : <span>N/A</span>}
-                    </div>
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Traffic Ratio</span>
-                      <span>{parsed.traffic_ratio || "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">Scope</span>
-                      <span>{parsed.scope || "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-border/50 pb-1">
-                      <span className="text-muted-foreground">IRR AS-SET</span>
-                      <span className="font-mono text-xs">{parsed.irr_as_set || "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">IX / Facilities</span>
-                      <span>
-                        {parsed.ix_count !== undefined ? `${parsed.ix_count} IXs` : "N/A"} / {parsed.fac_count !== undefined ? `${parsed.fac_count} Facs` : "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-              {((parsed.prefixes_v4?.length || 0) > 0 || (parsed.prefixes_v6?.length || 0) > 0) && (
-                <Card className="p-0 overflow-hidden">
-                  <div className="bg-muted/50 px-4 py-3 border-b flex justify-between items-center">
-                    <h4 className="text-sm font-bold uppercase flex items-center gap-2">
-                      <List className="h-4 w-4" /> Announced Prefix Explorer
+                  </Card>
+                  <Card className="p-4 space-y-4">
+                    <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-blue-500">
+                      <Globe className="h-4 w-4" /> Geographic Location
                     </h4>
-                    <div className="flex gap-2">
-                      <Badge variant="outline">{(parsed.prefixes_v4 || []).length} IPv4</Badge>
-                      <Badge variant="outline">{(parsed.prefixes_v6 || []).length} IPv6</Badge>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between border-b border-border/50 pb-1">
+                        <span className="text-muted-foreground">Country / Continent</span>
+                        <span className="uppercase font-bold tracking-wider">
+                          {parsed.country || "N/A"} {parsed.continent ? `(${parsed.continent})` : ''}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-border/50 pb-1">
+                        <span className="text-muted-foreground">City / State</span>
+                        <span>
+                          {parsed.city ? `${parsed.city}, ` : ''}{parsed.state || "Global"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-border/50 pb-1">
+                        <span className="text-muted-foreground">Zip Code</span>
+                        <span>{parsed.zip || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-border/50 pb-1">
+                        <span className="text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" /> Coordinates</span>
+                        <span className="font-mono text-xs">{parsed.lat && parsed.lon ? `${parsed.lat}, ${parsed.lon}` : "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Timezone</span>
+                        <span className="text-xs">{parsed.timezone || "N/A"}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2">
-                    <div className="p-4 border-r">
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase mb-2">IPv4 Subnets</p>
-                      <ScrollArea className="h-48 w-full rounded border bg-zinc-950 p-2">
-                        <div className="grid grid-cols-2 gap-1">
-                          {(parsed.prefixes_v4 || []).map((p: string, i: number) => (
-                            <div key={i} className="text-[10px] font-mono text-zinc-400 hover:text-primary transition-colors cursor-default">
-                              {p}
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
+                  </Card>
+                  <Card className="p-4 space-y-4">
+                    <h4 className="text-sm font-bold uppercase flex items-center gap-2 text-purple-500">
+                      <Activity className="h-4 w-4" /> Operations (Peering)
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between border-b border-border/50 pb-1">
+                        <span className="text-muted-foreground">Website</span>
+                        {parsed.website ? (
+                          <a href={parsed.website} target="_blank" className="text-primary hover:underline truncate max-w-[180px]">{parsed.website}</a>
+                        ) : <span>N/A</span>}
+                      </div>
+                      <div className="flex justify-between border-b border-border/50 pb-1">
+                        <span className="text-muted-foreground">Traffic Ratio</span>
+                        <span>{parsed.traffic_ratio || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-border/50 pb-1">
+                        <span className="text-muted-foreground">Scope</span>
+                        <span>{parsed.scope || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-border/50 pb-1">
+                        <span className="text-muted-foreground">IRR AS-SET</span>
+                        <span className="font-mono text-xs">{parsed.irr_as_set || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">IX / Facilities</span>
+                        <span>
+                          {parsed.ix_count !== undefined ? `${parsed.ix_count} IXs` : "N/A"} / {parsed.fac_count !== undefined ? `${parsed.fac_count} Facs` : "N/A"}
+                        </span>
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase mb-2">IPv6 Subnets</p>
-                      <ScrollArea className="h-48 w-full rounded border bg-zinc-950 p-2">
-                        <div className="space-y-1">
-                          {(parsed.prefixes_v6 || []).map((p: string, i: number) => (
-                            <div key={i} className="text-[10px] font-mono text-zinc-400 hover:text-primary transition-colors cursor-default">
-                              {p}
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
+                  </Card>
+                </div>
+                {((parsed.prefixes_v4?.length || 0) > 0 || (parsed.prefixes_v6?.length || 0) > 0) && (
+                  <Card className="p-0 overflow-hidden">
+                    <div className="bg-muted/50 px-4 py-3 border-b flex justify-between items-center">
+                      <h4 className="text-sm font-bold uppercase flex items-center gap-2">
+                        <List className="h-4 w-4" /> Announced Prefix Explorer
+                      </h4>
+                      <div className="flex gap-2">
+                        <Badge variant="outline">{(parsed.prefixes_v4 || []).length} IPv4</Badge>
+                        <Badge variant="outline">{(parsed.prefixes_v6 || []).length} IPv6</Badge>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              )}
-              {parsed.notes && (
-                <Card className="p-4 bg-yellow-50/10 border-yellow-500/20">
-                  <h4 className="text-xs font-bold uppercase text-yellow-600 mb-2">Operational Documentation</h4>
-                  <p className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap italic">
-                    {parsed.notes}
-                  </p>
-                </Card>
-              )}
-              <div className="mt-8">
-                <h4 className="font-medium mb-2 text-sm text-muted-foreground flex items-center gap-2">
-                  <Database className="h-4 w-4" /> Complete Data Artifact
-                </h4>
-                <ScrollArea className="h-[400px] w-full rounded-lg border bg-zinc-950 p-4 shadow-inner">
-                  <pre className="text-[10px] font-mono text-zinc-500 leading-tight">
-                    {JSON.stringify(result.data, null, 2)}
-                  </pre>
-                </ScrollArea>
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                      <div className="p-4 border-r">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase mb-2">IPv4 Subnets</p>
+                        <ScrollArea className="h-48 w-full rounded border bg-zinc-950 p-2">
+                          <div className="grid grid-cols-2 gap-1">
+                            {(parsed.prefixes_v4 || []).map((p: string, i: number) => (
+                              <div key={i} className="text-[10px] font-mono text-zinc-400 hover:text-primary transition-colors cursor-default">
+                                {p}
+                              </div>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </div>
+                      <div className="p-4">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase mb-2">IPv6 Subnets</p>
+                        <ScrollArea className="h-48 w-full rounded border bg-zinc-950 p-2">
+                          <div className="space-y-1">
+                            {(parsed.prefixes_v6 || []).map((p: string, i: number) => (
+                              <div key={i} className="text-[10px] font-mono text-zinc-400 hover:text-primary transition-colors cursor-default">
+                                {p}
+                              </div>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    </div>
+                  </Card>
+                )}
+                {parsed.notes && (
+                  <Card className="p-4 bg-yellow-50/10 border-yellow-500/20">
+                    <h4 className="text-xs font-bold uppercase text-yellow-600 mb-2">Operational Documentation</h4>
+                    <p className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap italic">
+                      {parsed.notes}
+                    </p>
+                  </Card>
+                )}
+                <div className="mt-8">
+                  <h4 className="font-medium mb-2 text-sm text-muted-foreground flex items-center gap-2">
+                    <Database className="h-4 w-4" /> Complete Data Artifact
+                  </h4>
+                  <ScrollArea className="h-[400px] w-full rounded-lg border bg-zinc-950 p-4 shadow-inner">
+                    <pre className="text-[10px] font-mono text-zinc-500 leading-tight">
+                      {JSON.stringify(result.data, null, 2)}
+                    </pre>
+                  </ScrollArea>
+                </div>
               </div>
-            </div>
-          )})()}
+            )
+          })()}
           {tool !== 'ASN' && (
             <RDAPRegistrationCard data={result.data as Record<string, unknown>} />
           )}

@@ -43,14 +43,14 @@ export function MyIpPage() {
   const currentIp = (result?.ipapi as { ip?: string })?.ip || "Unknown IP";
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title="What Is My IP Address?"
         description="Quickly find your public IPv4 address and view detailed network metadata including ISP, ASN, location, and security flags (VPN/Proxy detection)."
         url="https://tools.noob31.com/network/my-ip"
       />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">What Is My IP?</h1>
+          <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">What Is My IP?</h1>
           <p className="text-muted-foreground mt-2">Detailed network forensics for your current connection.</p>
         </div>
         {status === 'success' && result && (

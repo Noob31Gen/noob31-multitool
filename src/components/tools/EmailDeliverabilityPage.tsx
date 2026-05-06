@@ -56,13 +56,13 @@ export function EmailDeliverabilityPage() {
   }
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title="Email Deliverability Check"
         description="Check DNS-based email authentication (MX, SPF, DKIM, DMARC) and compute a deliverability score to improve inbox placement."
         url="https://tools.noob31.com/health/deliverability"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Email Deliverability</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">Email Deliverability</h1>
         <p className="text-muted-foreground mt-2">Checks all DNS-based email authentication records and computes a deliverability score.</p>
       </div>
       <Card className="p-4 bg-muted/40">

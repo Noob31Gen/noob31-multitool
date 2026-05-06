@@ -10,7 +10,7 @@ export function AboutPage() {
         url="https://tools.noob31.com/about/info"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">About Me</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">About Me</h1>
       </div>
       <Card className="p-6 bg-muted/40 space-y-4">
         <div>

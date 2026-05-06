@@ -93,13 +93,13 @@ export function DNSLookupPage() {
   }
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title={info.title}
         description={info.desc}
         url={`https://tools.noob31.com/dns/${recordType.toLowerCase()}`}
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{info.title}</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">{info.title}</h1>
         <p className="text-muted-foreground mt-2">{info.desc}</p>
       </div>
       <Card className="p-4 bg-muted/40">
@@ -178,4 +178,4 @@ export function DNSLookupPage() {
       )}
     </div>
   )
-}
+}

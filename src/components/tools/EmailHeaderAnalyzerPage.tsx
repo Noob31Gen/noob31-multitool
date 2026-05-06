@@ -34,17 +34,17 @@ export function EmailHeaderAnalyzerPage() {
   }
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title="Email Header Analyzer"
         description="Trace email routing paths and verify security authentication (SPF, DKIM, DMARC) by analyzing raw email headers."
         url="https://tools.noob31.com/bonus/headers"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Email Header Analyzer</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">Email Header Analyzer</h1>
         <p className="text-muted-foreground mt-2">Deep dive into raw email headers to trace routing paths and authentication results.</p>
       </div>
       <Card className="p-4 bg-muted/40 flex flex-col gap-3">
-        <Textarea 
+        <Textarea
           placeholder="Paste raw email headers here...&#10;&#10;e.g.&#10;Return-Path: <...>,&#10;Received: from...&#10;DKIM-Signature: v=1; ..."
           className="min-h-[250px] font-mono text-xs bg-background leading-relaxed"
           value={input}

@@ -68,13 +68,13 @@ export function BlacklistPage() {
   const totalCount = result?.data?.length || 0;
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title="Blacklist Check"
         description="Check if an IP address is listed on major DNSBL (Blackhole) lists. Important for email deliverability and security."
         url="https://tools.noob31.com/security/blacklist"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Blacklist Check</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">Blacklist Check</h1>
         <p className="text-muted-foreground mt-2">Checks an IPv4 address against major DNS-based Blackhole Lists (DNSBLs).</p>
       </div>
       <Card className="p-4 bg-muted/40">

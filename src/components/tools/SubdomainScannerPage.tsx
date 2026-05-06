@@ -66,13 +66,13 @@ export function SubdomainScannerPage() {
   }
   return (
     <div className="space-y-6">
-      <SEO 
+      <SEO
         title="Subdomain Scanner"
         description="Find subdomains for a given domain using multiple public databases and unauthenticated sources. Fast and easy."
         url="https://tools.noob31.com/network/subdomains"
       />
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Subdomain Scanner</h1>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">Subdomain Scanner</h1>
         <p className="text-muted-foreground mt-2">Find subdomains for a given domain using multiple unauthenticated public databases.</p>
       </div>
       <Card className="p-4 bg-muted/40">
