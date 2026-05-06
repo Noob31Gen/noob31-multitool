@@ -44,7 +44,7 @@ function App() {
                   "operatingSystem": "All"
                 })}
               />
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 tracking-tight">Noob31's MultiTools.</h1>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-brand mb-8">Noob31's MultiTools.</h1>
               <p className="text-lg text-muted-foreground mb-10 max-w-2xl">
                 This is my toolkit for domain health, network diagnostics, and email authentication.
               </p>

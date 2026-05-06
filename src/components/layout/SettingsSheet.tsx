@@ -47,7 +47,7 @@ export function SettingsSheet() {
           <span className="sr-only">Settings</span>
         </Button>
       </SheetTrigger>
-      <SheetContent className="overflow-y-auto">
+      <SheetContent className="overflow-y-auto !top-2 !bottom-2 !right-2 !h-[calc(100vh-1rem)] rounded-2xl border border-border shadow-2xl sm:max-w-md">
         <SheetHeader>
           <div className="flex justify-between items-center pr-6">
             <SheetTitle>Settings</SheetTitle>
@@ -57,7 +57,7 @@ export function SettingsSheet() {
             Configure DNS and CORS settings. Do not forget to click 'Apply' to save changes. BEWARE: Using a CORS Proxy means the proxy will see your queries.
           </SheetDescription>
         </SheetHeader>
-        <div className="grid gap-8 py-8 px-2">
+        <div className="grid gap-8 py-8 px-4">
           {!settings.persistenceEnabled && (
             <div className="flex items-start gap-3 p-3 rounded-lg border border-yellow-500/50 bg-yellow-500/5 text-yellow-600 dark:text-yellow-500 text-[13px] leading-relaxed">
               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />

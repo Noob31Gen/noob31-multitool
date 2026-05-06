@@ -30,7 +30,7 @@ export function Header() {
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0">
+          <SheetContent side="left" className="w-72 p-0 !top-2 !bottom-2 !left-2 !h-[calc(100vh-1rem)] rounded-2xl border border-border shadow-2xl overflow-hidden">
             <SheetHeader className="sr-only">
               <SheetTitle>Navigation Menu</SheetTitle>
               <SheetDescription>Access all tools and utilities.</SheetDescription>
@@ -40,7 +40,7 @@ export function Header() {
                 <img src={SiteLogo} alt="Logo" className="h-8 w-auto" />
               </Link>
             </div>
-            <div className="overflow-auto py-4 h-[calc(100vh-4rem)]">
+            <div className="overflow-auto py-4 h-[calc(100vh-5rem)]">
               <SidebarNav onNavigate={() => setOpen(false)} />
             </div>
           </SheetContent>
