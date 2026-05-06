@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
+import { logger } from "@/lib/logger"
 import { useLocation } from "react-router-dom"
 import { querySubdomains, type SubdomainResult } from "@/lib/subdomains"
 import { useSettings } from "@/lib/settings"
@@ -43,7 +44,7 @@ export function SubdomainScannerPage() {
       });
       setStatus('success')
     } catch (err: unknown) {
-      console.error(err)
+      logger.error(err)
       const message = err instanceof Error ? err.message : "An error occurred while scanning for subdomains.";
       setErrorMsg(message)
       setStatus('error')

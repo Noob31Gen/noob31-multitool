@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
+import { logger } from "@/lib/logger"
 import { useLocation } from "react-router-dom"
 import { runDomainHealth } from "@/lib/health"
 import type { DNSRecord } from "@/lib/doh"
@@ -33,7 +34,7 @@ export function DomainHealthPage() {
       setResult({ ...res, queryTime });
       setStatus('success')
     } catch (err: unknown) {
-      console.error(err)
+      logger.error(err)
       const message = err instanceof Error ? err.message : "An error occurred during the health check.";
       setErrorMsg(message)
       setStatus('error')

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
+import { logger } from "@/lib/logger"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { queryDNS, type DNSResponse } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
@@ -69,7 +70,7 @@ export function DNSLookupPage() {
       setResult(res)
       setStatus('success')
     } catch (err: unknown) {
-      console.error(err)
+      logger.error(err)
       const message = err instanceof Error ? err.message : "An error occurred while fetching DNS records.";
       setErrorMsg(message)
       setStatus('error')

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
+import { logger } from "@/lib/logger"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { queryRDAP } from "@/lib/rdap"
 import { queryASN, type ASNResult } from "@/lib/asn"
@@ -230,7 +231,7 @@ export function RegistrationLookupPage() {
       setResult({ data: res, queryTime });
       setStatus('success');
     } catch (err: unknown) {
-      console.error(err);
+      logger.error(err);
       const message = err instanceof Error ? err.message : "An error occurred while fetching registration data.";
       setErrorMsg(message);
       setStatus('error');

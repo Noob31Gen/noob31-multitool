@@ -1,4 +1,5 @@
 import * as dnsPacket from 'dns-packet';
+import { logger } from './logger';
 import { Buffer } from 'buffer';
 import type { CorsProvider } from './cors';
 import { getProxiedUrl, authenticatedFetch } from './cors';
@@ -115,7 +116,7 @@ export async function queryDNS(
     };
   } catch (error) {
     clearTimeout(timeoutId);
-    console.error(`[DoH] Fetch Error:`, error);
+    logger.error(`[DoH] Fetch Error:`, error);
     throw error;
   }
 }

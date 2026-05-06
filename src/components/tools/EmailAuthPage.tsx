@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
+import { logger } from "@/lib/logger"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { queryDNS, type DNSResponse, type DNSRecord } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
@@ -116,7 +117,7 @@ export function EmailAuthPage() {
       setFilteredRecords(filterEmailAuthRecords(res.records, recordType));
       setStatus('success')
     } catch (err: unknown) {
-      console.error(err)
+      logger.error(err)
       const message = err instanceof Error ? err.message : "An error occurred while fetching records.";
       setErrorMsg(message)
       setStatus('error')

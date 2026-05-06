@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { logger } from './logger';
 import type { CorsProvider } from './cors';
 import { safeStorage } from './storage';
 export type DoHProvider = 'google' | 'cloudflare' | 'alidns' | 'adguard' | 'custom';
@@ -30,7 +31,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       try {
         return { ...defaultSettings, ...JSON.parse(saved), persistenceEnabled: safeStorage.isEnabled() };
       } catch (e) {
-        console.error('Failed to parse settings', e);
+        logger.error('Failed to parse settings', e);
       }
     }
     return { ...defaultSettings, persistenceEnabled: safeStorage.isEnabled() };

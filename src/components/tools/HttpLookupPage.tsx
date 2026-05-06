@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
+import { logger } from "@/lib/logger"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { fetchHeaders } from "@/lib/http"
 import { useSettings } from "@/lib/settings"
@@ -59,7 +60,7 @@ export function HttpLookupPage() {
       setResult({ ...res, queryTime });
       setStatus('success')
     } catch (err: unknown) {
-      console.error(err)
+      logger.error(err)
       const message = err instanceof Error ? err.message : "An error occurred while fetching HTTP headers.";
       setErrorMsg(message)
       setStatus('error')

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
+import { logger } from "@/lib/logger"
 import { useLocation } from "react-router-dom"
 import { queryCert } from "@/lib/cert"
 import { useSettings } from "@/lib/settings"
@@ -43,7 +44,7 @@ export function CertLookupPage() {
       setResult({ data: res, queryTime });
       setStatus('success')
     } catch (err: unknown) {
-      console.error(err)
+      logger.error(err)
       const message = err instanceof Error ? err.message : "An error occurred while fetching certificate data.";
       setErrorMsg(message)
       setStatus('error')

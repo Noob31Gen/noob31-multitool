@@ -4,7 +4,8 @@ import { Html5Qrcode } from "html5-qrcode"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { Copy, RefreshCw, Camera, ScanLine, X, Upload, Image as ImageIcon } from "lucide-react"
+import { Copy, RefreshCw, Camera, ScanLine, X, Upload, Image as ImageIcon, ShieldAlert, ArrowRight } from "lucide-react"
+import { logger } from "@/lib/logger"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { cn } from "@/lib/utils"
 export function CodeScannerPage() {
@@ -19,7 +20,7 @@ export function CodeScannerPage() {
         scannerRef.current.stop().then(() => {
           setIsScanning(false)
           scannerRef.current = null
-        }).catch(err => console.error("Stop error", err))
+        }).catch(err => logger.error("Stop error", err))
       } else {
         setIsScanning(false)
         scannerRef.current = null
@@ -80,7 +81,7 @@ export function CodeScannerPage() {
       toast.success("Code found in image!")
       await html5QrCode.clear()
     } catch (err) {
-      console.error("File scan error", err)
+      logger.error("File scan error", err)
       toast.dismiss(toastId)
       toast.error("No valid code found. Try a clearer image.")
     }
@@ -94,8 +95,8 @@ export function CodeScannerPage() {
         const size = Math.floor(minEdge * 0.85)
         return { width: size, height: size }
       }
-      const config = { 
-        fps: 15, 
+      const config = {
+        fps: 15,
         qrbox: qrboxFunction,
         aspectRatio: 1.0,
         experimentalFeatures: {
@@ -113,7 +114,7 @@ export function CodeScannerPage() {
         () => {
         }
       ).catch((err) => {
-        console.error("Camera start error", err)
+        logger.error("Camera start error", err)
         toast.error("Could not access camera. Please check permissions.")
         setIsScanning(false)
       })
@@ -121,7 +122,7 @@ export function CodeScannerPage() {
     }
     return () => {
       if (scannerRef.current && scannerRef.current.isScanning) {
-        scannerRef.current.stop().catch(err => console.error("Stop error", err))
+        scannerRef.current.stop().catch(err => logger.error("Stop error", err))
       }
     }
   }, [isScanning, stopScanning])
@@ -181,7 +182,7 @@ export function CodeScannerPage() {
   }
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <SEO 
+      <SEO
         title="QR & Barcode Scanner"
         description="Scan QR codes and barcodes using your camera, image files, or by pasting directly. Privacy-focused local processing in your browser."
         url="https://tools.noob31.com/bonus/code-scanner"
@@ -275,10 +276,19 @@ export function CodeScannerPage() {
           <div className="p-4 bg-muted rounded-xl border font-mono break-all text-lg">
             {scanResult}
           </div>
-          {scanResult.startsWith('http') && (
-            <div className="mt-4">
-              <Button asChild variant="link" className="px-0">
-                <a href={scanResult} target="_blank" rel="noreferrer">Open Link &rarr;</a>
+          {scanResult && /^https?:\/\//i.test(scanResult) && (
+            <div className="mt-6 space-y-4">
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400">
+                <ShieldAlert className="h-5 w-5 shrink-0 mt-0.5" />
+                <p className="text-xs leading-relaxed">
+                  <span className="font-bold block mb-0.5">Warning:</span>
+                  URL Link detected. Be careful while opening random links from QR codes.
+                </p>
+              </div>
+              <Button asChild variant="default" className="gap-2 rounded-2xl h-12 px-8 w-full sm:w-auto shadow-lg shadow-primary/20">
+                <a href={scanResult} target="_blank" rel="noreferrer">
+                  Open Link <ArrowRight className="h-4 w-4" />
+                </a>
               </Button>
             </div>
           )}
@@ -313,4 +323,4 @@ export function CodeScannerPage() {
       `}} />
     </div>
   )
-}
+}

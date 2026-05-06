@@ -1,4 +1,5 @@
 import type { AppSettings } from "./settings"
+import { logger } from "./logger"
 export interface UrlComponent {
   label: string;
   value: string;
@@ -110,7 +111,7 @@ export async function refreshTldList() {
       TLD_LIST = new Set(tlds);
     }
   } catch (e) {
-    console.warn('Failed to fetch IANA TLD list, using defaults:', e);
+    logger.warn('Failed to fetch IANA TLD list, using defaults:', e);
   }
 }
 

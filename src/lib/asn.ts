@@ -1,4 +1,5 @@
 import type { AppSettings } from "./settings"
+import { logger } from "./logger"
 import { getProxiedUrl, authenticatedFetch } from "./cors"
 export interface ParsedASN {
   org?: string;
@@ -162,7 +163,7 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
     if (res.ok) {
       resultData.ipapi = await res.json();
     }
-  } catch { console.warn("IPAPI fetch failed."); }
+  } catch { logger.warn("IPAPI fetch failed."); }
   if (isAsn && !resultData.ipapi) {
     try {
       const targetUrl = `https://stat.ripe.net/data/as-overview/data.json?resource=${query}`;
@@ -171,7 +172,7 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
       if (res.ok) {
         resultData.ripe = await res.json();
       }
-    } catch { console.warn("RIPEstat fetch failed."); }
+    } catch { logger.warn("RIPEstat fetch failed."); }
   }
   if (isAsn) {
     try {
@@ -185,7 +186,7 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
           resultData.peeringdb = pdb.data[0];
         }
       }
-    } catch { console.warn("PeeringDB fetch failed."); }
+    } catch { logger.warn("PeeringDB fetch failed."); }
   }
   if (!resultData.ipapi && !resultData.ripe && !resultData.peeringdb) {
     throw new Error("Could not retrieve data from any provider.");

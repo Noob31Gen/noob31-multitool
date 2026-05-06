@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useLocation } from "react-router-dom"
 import { useSettings } from "@/lib/settings"
+import { logger } from "@/lib/logger"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
@@ -68,7 +69,7 @@ export function UrlScannerPage() {
       await Promise.all(promises);
       setStatus('success')
     } catch (err: unknown) {
-      console.error(err)
+      logger.error(err)
       const message = err instanceof Error ? err.message : "An error occurred during URL scanning.";
       setErrorMsg(message)
       setStatus('error')
