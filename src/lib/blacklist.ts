@@ -36,7 +36,7 @@ export async function checkBlacklist(ip: string, settings: AppSettings) {
         if (resTxt.records && resTxt.records.length > 0) {
           txtDetails = resTxt.records.map((r: { data: string }) => r.data.replace(/(^"|"$)/g, '')).join(' | ');
         }
-      } catch { }
+      } catch { /* ignore */ }
       return {
         zone,
         listed: true,

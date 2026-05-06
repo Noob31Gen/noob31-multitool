@@ -43,7 +43,7 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
             u.password = "";
             finalUrl = u.toString();
         }
-    } catch { }
+    } catch { /* ignore */ }
 
     finalOptions.headers = headers;
     if (!finalOptions.credentials) {
@@ -94,7 +94,7 @@ export function extractTargetUrl(proxiedUrl: string, provider: CorsProvider, cus
         let decoded = target;
         try {
             decoded = decodeURIComponent(target);
-        } catch { }
+        } catch { /* ignore */ }
 
         return (decoded.startsWith('http://') || decoded.startsWith('https://')) ? decoded : target;
     } catch {

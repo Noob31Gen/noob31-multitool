@@ -303,7 +303,7 @@ async function fetchWaybackMachine(domain: string, settings: AppSettings): Promi
             }
             const validSub = extractValidSubdomain(hostname, domain);
             if (validSub) results.push({ subdomain: validSub, source: 'Wayback Machine' });
-          } catch { }
+          } catch { /* ignore */ }
         }
       }
     }

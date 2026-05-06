@@ -195,7 +195,7 @@ export function parseUrl(input: string): ParsedUrl {
           url: val,
           host: u.hostname,
         });
-      } catch { }
+      } catch { /* ignore */ }
     }
   });
   const fragment = url.hash.replace('#', '');
@@ -209,7 +209,7 @@ export function parseUrl(input: string): ParsedUrl {
         encoded: match[0],
         position: match.index,
       });
-    } catch { }
+    } catch { /* ignore */ }
   }
   const idn = hostname.startsWith('xn--') || labels.some(l => l.startsWith('xn--'));
   return {
