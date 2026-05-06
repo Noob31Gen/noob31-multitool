@@ -10,12 +10,12 @@ import { ResultCard } from "@/components/shared/ResultCard"
 import { cn } from "@/lib/utils"
 export function CodeScannerPage() {
   const [scanResult, setScanResult] = useState<string | null>(null)
-  
+
   const detectedUrls = useMemo(() => {
     if (!scanResult) return [];
     const urlRegex = /https?:\/\/[^\s]+/gi;
     const matches = scanResult.match(urlRegex) || [];
-    return Array.from(new Set(matches)); // Unique URLs
+    return Array.from(new Set(matches));
   }, [scanResult]);
 
   const [isScanning, setIsScanning] = useState(false)

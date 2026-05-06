@@ -92,13 +92,8 @@ const DEFAULT_PORTS: Record<string, string> = {
   'wss:': '443',
 };
 
-// Common TLDs as fallback
 let TLD_LIST = new Set(['com', 'org', 'net', 'edu', 'gov', 'mil', 'co', 'io', 'ai', 'dev', 'app', 'xyz', 'info', 'me', 'in', 'uk', 'us', 'de', 'fr', 'jp', 'cn', 'ru', 'br', 'au', 'ca', 'it', 'nl', 'es', 'ch', 'se', 'no', 'fi', 'dk', 'at', 'be', 'pt', 'pl', 'gr', 'ie', 'cz', 'hu', 'ro', 'tr', 'kr', 'id', 'th', 'vn', 'my', 'ph', 'sg', 'hk', 'tw', 'mx', 'ar', 'cl', 'co', 'pe', 've', 'za', 'ng', 'eg', 'ke', 'ma', 'dz', 'tn', 'ly', 'sd', 'gh', 'ci', 'sn', 'cm', 'et', 'tz', 'ug', 'zm', 'zw', 'na', 'bw', 'mu', 'sc', 're', 'yt', 'km', 'mg', 'mr', 'ml', 'bf', 'ne', 'td', 'cf', 'ss', 'dj', 'er', 'so', 'gw', 'sl', 'lr', 'tg', 'bj', 'gx', 'ga', 'st', 'ao', 'na', 'ls', 'sz', 'mw', 'mz', 'bi', 'rw']);
 
-/**
- * Updates the global TLD list from IANA.
- * Falls back to common defaults if it fails or hits CORS issues.
- */
 export async function refreshTldList() {
   try {
     const res = await fetch('https://data.iana.org/TLD/tlds-alpha-by-domain.txt');
@@ -115,19 +110,16 @@ export async function refreshTldList() {
   }
 }
 
-// Initial refresh (fire and forget)
 refreshTldList();
 
 function looksLikeDomain(text: string): boolean {
-  // Simple check for something.tld
   const parts = text.split('/');
   const possibleDomain = parts[0];
   if (!possibleDomain.includes('.')) return false;
-  
+
   const domainParts = possibleDomain.split('.');
   const tld = domainParts[domainParts.length - 1].toLowerCase();
-  
-  // Must have at least two parts and a valid TLD
+
   return domainParts.length >= 2 && TLD_LIST.has(tld);
 }
 
@@ -193,7 +185,7 @@ export function parseUrl(input: string): ParsedUrl {
   params.forEach(p => {
     const val = p.decoded.trim();
     const isFullUrl = val.startsWith('http://') || val.startsWith('https://');
-    
+
     if (isFullUrl || looksLikeDomain(val)) {
       try {
         const urlToParse = isFullUrl ? val : 'https://' + val;
@@ -203,7 +195,7 @@ export function parseUrl(input: string): ParsedUrl {
           url: val,
           host: u.hostname,
         });
-      } catch { /* ignore */ }
+      } catch { }
     }
   });
   const fragment = url.hash.replace('#', '');
@@ -217,9 +209,7 @@ export function parseUrl(input: string): ParsedUrl {
         encoded: match[0],
         position: match.index,
       });
-    } catch {
-      // Ignore characters that cannot be URI decoded
-    }
+    } catch { }
   }
   const idn = hostname.startsWith('xn--') || labels.some(l => l.startsWith('xn--'));
   return {
@@ -293,8 +283,7 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
   const startTime = performance.now();
   try {
     let res = await authenticatedFetch(proxyUrl, { method: 'HEAD', signal: controller.signal });
-    
-    // If HEAD fails (400, 403, 405, etc.), fallback to GET as many sites/proxies restrict HEAD
+
     if (res.status >= 400 && res.status !== 404) {
       res = await authenticatedFetch(proxyUrl, { method: 'GET', signal: controller.signal });
     }
@@ -305,13 +294,11 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
       headers.push({ key, value });
     });
 
-    // Extract the actual final URL from the (possibly) proxied response URL
     const extractedFinal = extractTargetUrl(res.url, settings.corsProvider, settings.customCorsUrl);
-    
-    // Normalize both for comparison (handles trailing slashes, case, etc.)
+
     let finalUrl = extractedFinal;
-    let redirected = false; // Ignore res.redirected as proxies often trigger it for their own routing
-    
+    let redirected = false;
+
     try {
       const targetNorm = new URL(targetUrl).href;
       const finalNorm = new URL(extractedFinal).href;
@@ -320,7 +307,6 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
         finalUrl = finalNorm;
       }
     } catch {
-      // Fallback to string comparison if URL parsing fails
       if (extractedFinal !== targetUrl) {
         redirected = true;
       }
@@ -340,4 +326,4 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
     clearTimeout(timeoutId);
     throw err;
   }
-}
+}
