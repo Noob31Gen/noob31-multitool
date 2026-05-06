@@ -55,7 +55,7 @@ function App() {
                 Or select a specific tool from the sidebar. Clicking on the logo brings you back here.
               </p>
               <p className="text-sm text-muted-foreground">
-                All tools here run fully in the browser. No tracking or metrics info is collected.
+                All tools here run fully in the browser. No tracking or metrics info is collected. This project is open source. Check out the source for yourself below.
               </p>
               <br></br>
               <p className="text-lg text-muted-foreground mb-10 max-w-2xl">

@@ -21,6 +21,9 @@ export function AboutPage() {
           <p className="text-muted-foreground">
             I have a lot of windows and web tools on my website. Check them out too. Also if something doesn't work, please let me know.
           </p>
+          <p className="text-muted-foreground">
+            This project is open source. The source code is below.
+          </p>
         </div>
         <p className="text-muted-foreground">
           App Version : {version}

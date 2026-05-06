@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://tools.noob31.com/sitemap.xml
+Sitemap: https://tools.noob31.com/sitemap.xml/

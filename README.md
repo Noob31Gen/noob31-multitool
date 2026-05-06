@@ -2,6 +2,8 @@
 
 A comprehensive, browser-based toolkit for network diagnostics, domain health, email authentication, and security analysis. Built with performance and privacy in mind.
 
+Created by [Noob31](https://noob31.com/).
+
 ## Live Demo
 
 [https://tools.noob31.com/](https://tools.noob31.com/)
@@ -13,7 +15,7 @@ A comprehensive, browser-based toolkit for network diagnostics, domain health, e
 - **Network Tools**: URL Scanner, Subdomain Scanner, My IP, and MAC Lookup.
 - **Domain Health**: Comprehensive domain health checks and email deliverability tests.
 - **Security Utilities**: Certificate lookup and IP/Domain blacklist checking.
-- **Utility Tools**: Subnet calculator, Code generator/scanner, and more.
+- **Utility Tools**: Subnet calculator, QR/Bar Code generator/scanner, and more.
 
 ## Built With
 
@@ -47,6 +49,7 @@ To run this project locally, follow these steps:
    ```bash
    npm run build
    ```
+   Serve from `dist` folder.
 
 ## License
 
@@ -57,4 +60,3 @@ This project is licensed under the [GNU Affero General Public License v3.0](LICE
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
-Created by [Noob31](https://noob31.com/)
