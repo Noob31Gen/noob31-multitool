@@ -50,3 +50,4 @@ vt-asn-test.py
 vtscan.py
 subscan.py
 refresh.mjs
+tag-release.mjs
