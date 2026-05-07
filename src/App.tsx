@@ -31,7 +31,7 @@ function App() {
       <AppLayout>
         <Routes>
           <Route path="/" element={
-            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] text-center px-4">
+            <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-8rem)] text-center px-4">
               <SEO
                 url="https://tools.noob31.com/"
                 jsonLd={JSON.stringify({

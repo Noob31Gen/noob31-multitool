@@ -47,7 +47,7 @@ export function SettingsSheet() {
           <span className="sr-only">Settings</span>
         </Button>
       </SheetTrigger>
-      <SheetContent className="overflow-y-auto !top-2 !bottom-2 !right-2 !h-[calc(100vh-1rem)] rounded-2xl border border-border shadow-2xl sm:max-w-md">
+      <SheetContent className="overflow-y-auto !inset-y-2 !right-2 !h-[calc(100dvh-1rem)] rounded-2xl border border-border shadow-2xl sm:max-w-md">
         <SheetHeader>
           <div className="flex justify-between items-center pr-6">
             <SheetTitle>Settings</SheetTitle>
