@@ -7,9 +7,10 @@ Welcome to the **Network Visualizer (NetViz)**! This document details all the de
 | Device | Icon | Role |
 | :--- | :--- | :--- |
 | **PC / Host** | 💻 | The source and destination of network traffic. Can initiate and respond to Pings. |
-| **Switch** | 🎛️ | Layer 2 device that connects multiple devices within a local network. Forwards packets logically. |
-| **Router** | 🌐 | Layer 3 device for connecting different networks. Acts as a gateway for traffic. |
-| **Server** | 💾 | High-capacity host for data (Logic identical to PC in the current version). |
+| **Server** | 💾 | High-capacity host for data. Can act as a target for multiple pings. |
+| **Switch** | 🎛️ | Layer 2 device that connects multiple devices within a local network. |
+| **Router** | 🌐 | Layer 3 device for connecting different networks. |
+| **Firewall** | 🛡️ | Security device designed to filter traffic (Logic expansion coming soon). |
 
 ---
 
@@ -22,7 +23,9 @@ Welcome to the **Network Visualizer (NetViz)**! This document details all the de
 
 ### 2. Network Traffic Simulation (Ping)
 - **Select a PC**: Click on any PC to open its settings.
-- **Send Ping**: Click the "Paper Plane" icon to send a data packet to another device.
+- **Ping Lab**: Use the new "Ping Lab" section to:
+    - **Select Target**: Choose exactly which other PC on the network you want to ping.
+    - **Set Count**: Send up to 10 consecutive pings to test network stability.
 - **Visual Path**: Watch the yellow packet travel through every intermediate Switch and Router.
 - **Auto-Response**: If the packet reaches its target, a green "Response" packet will automatically travel back to the source.
 

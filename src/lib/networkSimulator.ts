@@ -8,6 +8,7 @@ export const DeviceType = {
   SWITCH: 'SWITCH',
   ROUTER: 'ROUTER',
   SERVER: 'SERVER',
+  FIREWALL: 'FIREWALL',
   CLOUD: 'CLOUD',
 } as const;
 

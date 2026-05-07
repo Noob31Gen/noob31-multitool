@@ -8,7 +8,7 @@ NetViz is a client-side network simulation and visualization tool built for the 
 ---
 
 ## 📂 Core Files
-- **`src/lib/networkSimulator.ts`**: Contains the foundational TypeScript types (`Device`, `Link`, `Packet`) and the `NetworkNode` class intended for future protocol-level simulation (MAC learning, IP forwarding).
+- **`src/lib/networkSimulator.ts`**: Foundational types (`Device`, `Link`, `Packet`) supporting PC, Server, Switch, Router, Firewall, and Cloud types.
 - **`src/components/tools/NetworkVisualizer.tsx`**: The main UI component. It manages the SVG canvas, user interactions (drag/drop, linking), and the Anime.js-powered animation engine.
 
 ---
@@ -28,8 +28,9 @@ The network is represented as a graph:
 
 ### 3. Animation Engine (Anime.js v4)
 - **Signature**: Uses the v4 `animate(target, params)` signature.
-- **Recursive Forwarding**: The `animatePacket(path, color, callback)` function handles multi-hop travel. It animates the packet to the first hop, then recursively calls itself for the next segment until the path is complete.
-- **Visual Feedback**: Nodes pulse when they receive/forward packets. Failed pings trigger a red "unreachable" flash on the source node.
+- **Recursive Forwarding**: The `animatePacket(path, color, callback)` function handles multi-hop travel.
+- **Multi-Ping Logic**: `handlePing` uses a loop with staggered `setTimeout` calls (1.5s interval) to queue multiple animations based on user configuration.
+- **Visual Feedback**: Nodes pulse when they receive/forward packets. Failed pings trigger a red "unreachable" flash.
 
 ### 4. React Purity & Performance
 - **Impure Logic**: To satisfy strict React Compiler/Lint rules (e.g., `react-hooks/purity`), all impure logic like `Math.random()` and `Date.now()` (for ID generation and random coordinates) is placed in helper functions **outside** the component body.

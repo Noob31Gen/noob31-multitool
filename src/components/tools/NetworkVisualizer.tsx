@@ -3,10 +3,19 @@ import type { Device, Link } from '@/lib/networkSimulator';
 import { DeviceType } from '@/lib/networkSimulator';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Play, RotateCcw, Trash2, Link as LinkIcon, 
   MousePointer2, Send, Download, Upload, Monitor, 
-  Layers, Network, Globe, Grid3X3 
+  Layers, Network, Globe, Grid3X3, Zap, Shield, HardDrive
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { animate } from 'animejs';
@@ -134,22 +143,24 @@ export const NetworkVisualizer: React.FC = () => {
     });
   };
 
-  const handlePing = (sourceId: string, targetId?: string) => {
+  const [pingTargetId, setPingTargetId] = useState<string>('');
+  const [pingCount, setPingCount] = useState<number>(1);
+
+  const handlePing = (sourceId: string, targetIdOverride?: string) => {
     const sourceNode = nodes.find(n => n.id === sourceId);
-    // If no target, pick a random PC
-    const destId = targetId || nodes.filter(n => n.id !== sourceId && n.type === DeviceType.PC)[0]?.id;
+    const destId = targetIdOverride || pingTargetId || nodes.filter(n => n.id !== sourceId && n.type === DeviceType.PC)[0]?.id;
+    
     if (!destId) {
-      logEvent(`Ping failed: No destination found`, 'error');
+      logEvent(`Ping failed: No destination selected`, 'error');
       return;
     }
     const destNode = nodes.find(n => n.id === destId);
 
-    logEvent(`Initiating Ping: ${sourceNode?.name} -> ${destNode?.name}`, 'info');
+    logEvent(`Initiating ${pingCount} Ping(s): ${sourceNode?.name} -> ${destNode?.name}`, 'info');
 
     const path = findPath(sourceId, destId);
     if (!path) {
       logEvent(`Unreachable: No path between ${sourceNode?.name} and ${destNode?.name}`, 'error');
-      // Show failure visual on source
       animate(`[data-node-id="${sourceId}"] circle`, {
         stroke: ['#ef4444', '#cbd5e1'],
         duration: 1000
@@ -157,14 +168,17 @@ export const NetworkVisualizer: React.FC = () => {
       return;
     }
 
-    // Send Request
-    animatePacket(path, '#fbbf24', () => {
-      logEvent(`Ping successful: Response received at ${sourceNode?.name}`, 'success');
-      // Send Response (reverse path)
+    // Loop for multiple pings
+    for (let i = 0; i < pingCount; i++) {
       setTimeout(() => {
-        animatePacket([...path].reverse(), '#34d399');
-      }, 500);
-    });
+        animatePacket(path, '#fbbf24', () => {
+          logEvent(`Ping success (${i + 1}/${pingCount}): Response received at ${sourceNode?.name}`, 'success');
+          setTimeout(() => {
+            animatePacket([...path].reverse(), '#34d399');
+          }, 400);
+        });
+      }, i * 1500); // Stagger pings by 1.5s
+    }
   };
 
   const addNode = (type: DeviceType) => {
@@ -326,14 +340,20 @@ export const NetworkVisualizer: React.FC = () => {
         </div>
 
         <div className="flex space-x-2 border-r pr-4 mr-2">
-          <Button variant="outline" size="sm" onClick={() => addNode(DeviceType.PC)}>
+          <Button variant="outline" size="sm" onClick={() => addNode(DeviceType.PC)} title="Add PC">
             <Monitor className="w-3 h-3 mr-1" /> PC
           </Button>
-          <Button variant="outline" size="sm" onClick={() => addNode(DeviceType.SWITCH)}>
+          <Button variant="outline" size="sm" onClick={() => addNode(DeviceType.SERVER)} title="Add Server">
+            <HardDrive className="w-3 h-3 mr-1" /> Server
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => addNode(DeviceType.SWITCH)} title="Add Switch">
             <Layers className="w-3 h-3 mr-1" /> Switch
           </Button>
-          <Button variant="outline" size="sm" onClick={() => addNode(DeviceType.ROUTER)}>
+          <Button variant="outline" size="sm" onClick={() => addNode(DeviceType.ROUTER)} title="Add Router">
             <Network className="w-3 h-3 mr-1" /> Router
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => addNode(DeviceType.FIREWALL)} title="Add Firewall">
+            <Shield className="w-3 h-3 mr-1 text-red-500" /> Firewall
           </Button>
         </div>
         
@@ -468,6 +488,8 @@ export const NetworkVisualizer: React.FC = () => {
                   {node.type === DeviceType.PC ? <Monitor size={20} /> : 
                    node.type === DeviceType.SWITCH ? <Layers size={20} /> : 
                    node.type === DeviceType.ROUTER ? <Network size={20} /> : 
+                   node.type === DeviceType.SERVER ? <HardDrive size={20} /> :
+                   node.type === DeviceType.FIREWALL ? <Shield size={20} className="text-red-500" /> :
                    <Globe size={20} />}
                 </div>
               </foreignObject>
@@ -528,11 +550,56 @@ export const NetworkVisualizer: React.FC = () => {
             </div>
             
             {selectedNode && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="space-y-1">
                   <p className="text-[10px] text-muted-foreground uppercase font-bold">Identifier</p>
                   <p className="text-sm font-mono">{nodes.find(n => n.id === selectedNode)?.name}</p>
                 </div>
+                
+                {/* Ping Lab Section */}
+                {nodes.find(n => n.id === selectedNode)?.type === DeviceType.PC && (
+                  <div className="p-3 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/30 space-y-3">
+                    <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+                      <Zap className="w-3 h-3" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Ping Lab</span>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <Label className="text-[9px] uppercase text-muted-foreground">Target Device</Label>
+                      <Select value={pingTargetId} onValueChange={setPingTargetId}>
+                        <SelectTrigger className="h-7 text-xs bg-white dark:bg-slate-900">
+                          <SelectValue placeholder="Select Target..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {nodes
+                            .filter(n => n.id !== selectedNode && n.type === DeviceType.PC)
+                            .map(pc => (
+                              <SelectItem key={pc.id} value={pc.id} className="text-xs">
+                                {pc.name} ({pc.interfaces[0].mac.slice(-4)})
+                              </SelectItem>
+                            ))
+                          }
+                          {nodes.filter(n => n.id !== selectedNode && n.type === DeviceType.PC).length === 0 && (
+                            <div className="p-2 text-[10px] text-muted-foreground italic">No other PCs found</div>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-[9px] uppercase text-muted-foreground">Ping Count (1-10)</Label>
+                      <Input 
+                        type="number" 
+                        min={1} 
+                        max={10} 
+                        value={pingCount}
+                        onChange={(e) => setPingCount(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
+                        className="h-7 text-xs bg-white dark:bg-slate-900"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1">
                   <p className="text-[10px] text-muted-foreground uppercase font-bold">MAC Address</p>
                   <p className="text-sm font-mono text-blue-600 dark:text-blue-400">{nodes.find(n => n.id === selectedNode)?.interfaces[0].mac}</p>
