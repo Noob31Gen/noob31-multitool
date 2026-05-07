@@ -10,6 +10,7 @@ export const DeviceType = {
   SERVER: 'SERVER',
   FIREWALL: 'FIREWALL',
   CLOUD: 'CLOUD',
+  IPS_IDS: 'IPS_IDS',
 } as const;
 
 export type DeviceType = typeof DeviceType[keyof typeof DeviceType];
@@ -39,6 +40,8 @@ export interface Device {
   vlans?: string[]; // Defined VLANs (for Switches, max 3)
   vlanMap?: Record<string, string>; // Port/DeviceId -> VLAN ID
   blockedNetworks?: string[]; // For Firewalls/Routers
+  routingEnabled?: boolean; // For Firewalls: Toggle routing capabilities
+  ipsMode?: 'IPS' | 'IDS'; // For IPS/IDS devices
   portLimit: number; // Max connections
 }
 
