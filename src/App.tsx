@@ -21,6 +21,7 @@ import { CodeGeneratorPage } from "@/components/tools/CodeGeneratorPage"
 import { CodeScannerPage } from "@/components/tools/CodeScannerPage"
 import { MacLookupPage } from "@/components/tools/MacLookupPage"
 import { SuperToolSearch } from "@/components/shared/SuperToolSearch"
+import { NetworkVisualizer } from "@/components/tools/NetworkVisualizer"
 import { CreditsPage } from "@/components/tools/CreditsPage"
 import { AboutPage } from "@/components/tools/AboutPage"
 import { AllFeaturesPage } from "@/components/tools/AllFeaturesPage"
@@ -88,8 +89,10 @@ function App() {
           <Route path="/bonus/dmarc-generator" element={<DmarcGeneratorPage />} />
           <Route path="/bonus/code-generator" element={<CodeGeneratorPage />} />
           <Route path="/bonus/code-scanner" element={<CodeScannerPage />} />
+          <Route path="/bonus/visualizer" element={<NetworkVisualizer />} />
           <Route path="/about/info" element={<AboutPage />} />
           <Route path="/about/credits" element={<CreditsPage />} />
+
           <Route path="/about/features" element={<AllFeaturesPage />} />
           <Route path="*" element={<div className="p-10 text-center text-muted-foreground">Tool not found. Check the sidebar if you're lost.</div>} />
         </Routes>

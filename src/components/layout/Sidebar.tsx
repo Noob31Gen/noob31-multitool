@@ -30,6 +30,7 @@ const TOOL_CATEGORIES = [
       { name: "MAC Address Lookup", path: "/network/mac-lookup" },
       { name: "Email Header Analyzer", path: "/bonus/headers" },
       { name: "Subnet Calculator", path: "/bonus/subnet" },
+      { name: "Network Visualizer", path: "/bonus/visualizer" },
     ],
   },
   {
