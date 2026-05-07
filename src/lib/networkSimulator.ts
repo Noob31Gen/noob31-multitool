@@ -34,6 +34,12 @@ export interface Device {
   macTable?: Record<string, string>; // For Switches: MAC -> InterfaceID
   routingTable?: Record<string, string>; // For Routers: Destination -> NextHop
   arpCache: Record<string, string>; // IP -> MAC
+  // New configuration properties
+  vlan?: string; // Current VLAN ID (for PC/Server)
+  vlans?: string[]; // Defined VLANs (for Switches, max 3)
+  vlanMap?: Record<string, string>; // Port/DeviceId -> VLAN ID
+  blockedNetworks?: string[]; // For Firewalls/Routers
+  portLimit: number; // Max connections
 }
 
 export interface Link {

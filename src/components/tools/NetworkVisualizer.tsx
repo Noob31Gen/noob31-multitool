@@ -74,19 +74,46 @@ export const NetworkVisualizer: React.FC = () => {
     const queue: [string, string[]][] = [[startId, [startId]]];
     const visited = new Set([startId]);
 
+    const sourceNode = nodes.find(n => n.id === startId);
+    const destNode = nodes.find(n => n.id === endId);
+
     while (queue.length > 0) {
       const [currentId, path] = queue.shift()!;
       if (currentId === endId) return path;
 
+      const currentNode = nodes.find(n => n.id === currentId);
+      
       const neighbors = links
         .filter(l => l.fromDeviceId === currentId || l.toDeviceId === currentId)
         .map(l => l.fromDeviceId === currentId ? l.toDeviceId : l.fromDeviceId);
 
       for (const neighborId of neighbors) {
-        if (!visited.has(neighborId)) {
-          visited.add(neighborId);
-          queue.push([neighborId, [...path, neighborId]]);
+        if (visited.has(neighborId)) continue;
+
+        const neighborNode = nodes.find(n => n.id === neighborId);
+        if (!neighborNode || !currentNode) continue;
+
+        // --- VLAN LOGIC ---
+        // If we are moving through a switch, check VLAN isolation
+        if (currentNode.type === DeviceType.SWITCH) {
+          const vlanStart = currentNode.vlanMap?.[path[path.length - 2] || startId] || 'VLAN 1';
+          const vlanEnd = currentNode.vlanMap?.[neighborId] || 'VLAN 1';
+          if (vlanStart !== vlanEnd) continue; // Isolation
         }
+        if (neighborNode.type === DeviceType.SWITCH) {
+          // If the next hop is a switch, we'll check VLAN on the next iteration when it becomes 'currentNode'
+        }
+
+        // --- FIREWALL / ROUTER LOGIC ---
+        // If the neighbor is a firewall or router, check if they block the source or destination
+        if (neighborNode.type === DeviceType.FIREWALL || neighborNode.type === DeviceType.ROUTER) {
+          if (neighborNode.blockedNetworks?.includes(startId) || neighborNode.blockedNetworks?.includes(endId)) {
+            continue; // Blocked
+          }
+        }
+
+        visited.add(neighborId);
+        queue.push([neighborId, [...path, neighborId]]);
       }
     }
     return null;
@@ -183,6 +210,11 @@ export const NetworkVisualizer: React.FC = () => {
 
   const addNode = (type: DeviceType) => {
     const { x, y } = getRandomCoords(snapToGrid, GRID_SIZE);
+    
+    // Set port limits based on type
+    let portLimit = 2;
+    if (type === DeviceType.SWITCH) portLimit = 6;
+    if (type === DeviceType.ROUTER || type === DeviceType.FIREWALL) portLimit = 4;
 
     const newNode: Device = {
       id: nextId('node'),
@@ -193,10 +225,14 @@ export const NetworkVisualizer: React.FC = () => {
       interfaces: [
         { id: 'eth0', mac: getRandomMac(), isConnected: false }
       ],
-      arpCache: {}
+      arpCache: {},
+      portLimit,
+      vlans: type === DeviceType.SWITCH ? ['VLAN 1'] : undefined,
+      vlanMap: type === DeviceType.SWITCH ? {} : undefined,
+      blockedNetworks: (type === DeviceType.ROUTER || type === DeviceType.FIREWALL) ? [] : undefined
     };
     setNodes([...nodes, newNode]);
-    logEvent(`Added ${type}: ${newNode.name}`, 'info');
+    logEvent(`Added ${type}: ${newNode.name} (Max Ports: ${portLimit})`, 'info');
   };
 
   const startDrag = (e: React.MouseEvent, nodeId: string) => {
@@ -239,8 +275,24 @@ export const NetworkVisualizer: React.FC = () => {
     e.stopPropagation();
     if (mode === 'link') {
       if (!linkStartNodeId) {
+        // Check if start node has free ports
+        const startNode = nodes.find(n => n.id === nodeId);
+        const startLinkCount = links.filter(l => l.fromDeviceId === nodeId || l.toDeviceId === nodeId).length;
+        if (startNode && startLinkCount >= startNode.portLimit) {
+          logEvent(`Error: ${startNode.name} has reached its port limit (${startNode.portLimit})`, 'error');
+          return;
+        }
         setLinkStartNodeId(nodeId);
       } else if (linkStartNodeId !== nodeId) {
+        // Check if target node has free ports
+        const targetNode = nodes.find(n => n.id === nodeId);
+        const targetLinkCount = links.filter(l => l.fromDeviceId === nodeId || l.toDeviceId === nodeId).length;
+        if (targetNode && targetLinkCount >= targetNode.portLimit) {
+          logEvent(`Error: ${targetNode.name} has reached its port limit (${targetNode.portLimit})`, 'error');
+          setLinkStartNodeId(null);
+          return;
+        }
+
         // Check if link already exists
         const exists = links.some(l => 
           (l.fromDeviceId === linkStartNodeId && l.toDeviceId === nodeId) ||
@@ -259,6 +311,7 @@ export const NetworkVisualizer: React.FC = () => {
             status: 'up'
           };
           setLinks([...links, newLink]);
+          logEvent(`Linked ${linkStartNodeId} to ${nodeId}`, 'success');
         }
         setLinkStartNodeId(null);
       }
@@ -366,6 +419,16 @@ export const NetworkVisualizer: React.FC = () => {
             title="Snap to Grid"
           >
             <Grid3X3 className="w-4 h-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20" 
+            onClick={deleteElement}
+            disabled={!selectedNode && !selectedLink}
+            title="Delete Selected"
+          >
+            <Trash2 className="w-4 h-4" />
           </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={exportDesign} title="Export Design (JSON)">
             <Download className="w-4 h-4" />
@@ -551,9 +614,67 @@ export const NetworkVisualizer: React.FC = () => {
             
             {selectedNode && (
               <div className="space-y-4">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Identifier</p>
+                    <p className="text-sm font-mono">{nodes.find(n => n.id === selectedNode)?.name}</p>
+                  </div>
+                  <div className="text-right space-y-1">
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Ports</p>
+                    <p className="text-[10px] font-mono">
+                      {links.filter(l => l.fromDeviceId === selectedNode || l.toDeviceId === selectedNode).length} / {nodes.find(n => n.id === selectedNode)?.portLimit}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Router/Firewall Section */}
+                {(nodes.find(n => n.id === selectedNode)?.type === DeviceType.ROUTER || nodes.find(n => n.id === selectedNode)?.type === DeviceType.FIREWALL) && (
+                  <div className="p-3 bg-red-50/50 dark:bg-red-900/10 rounded-lg border border-red-100 dark:border-red-900/30 space-y-3">
+                    <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
+                      <Shield className="w-3 h-3" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">
+                        {nodes.find(n => n.id === selectedNode)?.type === DeviceType.FIREWALL ? 'Traffic Filter' : 'Static Routes'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-[9px] uppercase text-muted-foreground">Blocked/Unknown Devices</Label>
+                      <div className="max-h-24 overflow-y-auto space-y-1 pr-1">
+                        {nodes
+                          .filter(n => n.id !== selectedNode && (n.type === DeviceType.PC || n.type === DeviceType.SERVER))
+                          .map(target => {
+                            const isBlocked = nodes.find(n => n.id === selectedNode)?.blockedNetworks?.includes(target.id);
+                            return (
+                              <div key={target.id} className="flex items-center justify-between p-1 hover:bg-white dark:hover:bg-slate-900 rounded">
+                                <span className="text-[10px] font-mono">{target.name}</span>
+                                <Button 
+                                  variant={isBlocked ? "destructive" : "outline"} 
+                                  size="sm" 
+                                  className="h-5 text-[8px] px-1.5"
+                                  onClick={() => {
+                                    const node = nodes.find(n => n.id === selectedNode);
+                                    if (node) {
+                                      const newBlocked = isBlocked 
+                                        ? node.blockedNetworks!.filter(id => id !== target.id)
+                                        : [...node.blockedNetworks!, target.id];
+                                      setNodes(nodes.map(n => n.id === selectedNode ? { ...n, blockedNetworks: newBlocked } : n));
+                                    }
+                                  }}
+                                >
+                                  {isBlocked ? 'Blocked' : 'Allowed'}
+                                </Button>
+                              </div>
+                            );
+                          })
+                        }
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1">
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold">Identifier</p>
-                  <p className="text-sm font-mono">{nodes.find(n => n.id === selectedNode)?.name}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold">MAC Address</p>
+                  <p className="text-sm font-mono text-blue-600 dark:text-blue-400">{nodes.find(n => n.id === selectedNode)?.interfaces[0].mac}</p>
                 </div>
                 
                 {/* Ping Lab Section */}
@@ -600,10 +721,93 @@ export const NetworkVisualizer: React.FC = () => {
                   </div>
                 )}
 
-                <div className="space-y-1">
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold">MAC Address</p>
-                  <p className="text-sm font-mono text-blue-600 dark:text-blue-400">{nodes.find(n => n.id === selectedNode)?.interfaces[0].mac}</p>
-                </div>
+                {/* Switch VLAN Section */}
+                {nodes.find(n => n.id === selectedNode)?.type === DeviceType.SWITCH && (
+                  <div className="p-3 bg-purple-50/50 dark:bg-purple-900/10 rounded-lg border border-purple-100 dark:border-purple-900/30 space-y-3">
+                    <div className="flex items-center space-x-2 text-purple-600 dark:text-purple-400">
+                      <Layers className="w-3 h-3" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">VLAN Manager (Max 3)</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {nodes.find(n => n.id === selectedNode)?.vlans?.map((vlan, vIdx) => (
+                        <div key={vIdx} className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded border border-purple-100 dark:border-purple-900/20">
+                          <span className="text-xs font-mono">{vlan}</span>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-5 w-5 text-red-400 hover:text-red-500"
+                            onClick={() => {
+                              const node = nodes.find(n => n.id === selectedNode);
+                              if (node && node.vlans) {
+                                const newVlans = node.vlans.filter((_, i) => i !== vIdx);
+                                setNodes(nodes.map(n => n.id === selectedNode ? { ...n, vlans: newVlans } : n));
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ))}
+                      
+                      {(nodes.find(n => n.id === selectedNode)?.vlans?.length || 0) < 3 && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full text-[10px] h-7 border-dashed border-purple-300"
+                          onClick={() => {
+                            const node = nodes.find(n => n.id === selectedNode);
+                            if (node && node.vlans) {
+                              const newVlan = `VLAN ${node.vlans.length + 1}`;
+                              setNodes(nodes.map(n => n.id === selectedNode ? { ...n, vlans: [...node.vlans!, newVlan] } : n));
+                            }
+                          }}
+                        >
+                          + Add VLAN
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-[9px] uppercase text-muted-foreground">Assign Ports to VLAN</Label>
+                      <div className="space-y-2">
+                        {links
+                          .filter(l => l.fromDeviceId === selectedNode || l.toDeviceId === selectedNode)
+                          .map(link => {
+                            const otherId = link.fromDeviceId === selectedNode ? link.toDeviceId : link.fromDeviceId;
+                            const otherNode = nodes.find(n => n.id === otherId);
+                            const currentVlan = nodes.find(n => n.id === selectedNode)?.vlanMap?.[otherId] || 'VLAN 1';
+                            
+                            return (
+                              <div key={link.id} className="flex items-center space-x-2">
+                                <span className="text-[10px] font-mono flex-1 truncate">{otherNode?.name}</span>
+                                <Select 
+                                  value={currentVlan} 
+                                  onValueChange={(val) => {
+                                    setNodes(nodes.map(n => {
+                                      if (n.id === selectedNode) {
+                                        return { ...n, vlanMap: { ...n.vlanMap, [otherId]: val } };
+                                      }
+                                      return n;
+                                    }));
+                                  }}
+                                >
+                                  <SelectTrigger className="h-6 text-[10px] w-24">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {nodes.find(n => n.id === selectedNode)?.vlans?.map(v => (
+                                      <SelectItem key={v} value={v} className="text-[10px]">{v}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-1">
                   <p className="text-[10px] text-muted-foreground uppercase font-bold">Interfaces</p>
                   <div className="flex items-center space-x-2 py-1 px-2 bg-slate-100 dark:bg-slate-800 rounded">
