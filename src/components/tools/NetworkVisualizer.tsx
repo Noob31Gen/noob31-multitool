@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import type { Device, Link } from '@/lib/networkSimulator';
 import { DeviceType } from '@/lib/networkSimulator';
 import { Card } from '@/components/ui/card';
@@ -17,7 +17,7 @@ import {
   Play, RotateCcw, Trash2, Link as LinkIcon,
   MousePointer2, Send, Download, Upload, Monitor,
   Layers, Network, Globe, Grid3X3, Zap, Shield, HardDrive,
-  Activity, Info, X
+  Activity, Info, X, ChevronUp, ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { animate } from 'animejs';
@@ -66,6 +66,9 @@ export const NetworkVisualizer: React.FC = () => {
 
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>(null);
   const [showLegend, setShowLegend] = useState(false);
+  const [isNetworksCollapsed, setIsNetworksCollapsed] = useState(false);
+  const [isLogsCollapsed, setIsLogsCollapsed] = useState(false);
+  const [dhcpStatus, setDhcpStatus] = useState<Record<string, 'none' | 'discovering' | 'bound'>>({});
 
   // Dynamic Network Detection logic
   const detectedNetworks = useMemo(() => {
@@ -250,39 +253,41 @@ export const NetworkVisualizer: React.FC = () => {
     );
 
     if (needsRepair) {
-      setNodes(prevNodes => prevNodes.map(node => {
-        let nodeChanged = false;
-        let updatedInterfaces = [...node.interfaces];
+      setTimeout(() => {
+        setNodes(prevNodes => prevNodes.map(node => {
+          let nodeChanged = false;
+          let updatedInterfaces = [...node.interfaces];
 
-        // 1. Ensure interfaces array length matches portLimit
-        if (updatedInterfaces.length < node.portLimit) {
-          for (let i = updatedInterfaces.length; i < node.portLimit; i++) {
-            updatedInterfaces.push({
-              id: `eth${i}`,
-              mac: getRandomMac(),
-              isConnected: false
-            });
-          }
-          nodeChanged = true;
-        }
-
-        // 2. Ensure isConnected accurately reflects current links
-        updatedInterfaces = updatedInterfaces.map(iface => {
-          const isLinked = links.some(l =>
-            (l.fromDeviceId === node.id && l.fromInterfaceId === iface.id) ||
-            (l.toDeviceId === node.id && l.toInterfaceId === iface.id)
-          );
-          if (iface.isConnected !== isLinked) {
+          // 1. Ensure interfaces array length matches portLimit
+          if (updatedInterfaces.length < node.portLimit) {
+            for (let i = updatedInterfaces.length; i < node.portLimit; i++) {
+              updatedInterfaces.push({
+                id: `eth${i}`,
+                mac: getRandomMac(),
+                isConnected: false
+              });
+            }
             nodeChanged = true;
-            return { ...iface, isConnected: isLinked };
           }
-          return iface;
-        });
 
-        return nodeChanged ? { ...node, interfaces: updatedInterfaces } : node;
-      }));
+          // 2. Ensure isConnected accurately reflects current links
+          updatedInterfaces = updatedInterfaces.map(iface => {
+            const isLinked = links.some(l =>
+              (l.fromDeviceId === node.id && l.fromInterfaceId === iface.id) ||
+              (l.toDeviceId === node.id && l.toInterfaceId === iface.id)
+            );
+            if (iface.isConnected !== isLinked) {
+              nodeChanged = true;
+              return { ...iface, isConnected: isLinked };
+            }
+            return iface;
+          });
+
+          return nodeChanged ? { ...node, interfaces: updatedInterfaces } : node;
+        }));
+      }, 0);
     }
-  }, [links, nodes.length]); // Check whenever links change or nodes are added/removed
+  }, [links, nodes]); // Check whenever links change or nodes change
 
   const svgRef = useRef<SVGSVGElement>(null);
   const underNodeLayerRef = useRef<SVGGElement>(null);
@@ -300,7 +305,54 @@ export const NetworkVisualizer: React.FC = () => {
     };
   };
 
-  const findPath = (startId: string, endId: string): { path: string[], failureId?: string, failureType?: 'firewall' | 'routing' } | null => {
+  const [logs, setLogs] = useState<{ id: string, msg: string, time: string, type: 'info' | 'success' | 'error' }[]>([]);
+
+  const logEvent = useCallback((msg: string, type: 'info' | 'success' | 'error' = 'info') => {
+    const newLog = {
+      id: nextId('log'),
+      msg,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      type
+    };
+    setLogs(prev => [newLog, ...prev].slice(0, 50));
+  }, [setLogs]);
+
+  const showDropAnimation = useCallback((nodeId: string, type: 'firewall' | 'routing' = 'firewall') => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (!node || !overNodeLayerRef.current) return;
+
+    const isIds = node.type === DeviceType.IPS_IDS && node.ipsMode === 'IDS';
+    const isRouting = type === 'routing';
+    const symbol = isIds ? "!" : (isRouting ? "?" : "×");
+    const color = isIds ? "#f59e0b" : (isRouting ? "#a855f7" : "#ef4444"); // Purple for routing
+
+    const mark = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    mark.textContent = symbol;
+    mark.setAttribute("x", node.x.toString());
+    mark.setAttribute("y", node.y.toString());
+    mark.setAttribute("text-anchor", "middle");
+    mark.setAttribute("font-size", isIds ? "32" : "40");
+    mark.setAttribute("fill", color);
+    mark.setAttribute("font-weight", "bold");
+    mark.setAttribute("filter", `drop-shadow(0 0 8px ${color})`);
+    mark.setAttribute("style", "pointer-events: none;");
+    overNodeLayerRef.current.appendChild(mark);
+
+    animate(mark, {
+      opacity: [0, 1, 1, 0],
+      duration: 1000,
+      easing: 'linear',
+      onComplete: () => mark.remove()
+    });
+
+    if (isRouting) {
+      logEvent(`ROUTING ERROR at ${node.name}: Dest Network Unknown`, 'error');
+    } else {
+      logEvent(`${isIds ? 'IDS ALERT' : 'Packet DROPPED'} at ${node.name}`, isIds ? 'info' : 'error');
+    }
+  }, [nodes, logEvent]);
+
+  const findPath = useCallback((startId: string, endId: string): { path: string[], failureId?: string, failureType?: 'firewall' | 'routing' } | null => {
     const queue: [string, string[]][] = [[startId, [startId]]];
     const visited = new Set([startId]);
 
@@ -385,121 +437,72 @@ export const NetworkVisualizer: React.FC = () => {
       }
     }
     return null;
-  };
+  }, [nodes, links, detectedNetworks, showDropAnimation]);
 
-  const [logs, setLogs] = useState<{ id: string, msg: string, time: string, type: 'info' | 'success' | 'error' }[]>([]);
+  const animatePacket = useCallback((path: string[], color: string = '#fbbf24', callback?: () => void, failureId?: string, failureType?: 'firewall' | 'routing') => {
+    const startAnimation = (p: string[], c: string, cb?: () => void, fId?: string, fType?: 'firewall' | 'routing') => {
+      if (p.length < 2 || !underNodeLayerRef.current) return;
 
-  const logEvent = (msg: string, type: 'info' | 'success' | 'error' = 'info') => {
-    const newLog = {
-      id: nextId('log'),
-      msg,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-      type
-    };
-    setLogs(prev => [newLog, ...prev].slice(0, 50));
-  };
+      const createArrow = (arrowColor: string) => {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        arrow.setAttribute("d", "M -6,-4 L 6,0 L -6,4 Z");
+        arrow.setAttribute("fill", arrowColor);
+        arrow.setAttribute("filter", `drop-shadow(0 0 3px ${arrowColor})`);
+        g.appendChild(arrow);
+        return g;
+      };
 
-  const showDropAnimation = (nodeId: string, type: 'firewall' | 'routing' = 'firewall') => {
-    const node = nodes.find(n => n.id === nodeId);
-    if (!node || !overNodeLayerRef.current) return;
-
-    const isIds = node.type === DeviceType.IPS_IDS && node.ipsMode === 'IDS';
-    const isRouting = type === 'routing';
-    const symbol = isIds ? "!" : (isRouting ? "?" : "×");
-    const color = isIds ? "#f59e0b" : (isRouting ? "#a855f7" : "#ef4444"); // Purple for routing
-
-    const mark = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    mark.textContent = symbol;
-    mark.setAttribute("x", node.x.toString());
-    mark.setAttribute("y", node.y.toString());
-    mark.setAttribute("text-anchor", "middle");
-    mark.setAttribute("font-size", isIds ? "32" : "40");
-    mark.setAttribute("fill", color);
-    mark.setAttribute("font-weight", "bold");
-    mark.setAttribute("filter", `drop-shadow(0 0 8px ${color})`);
-    mark.setAttribute("style", "pointer-events: none;");
-    overNodeLayerRef.current.appendChild(mark);
-
-    animate(mark, {
-      opacity: [0, 1, 1, 0],
-      duration: 1000,
-      easing: 'linear',
-      onComplete: () => mark.remove()
-    });
-
-    if (isRouting) {
-      logEvent(`ROUTING ERROR at ${node.name}: Dest Network Unknown`, 'error');
-    } else {
-      logEvent(`${isIds ? 'IDS ALERT' : 'Packet DROPPED'} at ${node.name}`, isIds ? 'info' : 'error');
-    }
-  };
-
-  const animatePacket = (path: string[], color: string = '#fbbf24', callback?: () => void, failureId?: string, failureType?: 'firewall' | 'routing') => {
-    if (path.length < 2 || !underNodeLayerRef.current) return;
-
-    // Helper to create arrow path
-    const createArrow = () => {
-      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      // M -5,-5 L 5,0 L -5,5 Z (Triangle)
-      arrow.setAttribute("d", "M -6,-4 L 6,0 L -6,4 Z");
-      arrow.setAttribute("fill", color);
-      arrow.setAttribute("filter", `drop-shadow(0 0 3px ${color})`);
-      g.appendChild(arrow);
-      return g;
-    };
-
-    let step = 0;
-    const playNextStep = () => {
-      if (step >= path.length - 1) {
-        if (callback) callback();
-        return;
-      }
-
-      const fromNode = nodes.find(n => n.id === path[step]);
-      const toNode = nodes.find(n => n.id === path[step + 1]);
-
-      if (!fromNode || !toNode) return;
-
-      // Check if this was the step that failed
-      const isLastStepAndFailed = failureId === toNode.id;
-
-      const packet = createArrow();
-      underNodeLayerRef.current!.appendChild(packet);
-
-      // Calculate angle for rotation
-      const angle = Math.atan2(toNode.y - fromNode.y, toNode.x - fromNode.x) * 180 / Math.PI;
-
-      animate(packet, {
-        translateX: [fromNode.x, toNode.x],
-        translateY: [fromNode.y, toNode.y],
-        rotate: [angle, angle],
-        opacity: [0, 1, 1, 0],
-        scale: [0.5, 1.2, 1.2, 0.5],
-        duration: 600,
-        easing: 'easeInOutQuad',
-        onComplete: () => {
-          packet.remove();
-          if (isLastStepAndFailed) {
-            showDropAnimation(toNode.id, failureType);
-            if (failureType === 'routing') {
-              // Return to sender animation
-              setTimeout(() => {
-                animatePacket([...path].reverse(), '#a855f7', () => {
-                  logEvent(`Routing Error message received at source`, 'error');
-                });
-              }, 300);
-            }
-            return; // Stop the path
-          }
-          step++;
-          playNextStep();
+      let step = 0;
+      const playNextStep = () => {
+        if (step >= p.length - 1) {
+          if (cb) cb();
+          return;
         }
-      });
+
+        const fromNode = nodes.find(n => n.id === p[step]);
+        const toNode = nodes.find(n => n.id === p[step + 1]);
+
+        if (!fromNode || !toNode) return;
+
+        const isLastStepAndFailed = fId === toNode.id;
+        const packet = createArrow(c);
+        underNodeLayerRef.current!.appendChild(packet);
+
+        const angle = Math.atan2(toNode.y - fromNode.y, toNode.x - fromNode.x) * 180 / Math.PI;
+
+        animate(packet, {
+          translateX: [fromNode.x, toNode.x],
+          translateY: [fromNode.y, toNode.y],
+          rotate: [angle, angle],
+          opacity: [0, 1, 1, 0],
+          scale: [0.5, 1.2, 1.2, 0.5],
+          duration: 600,
+          easing: 'easeInOutQuad',
+          onComplete: () => {
+            packet.remove();
+            if (isLastStepAndFailed) {
+              showDropAnimation(toNode.id, fType);
+              if (fType === 'routing') {
+                setTimeout(() => {
+                  startAnimation([...p].reverse(), '#a855f7', () => {
+                    logEvent(`Routing Error message received at source`, 'error');
+                  });
+                }, 300);
+              }
+              return;
+            }
+            step++;
+            playNextStep();
+          }
+        });
+      };
+
+      playNextStep();
     };
 
-    playNextStep();
-  };
+    startAnimation(path, color, callback, failureId, failureType);
+  }, [nodes, showDropAnimation, logEvent]);
 
   const [pingTargetId, setPingTargetId] = useState<string>('');
   const [pingCount, setPingCount] = useState<number>(1);
@@ -531,7 +534,7 @@ export const NetworkVisualizer: React.FC = () => {
     logEvent(`Broadcast: ${nodes.find(n => n.id === sourceId)?.name} -> ${segment.name} (${targets.length} targets)`, 'success');
   };
 
-  const handleArpDiscovery = (sourceId: string, callback: () => void) => {
+  const handleArpDiscovery = useCallback((sourceId: string, callback: () => void) => {
     const sourceNode = nodes.find(n => n.id === sourceId);
     if (!sourceNode) {
       callback();
@@ -582,30 +585,9 @@ export const NetworkVisualizer: React.FC = () => {
 
     // Proceed to ping after discovery phase
     setTimeout(callback, 2000 + (targets.length * 50));
-  };
+  }, [nodes, detectedNetworks, logEvent, findPath, animatePacket]);
 
-  const [dhcpStatus, setDhcpStatus] = useState<Record<string, 'none' | 'discovering' | 'bound'>>({});
-
-  // Auto-DHCP trigger
-  useEffect(() => {
-    nodes.forEach(node => {
-      if (node.type === DeviceType.PC || node.type === DeviceType.SERVER) {
-        const isConnected = links.some(l => l.fromDeviceId === node.id || l.toDeviceId === node.id);
-        if (isConnected && !dhcpStatus[node.id]) {
-          handleDhcpDiscovery(node.id);
-        } else if (!isConnected && dhcpStatus[node.id]) {
-          // Reset DHCP if disconnected
-          setDhcpStatus(prev => {
-            const next = { ...prev };
-            delete next[node.id];
-            return next;
-          });
-        }
-      }
-    });
-  }, [links, nodes.length]);
-
-  const handleDhcpDiscovery = (deviceId: string) => {
+  const handleDhcpDiscovery = useCallback((deviceId: string) => {
     const node = nodes.find(n => n.id === deviceId);
     if (!node) return;
 
@@ -645,7 +627,28 @@ export const NetworkVisualizer: React.FC = () => {
         logEvent(`[DHCP] No server found. ${node.name} using APIPA (169.254.x.x)`, 'info');
       }, 1500);
     }
-  };
+  }, [nodes, detectedNetworks, logEvent, findPath, animatePacket]);
+
+  // Auto-DHCP trigger
+  useEffect(() => {
+    nodes.forEach(node => {
+      if (node.type === DeviceType.PC || node.type === DeviceType.SERVER) {
+        const isConnected = links.some(l => l.fromDeviceId === node.id || l.toDeviceId === node.id);
+        if (isConnected && !dhcpStatus[node.id]) {
+          handleDhcpDiscovery(node.id);
+        } else if (!isConnected && dhcpStatus[node.id]) {
+          // Reset DHCP if disconnected
+          setDhcpStatus(prev => {
+            const next = { ...prev };
+            delete next[node.id];
+            return next;
+          });
+        }
+      }
+    });
+  }, [links, nodes, dhcpStatus, handleDhcpDiscovery]);
+
+
 
   const handlePing = (sourceId: string, targetIdOverride?: string) => {
     const sourceNode = nodes.find(n => n.id === sourceId);
@@ -1175,39 +1178,67 @@ export const NetworkVisualizer: React.FC = () => {
             {/* Dynamic Network Browser */}
             <div className="flex gap-3 pointer-events-auto">
               {/* Networks Box */}
-              <div className="w-56 max-h-48 flex flex-col bg-slate-900/90 text-xs text-slate-300 p-2 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-md">
-                <div className="flex items-center justify-between mb-2 border-b border-slate-700 pb-1">
-                  <span className="font-bold uppercase tracking-wider flex items-center gap-1">
-                    <Network size={12} className="text-blue-400" /> Networks ({detectedNetworks.foundNetworks.length})
-                  </span>
+              <div className="w-56 max-h-48 flex flex-col bg-slate-900/90 text-xs text-slate-300 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-md overflow-hidden">
+                <div className="flex items-center justify-between p-2 border-b border-slate-700 bg-slate-800/50">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-3 h-3 text-blue-400" />
+                    <span className="font-bold uppercase tracking-wider text-[10px] text-blue-400">Network Segments</span>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-4 w-4 text-slate-400 hover:text-white"
+                    onClick={() => setIsNetworksCollapsed(!isNetworksCollapsed)}
+                  >
+                    {isNetworksCollapsed ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
+                  </Button>
                 </div>
-                <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                  {detectedNetworks.foundNetworks.map(net => (
-                    <button
-                      key={net.id}
-                      onClick={() => {
-                        const isClosing = selectedNetworkId === net.id;
-                        setSelectedNetworkId(isClosing ? null : net.id);
-                        if (!isClosing) highlightDevices(net.devices);
-                      }}
-                      className={cn(
-                        "w-full text-left p-1.5 rounded transition-colors flex items-center justify-between group",
-                        selectedNetworkId === net.id ? "bg-blue-600/30 border border-blue-500/50 text-blue-100" : "hover:bg-white/5 text-slate-400"
-                      )}
-                    >
-                      <div className="flex flex-col min-w-0">
-                        <span className="truncate">{net.name}</span>
-                        <span className="text-[10px] opacity-60 font-mono">{net.subnet}</span>
+                
+                {!isNetworksCollapsed && (
+                  <div className="flex-1 overflow-y-auto custom-scrollbar p-1 space-y-1">
+                    {detectedNetworks.foundNetworks.length === 0 ? (
+                      <div className="p-4 text-center text-slate-500 italic py-8">
+                        No active segments detected. Connect devices to start.
                       </div>
-                      <span className="text-[10px] bg-slate-800 px-1 rounded opacity-50 group-hover:opacity-100">
-                        {net.devices.length}d
-                      </span>
-                    </button>
-                  ))}
-                  {detectedNetworks.foundNetworks.length === 0 && (
-                    <div className="text-slate-500 italic p-2">No networks detected</div>
-                  )}
-                </div>
+                    ) : (
+                      detectedNetworks.foundNetworks.map(net => (
+                        <div
+                          key={net.id}
+                          className={cn(
+                            "group relative p-2 rounded border border-transparent transition-all cursor-pointer",
+                            selectedNetworkId === net.id 
+                              ? "bg-blue-600/20 border-blue-500/50 shadow-[0_0_10px_rgba(59,130,246,0.1)]" 
+                              : "hover:bg-slate-800/50 hover:border-slate-700"
+                          )}
+                          onClick={() => {
+                            setSelectedNetworkId(selectedNetworkId === net.id ? null : net.id);
+                            highlightDevices(net.devices);
+                          }}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-bold text-xs text-slate-200 group-hover:text-blue-400 transition-colors">{net.name}</span>
+                            <span className="text-[10px] font-mono text-blue-400/70">{net.subnet}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="flex -space-x-1">
+                              {net.devices.slice(0, 4).map(devId => (
+                                <div key={devId} className="w-4 h-4 rounded-full bg-slate-700 border border-slate-900 flex items-center justify-center">
+                                  <Monitor className="w-2 h-2 text-slate-400" />
+                                </div>
+                              ))}
+                              {net.devices.length > 4 && (
+                                <div className="w-4 h-4 rounded-full bg-slate-800 border border-slate-900 flex items-center justify-center text-[8px] text-slate-500">
+                                  +{net.devices.length - 4}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-slate-500 italic">{net.devices.length} devices</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Connected Devices Box (Shown when a network is selected) */}
@@ -1266,25 +1297,55 @@ export const NetworkVisualizer: React.FC = () => {
           </div>
 
           {/* Network Log Terminal */}
-          <div className="absolute bottom-4 right-4 w-80 max-h-48 flex flex-col-reverse overflow-y-auto bg-black/80 text-xs font-mono text-green-400 p-2 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-sm">
-            {logs.length === 0 ? (
-              <div className="text-slate-500 italic">Waiting for network events...</div>
-            ) : (
-              logs.map(log => (
-                <div key={log.id} className="mb-1 leading-tight border-b border-white/5 pb-1 last:border-0">
-                  <span className="text-slate-500">[{log.time}]</span>{" "}
-                  <span className={cn(
-                    log.type === 'success' ? 'text-green-400' :
-                      log.type === 'error' ? 'text-red-400' :
-                        'text-blue-300'
-                  )}>{log.msg}</span>
-                </div>
-              ))
-            )}
-            <div className="text-slate-400 font-bold mb-2 flex justify-between items-center border-b border-slate-700 pb-1">
-              <span>NETWORK LOG</span>
-              <span className="w-1.5 h-3 bg-green-500 animate-pulse" />
+          <div className="absolute bottom-4 right-4 w-80 max-h-48 flex flex-col bg-black/80 text-xs font-mono text-green-400 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center justify-between p-2 border-b border-slate-700 bg-slate-800/50">
+              <div className="flex items-center gap-2">
+                <Activity className="w-3 h-3 text-green-400 animate-pulse" />
+                <span className="font-bold uppercase tracking-wider text-[10px] text-green-400">Network Log</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-4 w-4 text-slate-500 hover:text-red-400"
+                  onClick={() => setLogs([])}
+                  title="Clear Logs"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-4 w-4 text-slate-400 hover:text-white"
+                  onClick={() => setIsLogsCollapsed(!isLogsCollapsed)}
+                >
+                  {isLogsCollapsed ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                </Button>
+              </div>
             </div>
+            
+            {!isLogsCollapsed && (
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-3 font-mono space-y-1.5 scroll-smooth">
+                {logs.length === 0 ? (
+                  <div className="h-full flex items-center justify-center text-slate-600 italic text-[10px]">
+                    Waiting for events...
+                  </div>
+                ) : (
+                  logs.map(log => (
+                    <div key={log.id} className="flex gap-2 animate-in slide-in-from-bottom-1 duration-200">
+                      <span className="text-slate-600 shrink-0 select-none">[{log.time}]</span>
+                      <span className={cn(
+                        "break-words",
+                        log.type === 'success' ? 'text-green-400' : 
+                        log.type === 'error' ? 'text-red-400' : 'text-slate-300'
+                      )}>
+                        {log.msg}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           {/* Info Overlay */}
