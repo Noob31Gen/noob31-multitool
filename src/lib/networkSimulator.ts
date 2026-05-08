@@ -390,7 +390,7 @@ export class SimulationEngine {
     };
 
     for (const startLink of this.links) {
-      if (visitedLinks.has(startLink.id)) continue;
+      if (visitedLinks.has(startLink.id) || startLink.stpState === 'blocking') continue;
 
       const networkDevices = new Set<string>();
       const queue: { linkId: string, fromId: string, currentId: string }[] = [
@@ -464,7 +464,7 @@ export class SimulationEngine {
 
     // Isolated devices
     for (const node of this.nodes) {
-      const isConnected = (adj[node.id] || []).length > 0;
+      const isConnected = (adj[node.id] || []).some(l => l.stpState !== 'blocking');
       if (!isConnected) {
         const sig = node.id;
         const hasDhcpServer = node.type === DeviceType.ROUTER || node.type === DeviceType.FIREWALL;

@@ -205,7 +205,7 @@ export const NetworkVisualizer: React.FC = () => {
         newNodes.push(cloudNode);
         
         // 4. Celebration Animation
-        logEvent("CLOUD COMPUTING DISCOVERED! ☁️✨", "success");
+        logEvent("CLOUD COMPUTING DISCOVERED!", "success");
         setCloudText({ x: avgX, y: avgY });
         setTimeout(() => {
           animate('#cloud-discovery-text', {
@@ -277,7 +277,7 @@ export const NetworkVisualizer: React.FC = () => {
               const avgY = (r1.y + r2.y + r3.y) / 3 - 60;
               
               setIspText({ x: avgX, y: avgY });
-              logEvent("ISP DISCOVERED! 🌐", "success");
+              logEvent("ISP DISCOVERED!", "success");
               setTimeout(() => {
                 animate('#isp-discovery-text', {
                   opacity: [0, 1, 0],
@@ -612,14 +612,7 @@ export const NetworkVisualizer: React.FC = () => {
   };
 
   const highlightDevices = (deviceIds: string[]) => {
-    deviceIds.forEach(id => {
-      animate(`[data-node-id="${id}"] circle`, {
-        stroke: ['#fb923c', '#fbbf24', '#f97316', '#cbd5e1'], // Orange -> Yellow -> Deep Orange -> Original
-        strokeWidth: [20, 2],
-        duration: 2000,
-        easing: 'easeOutExpo'
-      });
-    });
+    // Legacy highlight removed in favor of Sonar Pulse SVG effect
   };
 
   const addNode = (type: DeviceType) => {
@@ -971,7 +964,7 @@ export const NetworkVisualizer: React.FC = () => {
             viewBox="0 0 1000 800"
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}
-            onClick={() => { setSelectedNode(null); setSelectedLink(null); setLinkStartNodeId(null); }}
+            onClick={() => { setSelectedNode(null); setSelectedLink(null); setLinkStartNodeId(null); setSelectedNetworkId(null); }}
           >
             {/* Grid Background */}
             <defs>
@@ -1059,7 +1052,7 @@ export const NetworkVisualizer: React.FC = () => {
                       cy={(fromNode.y + toNode.y) / 2}
                       r={6}
                       fill="#ef4444"
-                      className="animate-pulse pointer-events-none"
+                      className="pointer-events-none"
                     />
                   )}
                 </g>
@@ -1077,26 +1070,59 @@ export const NetworkVisualizer: React.FC = () => {
                 className="group"
               >
                 {/* Root Bridge Indicator */}
+                {/* STP Root Bridge - Energy Field Effect */}
                 {node.isRootBridge && (
-                  <circle
-                    r="34"
-                    fill="none"
-                    stroke="#fbbf24"
-                    strokeWidth="2"
-                    strokeDasharray="4 2"
-                    className="animate-[spin_20s_linear_infinite]"
-                  />
+                  <g className="pointer-events-none">
+                    <circle
+                      r="36"
+                      fill="none"
+                      stroke="#fbbf24"
+                      strokeWidth="1.5"
+                      strokeDasharray="10 5"
+                      className="animate-[spin_15s_linear_infinite] opacity-80"
+                    />
+                    <circle
+                      r="32"
+                      fill="none"
+                      stroke="#fbbf24"
+                      strokeWidth="1"
+                      strokeDasharray="4 2"
+                      className="animate-spin-reverse opacity-60"
+                      style={{ animationDuration: '8s' }}
+                    />
+                    <circle
+                      r="30"
+                      fill="#fbbf24"
+                      className="opacity-20 blur-md animate-pulse"
+                    />
+                  </g>
                 )}
-                {/* Segment Highlight */}
+
+                {/* Network Selection - Sonar Pulse Effect */}
                 {selectedNetworkId && detectedNetworks.foundNetworks.find(net => net.id === selectedNetworkId)?.devices.includes(node.id) && (
-                  <circle
-                    r="32"
-                    fill="none"
-                    stroke="#3b82f6"
-                    strokeWidth="2"
-                    strokeDasharray="4 4"
-                    className="animate-pulse"
-                  />
+                  <g className="pointer-events-none">
+                    <circle
+                      r="42"
+                      fill="none"
+                      stroke="#3b82f6"
+                      strokeWidth="2"
+                      className="animate-ping opacity-20"
+                      style={{ animationDuration: '2s' }}
+                    />
+                    <circle
+                      r="38"
+                      fill="none"
+                      stroke="#3b82f6"
+                      strokeWidth="2"
+                      strokeDasharray="20 40"
+                      className="animate-[spin_3s_linear_infinite] opacity-60"
+                    />
+                    <circle
+                      r="35"
+                      fill="#3b82f6"
+                      className="opacity-15 animate-pulse blur-sm"
+                    />
+                  </g>
                 )}
                 <circle
                   r="28"
@@ -1114,7 +1140,7 @@ export const NetworkVisualizer: React.FC = () => {
                 </text>
                 <foreignObject x="-12" y="-12" width="24" height="24" className="pointer-events-none overflow-visible">
                   <div className="flex items-center justify-center w-full h-full text-slate-600 dark:text-slate-300">
-                    {node.isCloud ? <Cloud size={20} className="text-sky-400 animate-pulse" /> :
+                    {node.isCloud ? <Cloud size={20} className="text-sky-400" /> :
                       node.type === DeviceType.PC ? <Monitor size={20} /> :
                         node.type === DeviceType.SWITCH ? <Layers size={20} /> :
                           node.type === DeviceType.ROUTER ? <Network size={20} /> :
@@ -1139,7 +1165,7 @@ export const NetworkVisualizer: React.FC = () => {
                   filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.8))'
                 }}
               >
-                Cloud Computing Discovered! ☁️✨
+                Cloud Computing Discovered!
               </text>
             )}
             
@@ -1155,7 +1181,7 @@ export const NetworkVisualizer: React.FC = () => {
                   filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.8))'
                 }}
               >
-                ISP Discovered 🌐
+                ISP Discovered
               </text>
             )}
 
@@ -1171,7 +1197,7 @@ export const NetworkVisualizer: React.FC = () => {
             </div>
 
             {/* Dynamic Network Browser */}
-            <div className="flex flex-col items-start gap-3 pointer-events-auto">
+            <div className="flex items-end gap-3 pointer-events-auto">
               {/* Networks Box */}
               <div className="w-56 max-h-48 flex flex-col bg-slate-900/90 text-xs text-slate-300 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-md overflow-hidden">
                 <div className="flex items-center justify-between p-2 border-b border-slate-700 bg-slate-800/50">
@@ -1236,56 +1262,58 @@ export const NetworkVisualizer: React.FC = () => {
                 )}
               </div>
 
-              {/* Connected Devices Box (Shown when a network is selected) */}
               {selectedNetworkId && (
-                <div className="w-56 max-h-48 flex flex-col bg-slate-900/90 text-xs text-slate-300 p-2 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-md animate-in slide-in-from-left-2 duration-200">
-                  <div className="flex items-center justify-between mb-2 border-b border-slate-700 pb-1 text-blue-400 font-bold uppercase tracking-wider">
+                <div className={cn(
+                  "w-56 flex flex-col bg-slate-900/90 text-xs text-slate-300 p-2 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-md animate-in slide-in-from-left-2 duration-200",
+                  isNetworksCollapsed ? "h-fit" : "max-h-48"
+                )}>
+                  <div className="flex items-center justify-between border-b border-slate-700 pb-1 text-blue-400 font-bold uppercase tracking-wider mb-1">
                     <div className="flex flex-col min-w-0">
                       <span className="truncate">Devices in {detectedNetworks.foundNetworks.find(n => n.id === selectedNetworkId)?.name}</span>
-                      <span className="text-[10px] opacity-70 font-mono lowercase">{detectedNetworks.foundNetworks.find(n => n.id === selectedNetworkId)?.subnet}</span>
                     </div>
                     <Button variant="ghost" size="icon" className="h-4 w-4 hover:bg-white/10" onClick={() => setSelectedNetworkId(null)}>
                       <Trash2 size={12} className="text-slate-500" />
                     </Button>
                   </div>
-                  <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                    {detectedNetworks.foundNetworks.find(n => n.id === selectedNetworkId)?.devices.map(devId => {
-                      const node = nodes.find(n => n.id === devId);
-                      if (!node) return null;
+                  {!isNetworksCollapsed && (
+                    <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar mt-1">
+                      {detectedNetworks.foundNetworks.find(n => n.id === selectedNetworkId)?.devices.map(devId => {
+                        const node = nodes.find(n => n.id === devId);
+                        if (!node) return null;
 
-                      // Find any IP assigned to this device in THIS network
-                      const ifaceIps = Object.entries(detectedNetworks.interfaceIps)
-                        .filter(([key]) => key.startsWith(`${devId}-`))
-                        .map(([, ip]) => ip);
+                        const ifaceIps = Object.entries(detectedNetworks.interfaceIps)
+                          .filter(([key]) => key.startsWith(`${devId}-`))
+                          .map(([, ip]) => ip);
 
-                      return (
-                        <button
-                          key={devId}
-                          className="w-full p-1.5 rounded bg-white/5 flex items-center justify-between group hover:bg-white/10 transition-colors text-left"
-                          onClick={() => highlightDevices([devId])}
-                        >
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="text-slate-400 shrink-0">
-                              {node.type === DeviceType.PC ? <Monitor size={10} /> :
-                                node.type === DeviceType.SWITCH ? <Layers size={10} /> :
-                                  node.type === DeviceType.ROUTER ? <Network size={10} /> :
-                                    node.type === DeviceType.SERVER ? <HardDrive size={10} /> :
-                                      <Shield size={10} className="text-red-500" />}
-                            </span>
-                            <div className="flex flex-col min-w-0">
-                              <span className="truncate">{node.name}</span>
-                              {ifaceIps.length > 0 && (
-                                <span className="text-[10px] font-mono text-blue-400 truncate">
-                                  {ifaceIps.join(', ')}
-                                </span>
-                              )}
+                        return (
+                          <button
+                            key={devId}
+                            className="w-full p-1.5 rounded bg-white/5 flex items-center justify-between group hover:bg-white/10 transition-colors text-left"
+                            onClick={() => highlightDevices([devId])}
+                          >
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="text-slate-400 shrink-0">
+                                {node.type === DeviceType.PC ? <Monitor size={10} /> :
+                                  node.type === DeviceType.SWITCH ? <Layers size={10} /> :
+                                    node.type === DeviceType.ROUTER ? <Network size={10} /> :
+                                      node.type === DeviceType.SERVER ? <HardDrive size={10} /> :
+                                        <Shield size={10} className="text-red-500" />}
+                              </span>
+                              <div className="flex flex-col min-w-0">
+                                <span className="truncate">{node.name}</span>
+                                {ifaceIps.length > 0 && (
+                                  <span className="text-[10px] font-mono text-blue-400 truncate">
+                                    {ifaceIps.join(', ')}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                          <span className="text-[10px] font-mono text-slate-500 ml-1 shrink-0">{node.interfaces[0].mac.slice(-4)}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                            <span className="text-[10px] font-mono text-slate-500 ml-1 shrink-0">{node.interfaces[0].mac.slice(-4)}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
