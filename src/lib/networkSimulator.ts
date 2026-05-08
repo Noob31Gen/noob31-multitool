@@ -111,7 +111,7 @@ export interface Packet {
   destIp: string;
   ttl: number;
   history: string[];
-  payload?: any;
+  payload?: Record<string, unknown>;
 }
 
 /**
@@ -235,34 +235,30 @@ export class SimulationEngine {
                 }
               }
 
-              // Layer 3 (Routing) Logic
+              // Layer 3 (Routing) Logic & Security ACLs
               if (nextNode.type === DeviceType.FIREWALL || nextNode.type === DeviceType.ROUTER) {
-                // Check if firewall routing is disabled
-                if (nextNode.type === DeviceType.FIREWALL && nextNode.routingEnabled === false) {
-                   return { path: path.slice(0, i + 1), failureId: nextNode.id, failureType: 'firewall' };
-                }
-
+                // Check ACL (Blocked Networks/Devices) - Independent of routing state
                 // Stateful check: bypass ACLs for replies
                 if (!options.isReply) {
-                  // Check ACL (Blocked Networks/Devices)
                   if (nextNode.blockedNetworks?.some(b => b === startId || b === endId || (startNet && b === startNet.sig) || (destNet && b === destNet.sig))) {
                     return { path: path.slice(0, i + 2), failureId: nextNode.id, failureType: 'firewall' };
                   }
                 }
 
-                // Check Routing Knowledge (IP-based)
-                if (destIp) {
-                  // Real Routing Table Lookup
-                  const isLocal = destNet && destNet.devices.includes(nextNode.id);
-                  const isEnabled = nextNode.enabledRoutes?.includes(destNet.sig);
-                  const hasRoute = isLocal || isEnabled;
+                // Check if firewall routing is disabled (only for Firewalls)
+                if (nextNode.type === DeviceType.FIREWALL && nextNode.routingEnabled === false) {
+                   return { path: path.slice(0, i + 1), failureId: nextNode.id, failureType: 'firewall' };
+                }
+
+                // Routing Logic (Simplified: All segments reachable unless blocked by ACL)
+                if (destIp || destNet) {
+                  // In this simulation, routers automatically know all segments.
+                  // We rely on the ACL check above to drop traffic if needed.
+                  const hasRoute = true;
 
                   if (!hasRoute) {
                     return { path: path.slice(0, i + 2), failureId: nextNode.id, failureType: 'routing' };
                   }
-                } else if (destNet && nextNode.disabledRoutes?.includes(destNet.sig)) {
-                  // Legacy signature-based check
-                  return { path: path.slice(0, i + 2), failureId: nextNode.id, failureType: 'routing' };
                 }
               }
             }
