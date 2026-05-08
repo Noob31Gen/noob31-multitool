@@ -70,7 +70,37 @@ export const NetworkVisualizer: React.FC = () => {
   // Dynamic Network Detection logic
   const detectedNetworks = useMemo(() => {
     const visitedLinks = new Set<string>();
-    const foundNetworks: { id: string, name: string, devices: string[] }[] = [];
+    const usedSubnets = new Set<string>();
+    const foundNetworks: { id: string, name: string, devices: string[], subnet: string }[] = [];
+
+    const generateSubnet = (hasSwitch: boolean) => {
+      const prefix = hasSwitch ? '192.168' : '10.0';
+      let subnet = '';
+      let attempts = 0;
+      while (attempts < 256) {
+        const x = Math.floor(Math.random() * 256);
+        subnet = `${prefix}.${x}.0/24`;
+        if (!usedSubnets.has(subnet)) {
+          usedSubnets.add(subnet);
+          return subnet;
+        }
+        attempts++;
+      }
+      return `${prefix}.err.0/24`; // Fallback
+    };
+
+    const generateIpForMac = (mac: string, subnet: string) => {
+      let hash = 0;
+      const cleanMac = mac.replace(/[^A-F0-9]/g, '');
+      for (let i = 0; i < cleanMac.length; i++) {
+        hash = ((hash << 5) - hash) + cleanMac.charCodeAt(i);
+        hash |= 0;
+      }
+      const lastOctet = 2 + (Math.abs(hash) % 250); 
+      return `${subnet.split('.0/24')[0]}.${lastOctet}`;
+    };
+
+    const interfaceIps: Record<string, string> = {}; // key: deviceId-interfaceId, value: ip
 
     // Helper to get VLAN for a device connection on a switch
     const getVlan = (switchNode: Device, otherDeviceId: string) => {
@@ -123,10 +153,35 @@ export const NetworkVisualizer: React.FC = () => {
       }
 
       if (networkDevices.size > 0) {
+        const devices = Array.from(networkDevices);
+        const hasSwitch = devices.some(id => nodes.find(n => n.id === id)?.type === DeviceType.SWITCH);
+        const subnet = generateSubnet(hasSwitch);
+        
+        // Assign IPs to interfaces in this segment
+        devices.forEach(devId => {
+          const node = nodes.find(n => n.id === devId);
+          if (!node) return;
+          
+          // Find which interfaces of this device are connected to this segment
+          const segmentLinks = links.filter(l => 
+            (l.fromDeviceId === devId && networkDevices.has(l.toDeviceId)) ||
+            (l.toDeviceId === devId && networkDevices.has(l.fromDeviceId))
+          );
+          
+          segmentLinks.forEach(link => {
+            const ifaceId = link.fromDeviceId === devId ? link.fromInterfaceId : link.toInterfaceId;
+            const iface = node.interfaces.find(i => i.id === ifaceId);
+            if (iface) {
+              interfaceIps[`${devId}-${ifaceId}`] = generateIpForMac(iface.mac, subnet);
+            }
+          });
+        });
+
         foundNetworks.push({
           id: `net-${foundNetworks.length + 1}`,
           name: `Network Segment ${foundNetworks.length + 1}`,
-          devices: Array.from(networkDevices)
+          devices,
+          subnet
         });
       }
     });
@@ -135,15 +190,21 @@ export const NetworkVisualizer: React.FC = () => {
     nodes.forEach(node => {
       const isConnected = links.some(l => l.fromDeviceId === node.id || l.toDeviceId === node.id);
       if (!isConnected) {
+        const subnet = generateSubnet(false);
+        const iface = node.interfaces[0];
+        if (iface) {
+          interfaceIps[`${node.id}-${iface.id}`] = generateIpForMac(iface.mac, subnet);
+        }
         foundNetworks.push({
           id: `net-iso-${node.id}`,
           name: `Isolated: ${node.name}`,
-          devices: [node.id]
+          devices: [node.id],
+          subnet
         });
       }
     });
 
-    return foundNetworks;
+    return { foundNetworks, interfaceIps };
   }, [nodes, links]);
 
   const svgRef = useRef<SVGSVGElement>(null);
@@ -347,7 +408,7 @@ export const NetworkVisualizer: React.FC = () => {
 
   const handleBroadcast = (sourceId: string) => {
     // Find the network segment this device belongs to
-    const segment = detectedNetworks.find(net => net.devices.includes(sourceId));
+    const segment = detectedNetworks.foundNetworks.find(net => net.devices.includes(sourceId));
     if (!segment) {
       logEvent("No network detected for broadcast", "error");
       return;
@@ -438,15 +499,19 @@ export const NetworkVisualizer: React.FC = () => {
     if (type === DeviceType.ROUTER || type === DeviceType.FIREWALL) portLimit = 4;
     if (type === DeviceType.IPS_IDS) portLimit = 2;
 
+    const interfaces = Array.from({ length: portLimit }, (_, i) => ({
+      id: `eth${i}`,
+      mac: getRandomMac(),
+      isConnected: false
+    }));
+
     const newNode: Device = {
       id: nextId('node'),
       name: `${type}-${nodes.length + 1}`,
       type,
       x,
       y,
-      interfaces: [
-        { id: 'eth0', mac: getRandomMac(), isConnected: false }
-      ],
+      interfaces,
       arpCache: {},
       portLimit,
       vlans: type === DeviceType.SWITCH ? ['VLAN 1'] : undefined,
@@ -534,18 +599,46 @@ export const NetworkVisualizer: React.FC = () => {
         );
 
         if (!exists) {
-          const newLink: Link = {
-            id: nextId('link'),
-            fromDeviceId: linkStartNodeId,
-            fromInterfaceId: 'eth0',
-            toDeviceId: nodeId,
-            toInterfaceId: 'eth0',
-            bandwidth: 1000,
-            latency: 1,
-            status: 'up'
-          };
-          setLinks([...links, newLink]);
-          logEvent(`Linked ${linkStartNodeId} to ${nodeId}`, 'success');
+          const startNode = nodes.find(n => n.id === linkStartNodeId);
+          const targetNode = nodes.find(n => n.id === nodeId);
+          
+          if (startNode && targetNode) {
+            const startIface = startNode.interfaces.find(i => !i.isConnected);
+            const targetIface = targetNode.interfaces.find(i => !i.isConnected);
+            
+            if (!startIface || !targetIface) {
+              logEvent("Error: No available interfaces", "error");
+              setLinkStartNodeId(null);
+              return;
+            }
+
+            const startIfaceId = startIface.id;
+            const targetIfaceId = targetIface.id;
+            
+            // Update nodes with connected interfaces
+            setNodes(nodes.map(n => {
+              if (n.id === linkStartNodeId) {
+                return { ...n, interfaces: n.interfaces.map(i => i.id === startIfaceId ? { ...i, isConnected: true } : i) };
+              }
+              if (n.id === nodeId) {
+                return { ...n, interfaces: n.interfaces.map(i => i.id === targetIfaceId ? { ...i, isConnected: true } : i) };
+              }
+              return n;
+            }));
+
+            const newLink: Link = {
+              id: nextId('link'),
+              fromDeviceId: linkStartNodeId,
+              fromInterfaceId: startIfaceId,
+              toDeviceId: nodeId,
+              toInterfaceId: targetIfaceId,
+              bandwidth: 1000,
+              latency: 1,
+              status: 'up'
+            };
+            setLinks([...links, newLink]);
+            logEvent(`Linked ${startNode.name}:${startIfaceId} to ${targetNode.name}:${targetIfaceId}`, 'success');
+          }
         }
         setLinkStartNodeId(null);
       }
@@ -778,6 +871,17 @@ export const NetworkVisualizer: React.FC = () => {
                 <g key={link.id} onClick={(e) => {
                   e.stopPropagation();
                   if (mode === 'delete') {
+                    // Update connected status of interfaces
+                    setNodes(nodes.map(n => {
+                      if (n.id === link.fromDeviceId || n.id === link.toDeviceId) {
+                        const ifaceId = n.id === link.fromDeviceId ? link.fromInterfaceId : link.toInterfaceId;
+                        return {
+                          ...n,
+                          interfaces: n.interfaces.map(i => i.id === ifaceId ? { ...i, isConnected: false } : i)
+                        };
+                      }
+                      return n;
+                    }));
                     setLinks(links.filter(l => l.id !== link.id));
                     if (selectedLink === link.id) setSelectedLink(null);
                     logEvent(`Deleted Link`, 'info');
@@ -854,11 +958,11 @@ export const NetworkVisualizer: React.FC = () => {
               <div className="w-48 max-h-48 flex flex-col bg-slate-900/90 text-[10px] text-slate-300 p-2 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-md">
                 <div className="flex items-center justify-between mb-2 border-b border-slate-700 pb-1">
                   <span className="font-bold uppercase tracking-wider flex items-center gap-1">
-                    <Network size={12} className="text-blue-400" /> Networks ({detectedNetworks.length})
+                    <Network size={12} className="text-blue-400" /> Networks ({detectedNetworks.foundNetworks.length})
                   </span>
                 </div>
                 <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                  {detectedNetworks.map(net => (
+                  {detectedNetworks.foundNetworks.map(net => (
                     <button
                       key={net.id}
                       onClick={() => {
@@ -871,13 +975,16 @@ export const NetworkVisualizer: React.FC = () => {
                         selectedNetworkId === net.id ? "bg-blue-600/30 border border-blue-500/50 text-blue-100" : "hover:bg-white/5 text-slate-400"
                       )}
                     >
-                      <span className="truncate">{net.name}</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="truncate">{net.name}</span>
+                        <span className="text-[7px] opacity-60 font-mono">{net.subnet}</span>
+                      </div>
                       <span className="text-[8px] bg-slate-800 px-1 rounded opacity-50 group-hover:opacity-100">
                         {net.devices.length}d
                       </span>
                     </button>
                   ))}
-                  {detectedNetworks.length === 0 && (
+                  {detectedNetworks.foundNetworks.length === 0 && (
                     <div className="text-slate-500 italic p-2">No networks detected</div>
                   )}
                 </div>
@@ -887,32 +994,48 @@ export const NetworkVisualizer: React.FC = () => {
               {selectedNetworkId && (
                 <div className="w-48 max-h-48 flex flex-col bg-slate-900/90 text-[10px] text-slate-300 p-2 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-md animate-in slide-in-from-left-2 duration-200">
                   <div className="flex items-center justify-between mb-2 border-b border-slate-700 pb-1 text-blue-400 font-bold uppercase tracking-wider">
-                    <span className="truncate">Devices in {detectedNetworks.find(n => n.id === selectedNetworkId)?.name}</span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="truncate">Devices in {detectedNetworks.foundNetworks.find(n => n.id === selectedNetworkId)?.name}</span>
+                      <span className="text-[7px] opacity-70 font-mono lowercase">{detectedNetworks.foundNetworks.find(n => n.id === selectedNetworkId)?.subnet}</span>
+                    </div>
                     <Button variant="ghost" size="icon" className="h-4 w-4 hover:bg-white/10" onClick={() => setSelectedNetworkId(null)}>
                       <Trash2 size={10} className="text-slate-500" />
                     </Button>
                   </div>
                   <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                    {detectedNetworks.find(n => n.id === selectedNetworkId)?.devices.map(devId => {
+                    {detectedNetworks.foundNetworks.find(n => n.id === selectedNetworkId)?.devices.map(devId => {
                       const node = nodes.find(n => n.id === devId);
                       if (!node) return null;
+                      
+                      // Find any IP assigned to this device in THIS network
+                      const ifaceIps = Object.entries(detectedNetworks.interfaceIps)
+                        .filter(([key]) => key.startsWith(`${devId}-`))
+                        .map(([, ip]) => ip);
+                      
                       return (
                         <button
                           key={devId}
                           className="w-full p-1.5 rounded bg-white/5 flex items-center justify-between group hover:bg-white/10 transition-colors text-left"
                           onClick={() => highlightDevices([devId])}
                         >
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-slate-400">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-slate-400 shrink-0">
                               {node.type === DeviceType.PC ? <Monitor size={10} /> :
                                 node.type === DeviceType.SWITCH ? <Layers size={10} /> :
                                   node.type === DeviceType.ROUTER ? <Network size={10} /> :
                                     node.type === DeviceType.SERVER ? <HardDrive size={10} /> :
                                       <Shield size={10} className="text-red-500" />}
                             </span>
-                            <span className="truncate">{node.name}</span>
+                            <div className="flex flex-col min-w-0">
+                              <span className="truncate">{node.name}</span>
+                              {ifaceIps.length > 0 && (
+                                <span className="text-[6px] font-mono text-blue-400 truncate">
+                                  {ifaceIps.join(', ')}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <span className="text-[8px] font-mono text-slate-500">{node.interfaces[0].mac.slice(-4)}</span>
+                          <span className="text-[8px] font-mono text-slate-500 ml-1 shrink-0">{node.interfaces[0].mac.slice(-4)}</span>
                         </button>
                       );
                     })}
@@ -1002,6 +1125,19 @@ export const NetworkVisualizer: React.FC = () => {
                       <p className="text-[10px] font-mono">
                         {links.filter(l => l.fromDeviceId === selectedNode || l.toDeviceId === selectedNode).length} / {nodes.find(n => n.id === selectedNode)?.portLimit}
                       </p>
+                    </div>
+                  </div>
+
+                  {/* Network Context */}
+                  <div className="p-2 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                    <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1 opacity-70">Current Network</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                        {detectedNetworks.foundNetworks.find(net => net.devices.includes(selectedNode!))?.name || "Isolated"}
+                      </span>
+                      <span className="text-[9px] font-mono opacity-80">
+                        {detectedNetworks.foundNetworks.find(net => net.devices.includes(selectedNode!))?.subnet}
+                      </span>
                     </div>
                   </div>
 
@@ -1315,9 +1451,24 @@ export const NetworkVisualizer: React.FC = () => {
                   )}
                   <div className="space-y-1">
                     <p className="text-[10px] text-muted-foreground uppercase font-bold">Interfaces</p>
-                    <div className="flex items-center space-x-2 py-1 px-2 bg-slate-100 dark:bg-slate-800 rounded">
-                      <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]" />
-                      <span className="text-xs font-mono">eth0 (UP)</span>
+                    <div className="space-y-2">
+                      {nodes.find(n => n.id === selectedNode)?.interfaces.map(iface => (
+                        <div key={iface.id} className="flex flex-col p-2 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center space-x-2">
+                              <div className={cn("w-2 h-2 rounded-full", iface.isConnected ? "bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]" : "bg-slate-400")} />
+                              <span className="text-[10px] font-bold uppercase">{iface.id}</span>
+                            </div>
+                            <span className="text-[8px] font-mono opacity-50">{iface.mac}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[9px] text-muted-foreground italic">{iface.isConnected ? 'Connected' : 'Disconnected'}</span>
+                            <span className="text-[10px] font-mono text-blue-500 font-bold">
+                              {detectedNetworks.interfaceIps[`${selectedNode}-${iface.id}`] || 'no ip'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
