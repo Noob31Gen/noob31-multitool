@@ -166,14 +166,14 @@ const NetworkVisualizerContent: React.FC = () => {
     const isSilent = type === 'silent';
     const isIds = node.type === DeviceType.IPS_IDS && node.ipsMode === 'IDS';
     const isRouting = type === 'routing';
-    
+
     // Silent drops use a neutral grey
     const color = isSilent ? "#94a3b8" : (isIds ? "#f59e0b" : (isRouting ? "#a855f7" : "#ef4444"));
 
     // Create a group for the drop effect
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
     g.setAttribute("style", "pointer-events: none;");
-    
+
     // Create a ripple ring
     const ripple = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     ripple.setAttribute("cx", node.x.toString());
@@ -188,7 +188,7 @@ const NetworkVisualizerContent: React.FC = () => {
       // Create the icon/mark (Only for non-silent drops)
       const mark = document.createElementNS("http://www.w3.org/2000/svg", "g");
       mark.setAttribute("transform", `translate(${node.x}, ${node.y})`);
-      
+
       const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       circle.setAttribute("r", "15");
       circle.setAttribute("fill", color);
@@ -203,7 +203,7 @@ const NetworkVisualizerContent: React.FC = () => {
       text.setAttribute("fill", "white");
       text.setAttribute("font-weight", "bold");
       mark.appendChild(text);
-      
+
       g.appendChild(mark);
 
       // Animate the mark
@@ -219,7 +219,7 @@ const NetworkVisualizerContent: React.FC = () => {
       // Silent drop cleanup
       setTimeout(() => g.remove(), 1000);
     }
-    
+
     overNodeLayerRef.current?.appendChild(g);
 
     // Animate the ripple
@@ -250,16 +250,16 @@ const NetworkVisualizerContent: React.FC = () => {
     const visited = new Set<string>();
     for (const server of servers) {
       if (visited.has(server.id)) continue;
-      
+
       const component: Device[] = [];
       const queue = [server.id];
       visited.add(server.id);
-      
+
       while (queue.length > 0) {
         const currId = queue.shift()!;
         const currNode = nodes.find(n => n.id === currId)!;
         component.push(currNode);
-        
+
         links.filter(l => l.fromDeviceId === currId || l.toDeviceId === currId).forEach(l => {
           const neighborId = l.fromDeviceId === currId ? l.toDeviceId : l.fromDeviceId;
           const neighbor = nodes.find(n => n.id === neighborId);
@@ -269,13 +269,13 @@ const NetworkVisualizerContent: React.FC = () => {
           }
         });
       }
-      
+
       if (component.length >= 3) {
         // TRIGGER EASTER EGG
         const ids = component.map(n => n.id);
         const avgX = component.reduce((acc, n) => acc + n.x, 0) / component.length;
         const avgY = component.reduce((acc, n) => acc + n.y, 0) / component.length - 60;
-        
+
         // 1. Create Cloud Node
         const cloudNode: Device = {
           id: `cloud-${Date.now()}`,
@@ -294,7 +294,7 @@ const NetworkVisualizerContent: React.FC = () => {
           disabledRoutes: [],
           enabledRoutes: []
         };
-        
+
         // 2. Update Links
         const newLinks = links
           .filter(l => !(ids.includes(l.fromDeviceId) && ids.includes(l.toDeviceId))) // Remove links between the servers
@@ -303,11 +303,11 @@ const NetworkVisualizerContent: React.FC = () => {
             if (ids.includes(l.toDeviceId)) return { ...l, toDeviceId: cloudNode.id };
             return l;
           });
-          
+
         // 3. Update Nodes
         const newNodes = nodes.filter(n => !ids.includes(n.id));
         newNodes.push(cloudNode);
-        
+
         // 4. Celebration Animation
         setTimeout(() => logEvent("CLOUD COMPUTING DISCOVERED!", "success"), 0);
         setTimeout(() => setCloudText({ x: avgX, y: avgY }), 0);
@@ -319,7 +319,7 @@ const NetworkVisualizerContent: React.FC = () => {
           });
         }, 100);
         setTimeout(() => setCloudText(null), 3000);
-        
+
         // Animate the merge
         ids.forEach(id => {
           animate(`[data-node-id="${id}"] circle, [data-node-id="${id}"] foreignObject, [data-node-id="${id}"] text`, {
@@ -334,7 +334,7 @@ const NetworkVisualizerContent: React.FC = () => {
           setNodes(newNodes);
           setLinks(newLinks);
           setSelectedNode(cloudNode.id);
-          
+
           // Flash the new cloud node
           setTimeout(() => {
             // Animate the contents to avoid overriding the group's translate transform
@@ -367,19 +367,19 @@ const NetworkVisualizerContent: React.FC = () => {
             const r1 = routers[i];
             const r2 = routers[j];
             const r3 = routers[k];
-            
+
             const l12 = links.find(l => (l.fromDeviceId === r1.id && l.toDeviceId === r2.id) || (l.fromDeviceId === r2.id && l.toDeviceId === r1.id));
             const l23 = links.find(l => (l.fromDeviceId === r2.id && l.toDeviceId === r3.id) || (l.fromDeviceId === r3.id && l.toDeviceId === r2.id));
             const l31 = links.find(l => (l.fromDeviceId === r3.id && l.toDeviceId === r1.id) || (l.fromDeviceId === r1.id && l.toDeviceId === r3.id));
-            
+
             if (l12 && l23 && l31) {
               const triId = [r1.id, r2.id, r3.id].sort().join('-');
               if (discoveredTriangles.current.has(triId)) continue;
-              
+
               discoveredTriangles.current.add(triId);
               const avgX = (r1.x + r2.x + r3.x) / 3;
               const avgY = (r1.y + r2.y + r3.y) / 3 - 60;
-              
+
               setTimeout(() => setIspText({ x: avgX, y: avgY }), 0);
               setTimeout(() => logEvent("ISP DISCOVERED!", "success"), 0);
               setTimeout(() => {
@@ -388,7 +388,7 @@ const NetworkVisualizerContent: React.FC = () => {
                   duration: 3000,
                   easing: 'easeInOutQuad'
                 });
-                
+
                 // Pulse effect on the routers
                 [r1, r2, r3].forEach(r => {
                   animate(`[data-node-id="${r.id}"] circle`, {
@@ -431,13 +431,14 @@ const NetworkVisualizerContent: React.FC = () => {
       onDropAnimation: (nodeId, type) => showDropAnimation(nodeId, type)
     });
   }, [engine, detectedNetworks, showDropAnimation]);
-  const animatePacket = useCallback((path: string[], color: string = '#3b82f6', callback?: () => void, failureId?: string, failureType?: 'firewall' | 'routing' | 'silent') => {
+
+  const animatePacket = useCallback((path: string[], color: string = '#3b82f6', callback?: () => void, failureId?: string, failureType?: 'firewall' | 'routing' | 'silent') => {
     const startAnimation = (p: string[], c: string, cb?: () => void, fId?: string, fType?: 'firewall' | 'routing' | 'silent') => {
       if (p.length < 2 || !underNodeLayerRef.current) return;
 
       const createPacket = (packetColor: string) => {
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        
+
         // Trail effect (The path left behind)
         const trail = document.createElementNS("http://www.w3.org/2000/svg", "path");
         trail.setAttribute("fill", "none");
@@ -451,7 +452,7 @@ const NetworkVisualizerContent: React.FC = () => {
         // Core Pulse (The moving data)
         // We use a group for the core to allow rotation and glow
         const core = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        
+
         // Glow effect
         const glow = document.createElementNS("http://www.w3.org/2000/svg", "rect");
         glow.setAttribute("width", "20");
@@ -503,7 +504,7 @@ const NetworkVisualizerContent: React.FC = () => {
         underNodeLayerRef.current?.appendChild(packetGroup);
 
         const angle = Math.atan2(toNode.y - fromNode.y, toNode.x - fromNode.x) * 180 / Math.PI;
-        
+
         // Trail setup
         trail.setAttribute("d", `M ${fromNode.x} ${fromNode.y} L ${toNode.x} ${toNode.y}`);
         const pathLength = trail.getTotalLength();
@@ -528,7 +529,7 @@ const NetworkVisualizerContent: React.FC = () => {
           easing: 'easeInOutCubic',
           onComplete: () => {
             packetGroup.remove();
-            
+
             // Impact Ripple
             const ripple = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             ripple.setAttribute("cx", toNode.x.toString());
@@ -538,7 +539,7 @@ const NetworkVisualizerContent: React.FC = () => {
             ripple.setAttribute("stroke", c);
             ripple.setAttribute("stroke-width", "2");
             underNodeLayerRef.current?.appendChild(ripple);
-            
+
             animate(ripple, {
               r: [4, 30],
               opacity: [0.8, 0],
@@ -582,7 +583,7 @@ const NetworkVisualizerContent: React.FC = () => {
 
     const animateNode = (nodeId: string, onDone?: () => void) => {
       const neighbors = tree[nodeId];
-      
+
       // Notify arrival at this node
       if (options?.onNodeArrival) options.onNodeArrival(nodeId);
 
@@ -647,7 +648,7 @@ const NetworkVisualizerContent: React.FC = () => {
       animateBroadcastTree(broadcastPaths, '#3b82f6', {
         onComplete: () => {
           logEvent(`Broadcast Echo: Receiving responses from ${targets.length} devices...`, 'success');
-          
+
           // Trigger responses from all targets
           targets.forEach((targetId, index) => {
             setTimeout(() => {
@@ -694,7 +695,7 @@ const NetworkVisualizerContent: React.FC = () => {
       },
       onComplete: () => {
         // Step 2: ARP Replies (Unicast back to source) - Teal
-        const targetsToRespond = targetId 
+        const targetsToRespond = targetId
           ? results.filter(r => r.targetId === targetId)
           : results;
 
@@ -719,7 +720,7 @@ const NetworkVisualizerContent: React.FC = () => {
                 return n;
               }));
               logEvent(`[ARP] Reply from ${targetNode.name}: I am at ${targetIp}`, 'success');
-              
+
               repliesDone++;
               if (repliesDone === targetsToRespond.length && callback) {
                 callback();
@@ -924,7 +925,7 @@ const NetworkVisualizerContent: React.FC = () => {
       // Remove node and its links
       setNodes(nodes.filter(n => n.id !== nodeId));
       setLinks(links.filter(l => l.fromDeviceId !== nodeId && l.toDeviceId !== nodeId));
-      
+
       if (selectedNode === nodeId) setSelectedNode(null);
       logEvent(`Deleted ${node?.name}`, 'info');
       return;
@@ -1056,7 +1057,7 @@ const NetworkVisualizerContent: React.FC = () => {
 
       <div>
         <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">Network Visualiser [BETA]</h1>
-        <p className="text-muted-foreground mt-2">Design and observe simple network topologies. Click on (i) for info.</p>
+        <p className="text-muted-foreground mt-2">Design and observe simple network topologies. Listen, a lot of the logic was manually written for this and this runs fully in browser. It attempts to simulate most basic network functionalities. Too many devices on screen can slow down your browser. So, don't mistake it for a full fledged or flawless tool. But if you do find issues, let me know.</p>
       </div>
 
       {/* Mobile Disclaimer */}
@@ -1402,7 +1403,7 @@ const NetworkVisualizerContent: React.FC = () => {
                 </foreignObject>
               </g>
             ))}
-            
+
             {cloudText && (
               <text
                 id="cloud-discovery-text"
@@ -1410,7 +1411,7 @@ const NetworkVisualizerContent: React.FC = () => {
                 y={cloudText.y}
                 textAnchor="middle"
                 className="text-2xl font-black fill-blue-500 dark:fill-blue-400 uppercase tracking-tighter pointer-events-none"
-                style={{ 
+                style={{
                   opacity: 0,
                   filter: 'drop-shadow(0 0 12px rgba(59, 130, 246, 0.8))'
                 }}
@@ -1418,7 +1419,7 @@ const NetworkVisualizerContent: React.FC = () => {
                 Cloud Computing Discovered!
               </text>
             )}
-            
+
             {ispText && (
               <text
                 id="isp-discovery-text"
@@ -1426,7 +1427,7 @@ const NetworkVisualizerContent: React.FC = () => {
                 y={ispText.y}
                 textAnchor="middle"
                 className="text-2xl font-black fill-purple-500 dark:fill-purple-400 uppercase tracking-tighter pointer-events-none"
-                style={{ 
+                style={{
                   opacity: 0,
                   filter: 'drop-shadow(0 0 12px rgba(168, 85, 247, 0.8))'
                 }}
@@ -1443,56 +1444,57 @@ const NetworkVisualizerContent: React.FC = () => {
           {(() => {
             const hoveredNode = nodes.find(n => n.id === hoveredNodeId);
             if (!hoveredNodeId || !hoveredNode) return null;
-            
+
             return (
-              <div 
+              <div
                 className="fixed pointer-events-none z-[100] animate-in fade-in zoom-in-95 duration-200"
-                style={{ 
+                style={{
                   left: screenMousePos.x + 15,
                   top: screenMousePos.y + 15
                 }}
               >
-              <div className="bg-slate-900/90 text-white p-2 rounded-lg shadow-xl backdrop-blur-md border border-slate-700/50 flex flex-col gap-1 min-w-[120px]">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">
-                    {nodes.find(n => n.id === hoveredNodeId)?.type}
+                <div className="bg-slate-900/90 text-white p-2 rounded-lg shadow-xl backdrop-blur-md border border-slate-700/50 flex flex-col gap-1 min-w-[120px]">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">
+                      {nodes.find(n => n.id === hoveredNodeId)?.type}
+                    </span>
+                    <span className="text-[9px] font-mono opacity-50">
+                      {nodes.find(n => n.id === hoveredNodeId)?.interfaces[0].mac.slice(-4)}
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold truncate">
+                    {nodes.find(n => n.id === hoveredNodeId)?.name}
                   </span>
-                  <span className="text-[9px] font-mono opacity-50">
-                    {nodes.find(n => n.id === hoveredNodeId)?.interfaces[0].mac.slice(-4)}
-                  </span>
-                </div>
-                <span className="text-xs font-bold truncate">
-                  {nodes.find(n => n.id === hoveredNodeId)?.name}
-                </span>
-                <div className="pt-1 border-t border-white/10 flex flex-col gap-0.5">
-                  {(() => {
-                    const nodeNets = detectedNetworks.foundNetworks.filter(net => net.devices.includes(hoveredNodeId));
-                    if (nodeNets.length === 0) return (
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-                        <span className="text-[9px] uppercase font-bold opacity-70">Isolated Node</span>
-                      </div>
-                    );
-                    
-                    const primaryNet = nodeNets[0];
-                    return (
-                      <>
+                  <div className="pt-1 border-t border-white/10 flex flex-col gap-0.5">
+                    {(() => {
+                      const nodeNets = detectedNetworks.foundNetworks.filter(net => net.devices.includes(hoveredNodeId));
+                      if (nodeNets.length === 0) return (
                         <div className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                          <span className="text-[9px] uppercase font-bold text-blue-400">
-                            {nodeNets.length > 1 ? `Multi-Segment (${nodeNets.length})` : primaryNet.name}
-                          </span>
+                          <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                          <span className="text-[9px] uppercase font-bold opacity-70">Isolated Node</span>
                         </div>
-                        <span className="text-[8px] font-mono opacity-50 ml-3 truncate">
-                          {nodeNets.length > 1 ? "Layer 3 Gateway" : primaryNet.subnet}
-                        </span>
-                      </>
-                    );
-                  })()}
+                      );
+
+                      const primaryNet = nodeNets[0];
+                      return (
+                        <>
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                            <span className="text-[9px] uppercase font-bold text-blue-400">
+                              {nodeNets.length > 1 ? `Multi-Segment (${nodeNets.length})` : primaryNet.name}
+                            </span>
+                          </div>
+                          <span className="text-[8px] font-mono opacity-50 ml-3 truncate">
+                            {nodeNets.length > 1 ? "Layer 3 Gateway" : primaryNet.subnet}
+                          </span>
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
-            </div>
-          ); })()}
+            );
+          })()}
 
           {/* Bottom Left UI Stack */}
           <div className="absolute bottom-4 left-4 flex flex-col gap-2 pointer-events-none">
@@ -1510,21 +1512,21 @@ const NetworkVisualizerContent: React.FC = () => {
                     <Zap className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
                     <span className="font-bold uppercase tracking-widest text-[10px] text-blue-500">Network Segments</span>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="h-5 w-5 text-slate-400 hover:text-blue-500 transition-premium"
                     onClick={() => setIsNetworksCollapsed(!isNetworksCollapsed)}
                   >
                     {isNetworksCollapsed ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                   </Button>
                 </div>
-                
+
                 {!isNetworksCollapsed && (
                   <div className="flex-1 overflow-y-auto custom-scrollbar p-1.5 space-y-1">
                     {detectedNetworks.foundNetworks.length === 0 ? (
                       <div className="p-6 text-center text-slate-400 italic text-[10px]">
-                        No active segments detected.<br/>Connect devices to start.
+                        No active segments detected.<br />Connect devices to start.
                       </div>
                     ) : (
                       detectedNetworks.foundNetworks.map(net => (
@@ -1532,8 +1534,8 @@ const NetworkVisualizerContent: React.FC = () => {
                           key={net.id}
                           className={cn(
                             "group relative p-2 rounded-lg border border-transparent transition-premium cursor-pointer",
-                            selectedNetworkId === net.id 
-                              ? "bg-blue-500/10 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]" 
+                            selectedNetworkId === net.id
+                              ? "bg-blue-500/10 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
                               : "hover:bg-slate-100/50 dark:hover:bg-slate-800/50 hover:border-slate-200 dark:hover:border-slate-700"
                           )}
                           onClick={() => {
@@ -1643,18 +1645,18 @@ const NetworkVisualizerContent: React.FC = () => {
                 <span className="font-bold uppercase tracking-wider text-[10px] text-green-400">Network Log</span>
               </div>
               <div className="flex items-center gap-1">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="h-4 w-4 text-slate-500 hover:text-red-400"
                   onClick={() => setLogs([])}
                   title="Clear Logs"
                 >
                   <Trash2 className="w-3 h-3" />
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="h-4 w-4 text-slate-400 hover:text-white"
                   onClick={() => setIsLogsCollapsed(!isLogsCollapsed)}
                 >
@@ -1662,7 +1664,7 @@ const NetworkVisualizerContent: React.FC = () => {
                 </Button>
               </div>
             </div>
-            
+
             {!isLogsCollapsed && (
               <div className="flex-1 overflow-y-auto custom-scrollbar p-3 font-mono space-y-1.5 scroll-smooth">
                 {logs.length === 0 ? (
@@ -1675,8 +1677,8 @@ const NetworkVisualizerContent: React.FC = () => {
                       <span className="text-slate-600 shrink-0 select-none">[{log.time}]</span>
                       <span className={cn(
                         "break-words",
-                        log.type === 'success' ? 'text-green-400' : 
-                        log.type === 'error' ? 'text-red-400' : 'text-slate-300'
+                        log.type === 'success' ? 'text-green-400' :
+                          log.type === 'error' ? 'text-red-400' : 'text-slate-300'
                       )}>
                         {log.msg}
                       </span>
@@ -1704,10 +1706,10 @@ const NetworkVisualizerContent: React.FC = () => {
                   </h3>
                 )}
                 <div className={cn("flex items-center gap-1", isInfoCollapsed ? "flex-col" : "")}>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-7 w-7 hover:bg-slate-200 dark:hover:bg-slate-700 transition-premium" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 hover:bg-slate-200 dark:hover:bg-slate-700 transition-premium"
                     onClick={() => setIsInfoCollapsed(!isInfoCollapsed)}
                     title={isInfoCollapsed ? "Expand Panel" : "Collapse Panel"}
                   >
@@ -1743,9 +1745,9 @@ const NetworkVisualizerContent: React.FC = () => {
                           }
                         })()}
                       </div>
-                      
+
                       <div className="h-px w-8 bg-slate-200 dark:bg-slate-800" />
-                      
+
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -1761,7 +1763,7 @@ const NetworkVisualizerContent: React.FC = () => {
                           <TooltipContent side="left">Broadcast</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                      
+
                       <div className="flex-1" />
 
                       <TooltipProvider>
@@ -1803,213 +1805,171 @@ const NetworkVisualizerContent: React.FC = () => {
                 /* Expanded Content */
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4">
 
-                {selectedNode && (
-                  <div className="space-y-4">
-                    {/* Device Role Description */}
-                    <div className="p-2 bg-slate-100/50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
-                      <p className="text-xs text-muted-foreground uppercase font-bold mb-1 opacity-70">Device Role</p>
-                      <p className="text-xs leading-tight italic text-slate-600 dark:text-slate-400">
-                        {(() => {
-                          const node = nodes.find(n => n.id === selectedNode);
-                          switch (node?.type) {
-                            case DeviceType.PC: return "Standard network host for end-user applications and initiating/receiving traffic.";
-                            case DeviceType.SERVER: return "High-capacity network host optimized for data storage and processing service requests.";
-                            case DeviceType.SWITCH: return "Layer 2 networking device that connects multiple hosts within a local network segment via MAC address learning.";
-                            case DeviceType.ROUTER: return "Layer 3 networking device that routes traffic between different network segments and manages logical boundaries.";
-                            case DeviceType.FIREWALL: return "Security appliance that filters traffic based on source/destination rules and manages network isolation.";
-                            case DeviceType.IPS_IDS: return "Security device that monitors (IDS) or prevents (IPS) malicious traffic. Operates as a transparent Layer 2 bridge.";
-                            default: return "Network device with specific connectivity and security rules.";
-                          }
-                        })()}
-                      </p>
-                    </div>
-
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground uppercase font-bold">Identifier</p>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <p className="text-sm font-mono truncate max-w-[150px] cursor-help">{nodes.find(n => n.id === selectedNode)?.name}</p>
-                          </TooltipTrigger>
-                          <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]">
-                            {nodes.find(n => n.id === selectedNode)?.name}
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                      <div className="text-right space-y-1">
-                        <p className="text-xs text-muted-foreground uppercase font-bold">Ports</p>
-                        <p className="text-xs font-mono">
-                          {links.filter(l => l.fromDeviceId === selectedNode || l.toDeviceId === selectedNode).length} / {nodes.find(n => n.id === selectedNode)?.portLimit}
+                  {selectedNode && (
+                    <div className="space-y-4">
+                      {/* Device Role Description */}
+                      <div className="p-2 bg-slate-100/50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <p className="text-xs text-muted-foreground uppercase font-bold mb-1 opacity-70">Device Role</p>
+                        <p className="text-xs leading-tight italic text-slate-600 dark:text-slate-400">
+                          {(() => {
+                            const node = nodes.find(n => n.id === selectedNode);
+                            switch (node?.type) {
+                              case DeviceType.PC: return "Standard network host for end-user applications and initiating/receiving traffic.";
+                              case DeviceType.SERVER: return "High-capacity network host optimized for data storage and processing service requests.";
+                              case DeviceType.SWITCH: return "Layer 2 networking device that connects multiple hosts within a local network segment via MAC address learning.";
+                              case DeviceType.ROUTER: return "Layer 3 networking device that routes traffic between different network segments and manages logical boundaries.";
+                              case DeviceType.FIREWALL: return "Security appliance that filters traffic based on source/destination rules and manages network isolation.";
+                              case DeviceType.IPS_IDS: return "Security device that monitors (IDS) or prevents (IPS) malicious traffic. Operates as a transparent Layer 2 bridge.";
+                              default: return "Network device with specific connectivity and security rules.";
+                            }
+                          })()}
                         </p>
                       </div>
-                    </div>
 
-                    {/* Network Context */}
-                    <div className="p-3 bg-blue-50/30 dark:bg-blue-900/10 rounded-lg border border-blue-100/50 dark:border-blue-900/30 space-y-2">
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold opacity-70">Active Connectivity</p>
-                      <div className="space-y-1.5">
-                        {(() => {
-                          const activeSegments = detectedNetworks.foundNetworks.filter(net => net.devices.includes(selectedNode!));
-                          if (activeSegments.length === 0) return (
-                            <div className="flex items-center justify-between p-1.5 rounded bg-white/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
-                              <span className="text-xs font-bold text-slate-400">Isolated Node</span>
-                              <span className="text-[9px] font-mono text-slate-400">Air-Gapped</span>
-                            </div>
-                          );
-                          return activeSegments.map(net => (
-                            <div key={net.id} className="flex items-center justify-between p-1.5 rounded bg-white/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 group/net transition-premium">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400 truncate cursor-help">
-                                      {net.name}
-                                    </span>
-                                  </TooltipTrigger>
-                                  <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]" side="left">{net.name}</TooltipContent>
-                                </Tooltip>
-                              </div>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span className="text-[10px] font-mono text-slate-500 cursor-help">
-                                    {net.subnet}
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]" side="bottom">Subnet Signature: {net.sig}</TooltipContent>
-                              </Tooltip>
-                            </div>
-                          ));
-                        })()}
-                      </div>
-                    </div>
-
-                    {/* Routing Section (Conditional for Firewall) */}
-                    {(() => {
-                      const node = nodes.find(n => n.id === selectedNode);
-                      if (!node) return null;
-                      const isFirewall = node.type === DeviceType.FIREWALL;
-                      const isRouter = node.type === DeviceType.ROUTER;
-                      
-                      if (!isFirewall && !isRouter) return null;
-
-                      return (
-                        <div className="space-y-4">
-                          {/* Firewall Routing Toggle */}
-                          {isFirewall && (
-                            <div className="p-3 bg-red-50/50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800 space-y-2">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
-                                  <Network className="w-3 h-3" />
-                                  <span className="text-[10px] font-bold uppercase tracking-wider">L3 Routing Capability</span>
-                                </div>
-                                <Button
-                                  variant={node.routingEnabled ? "default" : "outline"}
-                                  size="sm"
-                                  className={cn("h-5 text-[10px] px-1.5 transition-premium", node.routingEnabled ? "bg-red-600 hover:bg-red-700" : "")}
-                                  onClick={() => {
-                                    setNodes(nodes.map(n => n.id === selectedNode ? { ...n, routingEnabled: !n.routingEnabled } : n));
-                                    logEvent(`Firewall routing ${!node.routingEnabled ? 'ENABLED' : 'DISABLED'}`, 'info');
-                                  }}
-                                >
-                                  {node.routingEnabled ? 'ENABLED' : 'DISABLED'}
-                                </Button>
-                              </div>
-                              <p className="text-[9px] text-muted-foreground italic leading-tight">
-                                {node.routingEnabled 
-                                  ? "Operating in Layer 3 mode. Can route between segments and apply ACLs." 
-                                  : "Operating in Layer 2 Transparent Bridge mode. Routing and Knowledge disabled."}
-                              </p>
-                            </div>
-                          )}
-
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground uppercase font-bold">Identifier</p>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <p className="text-sm font-mono truncate max-w-[150px] cursor-help">{nodes.find(n => n.id === selectedNode)?.name}</p>
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]">
+                              {nodes.find(n => n.id === selectedNode)?.name}
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
-                      );
-                    })()}
-
-                    {/* Router/Firewall Section */}
-                    {(nodes.find(n => n.id === selectedNode)?.type === DeviceType.ROUTER || nodes.find(n => n.id === selectedNode)?.type === DeviceType.FIREWALL) && (
-                      <div className="p-3 bg-red-50/50 dark:bg-red-900/10 rounded-lg border border-red-100 dark:border-red-900/30 space-y-3">
-                        <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
-                          <Shield className="w-3 h-3" />
-                          <span className="text-xs font-bold uppercase tracking-wider">
-                            Security ACLs
-                          </span>
-                        </div>
-
-
-                        <div className="space-y-1.5 border-t pt-2">
-                          <Label className="text-xs uppercase text-muted-foreground flex justify-between items-center">
-                            ACL: Block Network Segment
-                            <Shield size={12} className="text-red-500" />
-                          </Label>
-                          <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                            {detectedNetworks.foundNetworks.map(net => {
-                              const node = nodes.find(n => n.id === selectedNode);
-                              const isBlocked = node?.blockedNetworks?.includes(net.sig);
-                              const isDirectlyConnected = net.devices.includes(selectedNode!);
-
-                              return (
-                                <div key={net.id} className={cn(
-                                  "flex items-center justify-between p-1 rounded",
-                                  isDirectlyConnected ? "bg-blue-100/30 dark:bg-blue-900/10" : "hover:bg-white dark:hover:bg-slate-900"
-                                )}>
-                                  <div className="flex flex-col min-w-0">
-                                    <span className="text-xs font-bold truncate">{net.name}</span>
-                                    <span className="text-[10px] font-mono opacity-60 truncate">{net.subnet}</span>
-                                  </div>
-                                  <Button
-                                    variant={isBlocked ? "destructive" : "outline"}
-                                    size="sm"
-                                    className={cn("h-5 text-[10px] px-1.5 transition-premium", isBlocked ? "bg-red-600 hover:bg-red-700" : "")}
-                                    onClick={() => {
-                                      if (node) {
-                                        const newBlocked = isBlocked
-                                          ? (node.blockedNetworks || []).filter(sig => sig !== net.sig)
-                                          : [...(node.blockedNetworks || []), net.sig];
-                                        setNodes(nodes.map(n => n.id === selectedNode ? { ...n, blockedNetworks: newBlocked } : n));
-                                        logEvent(`${node.name}: ${isBlocked ? 'Unblocked' : 'Blocked'} ${net.name}`, isBlocked ? 'info' : 'error');
-                                      }
-                                    }}
-                                  >
-                                    {isBlocked ? 'BLOCKED' : 'ALLOW'}
-                                  </Button>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          <p className="text-[10px] text-muted-foreground italic leading-tight pt-1">
-                            Firewalls block entire network segments at Layer 3. Traffic from these sources will be dropped.
+                        <div className="text-right space-y-1">
+                          <p className="text-xs text-muted-foreground uppercase font-bold">Ports</p>
+                          <p className="text-xs font-mono">
+                            {links.filter(l => l.fromDeviceId === selectedNode || l.toDeviceId === selectedNode).length} / {nodes.find(n => n.id === selectedNode)?.portLimit}
                           </p>
                         </div>
+                      </div>
 
-                        <div className="space-y-1.5 border-t pt-2">
-                          <Label className="text-xs uppercase text-muted-foreground flex justify-between items-center">
-                            ACL: Block Individual Device
-                            <Monitor size={12} className="text-slate-400" />
-                          </Label>
-                          <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                            {nodes
-                              .filter(n => n.id !== selectedNode && (n.type === DeviceType.PC || n.type === DeviceType.SERVER))
-                              .map(target => {
-                                const isBlocked = nodes.find(n => n.id === selectedNode)?.blockedNetworks?.includes(target.id);
+                      {/* Network Context */}
+                      <div className="p-3 bg-blue-50/30 dark:bg-blue-900/10 rounded-lg border border-blue-100/50 dark:border-blue-900/30 space-y-2">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold opacity-70">Active Connectivity</p>
+                        <div className="space-y-1.5">
+                          {(() => {
+                            const activeSegments = detectedNetworks.foundNetworks.filter(net => net.devices.includes(selectedNode!));
+                            if (activeSegments.length === 0) return (
+                              <div className="flex items-center justify-between p-1.5 rounded bg-white/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                                <span className="text-xs font-bold text-slate-400">Isolated Node</span>
+                                <span className="text-[9px] font-mono text-slate-400">Air-Gapped</span>
+                              </div>
+                            );
+                            return activeSegments.map(net => (
+                              <div key={net.id} className="flex items-center justify-between p-1.5 rounded bg-white/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 group/net transition-premium">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400 truncate cursor-help">
+                                        {net.name}
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]" side="left">{net.name}</TooltipContent>
+                                  </Tooltip>
+                                </div>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="text-[10px] font-mono text-slate-500 cursor-help">
+                                      {net.subnet}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]" side="bottom">Subnet Signature: {net.sig}</TooltipContent>
+                                </Tooltip>
+                              </div>
+                            ));
+                          })()}
+                        </div>
+                      </div>
+
+                      {/* Routing Section (Conditional for Firewall) */}
+                      {(() => {
+                        const node = nodes.find(n => n.id === selectedNode);
+                        if (!node) return null;
+                        const isFirewall = node.type === DeviceType.FIREWALL;
+                        const isRouter = node.type === DeviceType.ROUTER;
+
+                        if (!isFirewall && !isRouter) return null;
+
+                        return (
+                          <div className="space-y-4">
+                            {/* Firewall Routing Toggle */}
+                            {isFirewall && (
+                              <div className="p-3 bg-red-50/50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                                    <Network className="w-3 h-3" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">L3 Routing Capability</span>
+                                  </div>
+                                  <Button
+                                    variant={node.routingEnabled ? "default" : "outline"}
+                                    size="sm"
+                                    className={cn("h-5 text-[10px] px-1.5 transition-premium", node.routingEnabled ? "bg-red-600 hover:bg-red-700" : "")}
+                                    onClick={() => {
+                                      setNodes(nodes.map(n => n.id === selectedNode ? { ...n, routingEnabled: !n.routingEnabled } : n));
+                                      logEvent(`Firewall routing ${!node.routingEnabled ? 'ENABLED' : 'DISABLED'}`, 'info');
+                                    }}
+                                  >
+                                    {node.routingEnabled ? 'ENABLED' : 'DISABLED'}
+                                  </Button>
+                                </div>
+                                <p className="text-[9px] text-muted-foreground italic leading-tight">
+                                  {node.routingEnabled
+                                    ? "Operating in Layer 3 mode. Can route between segments and apply ACLs."
+                                    : "Operating in Layer 2 Transparent Bridge mode. Routing and Knowledge disabled."}
+                                </p>
+                              </div>
+                            )}
+
+                          </div>
+                        );
+                      })()}
+
+                      {/* Router/Firewall Section */}
+                      {(nodes.find(n => n.id === selectedNode)?.type === DeviceType.ROUTER || nodes.find(n => n.id === selectedNode)?.type === DeviceType.FIREWALL) && (
+                        <div className="p-3 bg-red-50/50 dark:bg-red-900/10 rounded-lg border border-red-100 dark:border-red-900/30 space-y-3">
+                          <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
+                            <Shield className="w-3 h-3" />
+                            <span className="text-xs font-bold uppercase tracking-wider">
+                              Security ACLs
+                            </span>
+                          </div>
+
+
+                          <div className="space-y-1.5 border-t pt-2">
+                            <Label className="text-xs uppercase text-muted-foreground flex justify-between items-center">
+                              ACL: Block Network Segment
+                              <Shield size={12} className="text-red-500" />
+                            </Label>
+                            <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                              {detectedNetworks.foundNetworks.map(net => {
+                                const node = nodes.find(n => n.id === selectedNode);
+                                const isBlocked = node?.blockedNetworks?.includes(net.sig);
+                                const isDirectlyConnected = net.devices.includes(selectedNode!);
+
                                 return (
-                                  <div key={target.id} className="flex items-center justify-between p-1.5 rounded bg-slate-50/50 dark:bg-white/5 border border-transparent hover:bg-white dark:hover:bg-slate-900 transition-premium">
+                                  <div key={net.id} className={cn(
+                                    "flex items-center justify-between p-1 rounded",
+                                    isDirectlyConnected ? "bg-blue-100/30 dark:bg-blue-900/10" : "hover:bg-white dark:hover:bg-slate-900"
+                                  )}>
                                     <div className="flex flex-col min-w-0">
-                                      <span className="text-[10px] font-bold truncate">{target.name}</span>
-                                      <span className="text-[9px] font-mono opacity-60">ID: {target.id.slice(0, 8)}</span>
+                                      <span className="text-xs font-bold truncate">{net.name}</span>
+                                      <span className="text-[10px] font-mono opacity-60 truncate">{net.subnet}</span>
                                     </div>
                                     <Button
                                       variant={isBlocked ? "destructive" : "outline"}
                                       size="sm"
                                       className={cn("h-5 text-[10px] px-1.5 transition-premium", isBlocked ? "bg-red-600 hover:bg-red-700" : "")}
                                       onClick={() => {
-                                        const node = nodes.find(n => n.id === selectedNode);
                                         if (node) {
                                           const newBlocked = isBlocked
-                                            ? (node.blockedNetworks || []).filter(id => id !== target.id)
-                                            : [...(node.blockedNetworks || []), target.id];
+                                            ? (node.blockedNetworks || []).filter(sig => sig !== net.sig)
+                                            : [...(node.blockedNetworks || []), net.sig];
                                           setNodes(nodes.map(n => n.id === selectedNode ? { ...n, blockedNetworks: newBlocked } : n));
-                                          logEvent(`${node.name}: ${isBlocked ? 'Unblocked' : 'Blocked'} ${target.name}`, isBlocked ? 'info' : 'error');
+                                          logEvent(`${node.name}: ${isBlocked ? 'Unblocked' : 'Blocked'} ${net.name}`, isBlocked ? 'info' : 'error');
                                         }
                                       }}
                                     >
@@ -2017,112 +1977,41 @@ const NetworkVisualizerContent: React.FC = () => {
                                     </Button>
                                   </div>
                                 );
-                              })
-                            }
+                              })}
+                            </div>
+                            <p className="text-[10px] text-muted-foreground italic leading-tight pt-1">
+                              Firewalls block entire network segments at Layer 3. Traffic from these sources will be dropped.
+                            </p>
                           </div>
-                        </div>
-                      </div>
-                    )}
 
-                    {/* Server DHCP Configuration */}
-                    {nodes.find(n => n.id === selectedNode)?.type === DeviceType.SERVER && (
-                      <div className="p-3 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-lg border border-indigo-100 dark:border-indigo-900/30 space-y-3">
-                        <div className="flex items-center justify-between text-indigo-600 dark:text-indigo-400">
-                          <div className="flex items-center space-x-2">
-                            <Zap className="w-3 h-3" />
-                            <span className="text-xs font-bold uppercase tracking-wider">Service: DHCP Server</span>
-                          </div>
-                          <Switch 
-                            checked={nodes.find(n => n.id === selectedNode)?.dhcpEnabled || false}
-                            onCheckedChange={(checked) => {
-                              setNodes(nodes.map(n => n.id === selectedNode ? { ...n, dhcpEnabled: checked } : n));
-                              logEvent(`${nodes.find(n => n.id === selectedNode)?.name} DHCP Service: ${checked ? 'Online' : 'Offline'}`, checked ? 'success' : 'info');
-                            }}
-                          />
-                        </div>
-                        <p className="text-[10px] text-muted-foreground italic leading-tight">
-                          When enabled, this server will provide IP addresses to the local network segment.
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold">MAC Address</p>
-                      <p className="text-sm font-mono text-blue-600 dark:text-blue-400">{nodes.find(n => n.id === selectedNode)?.interfaces[0].mac}</p>
-                    </div>
-
-                    {/* IPS/IDS Mode Section */}
-                    {nodes.find(n => n.id === selectedNode)?.type === DeviceType.IPS_IDS && (
-                      <div className="p-3 bg-orange-50/50 dark:bg-orange-900/10 rounded-lg border border-orange-100 dark:border-orange-900/30 space-y-3">
-                        <div className="flex items-center space-x-2 text-orange-600 dark:text-orange-400">
-                          <Activity className="w-3 h-3" />
-                          <span className="text-xs font-bold uppercase tracking-wider">Device Mode</span>
-                        </div>
-
-                        <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-md">
-                          <Button
-                            variant={nodes.find(n => n.id === selectedNode)?.ipsMode === 'IDS' ? 'default' : 'ghost'}
-                            size="sm"
-                            className="flex-1 h-7 text-xs uppercase font-bold"
-                            onClick={() => {
-                              setNodes(nodes.map(n => n.id === selectedNode ? { ...n, ipsMode: 'IDS' } : n));
-                              logEvent(`${nodes.find(n => n.id === selectedNode)?.name} set to IDS mode (Detection Only)`, 'info');
-                            }}
-                          >
-                            IDS
-                          </Button>
-                          <Button
-                            variant={nodes.find(n => n.id === selectedNode)?.ipsMode === 'IPS' ? 'default' : 'ghost'}
-                            size="sm"
-                            className="flex-1 h-7 text-xs uppercase font-bold"
-                            onClick={() => {
-                              setNodes(nodes.map(n => n.id === selectedNode ? { ...n, ipsMode: 'IPS' } : n));
-                              logEvent(`${nodes.find(n => n.id === selectedNode)?.name} set to IPS mode (Prevention Enabled)`, 'info');
-                            }}
-                          >
-                            IPS
-                          </Button>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground italic leading-tight">
-                          {nodes.find(n => n.id === selectedNode)?.ipsMode === 'IDS'
-                            ? 'IDS Mode: Sniffs traffic but does not block. Transparent Layer 2 bridge.'
-                            : 'IPS Mode: Inspects and blocks malicious traffic. Transparent Layer 2 bridge.'}
-                        </p>
-
-                        {nodes.find(n => n.id === selectedNode)?.ipsMode === 'IPS' && (
-                          <div className="space-y-4 pt-2 border-t border-orange-100 dark:border-orange-900/20">
-                            {/* Segment ACL for IPS */}
-                            <div className="space-y-1.5">
-                              <Label className="text-xs uppercase text-muted-foreground flex justify-between items-center">
-                                ACL: Block Network Segment
-                                <Shield size={12} className="text-orange-500" />
-                              </Label>
-                              <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                                {detectedNetworks.foundNetworks.map(net => {
-                                  const node = nodes.find(n => n.id === selectedNode);
-                                  const isBlocked = node?.blockedNetworks?.includes(net.sig);
-                                  const isDirectlyConnected = net.devices.includes(selectedNode!);
-
+                          <div className="space-y-1.5 border-t pt-2">
+                            <Label className="text-xs uppercase text-muted-foreground flex justify-between items-center">
+                              ACL: Block Individual Device
+                              <Monitor size={12} className="text-slate-400" />
+                            </Label>
+                            <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                              {nodes
+                                .filter(n => n.id !== selectedNode && (n.type === DeviceType.PC || n.type === DeviceType.SERVER))
+                                .map(target => {
+                                  const isBlocked = nodes.find(n => n.id === selectedNode)?.blockedNetworks?.includes(target.id);
                                   return (
-                                    <div key={net.id} className={cn(
-                                      "flex items-center justify-between p-1.5 rounded",
-                                      isDirectlyConnected ? "bg-blue-100/30 dark:bg-blue-900/10" : "hover:bg-white dark:hover:bg-slate-900"
-                                    )}>
+                                    <div key={target.id} className="flex items-center justify-between p-1.5 rounded bg-slate-50/50 dark:bg-white/5 border border-transparent hover:bg-white dark:hover:bg-slate-900 transition-premium">
                                       <div className="flex flex-col min-w-0">
-                                        <span className="text-xs font-bold truncate">{net.name}</span>
-                                        <span className="text-[10px] font-mono opacity-60 truncate">{net.subnet}</span>
+                                        <span className="text-[10px] font-bold truncate">{target.name}</span>
+                                        <span className="text-[9px] font-mono opacity-60">ID: {target.id.slice(0, 8)}</span>
                                       </div>
                                       <Button
                                         variant={isBlocked ? "destructive" : "outline"}
                                         size="sm"
-                                        className={cn("h-5 text-[10px] px-1.5 transition-premium", isBlocked ? "bg-orange-600 hover:bg-orange-700" : "")}
+                                        className={cn("h-5 text-[10px] px-1.5 transition-premium", isBlocked ? "bg-red-600 hover:bg-red-700" : "")}
                                         onClick={() => {
+                                          const node = nodes.find(n => n.id === selectedNode);
                                           if (node) {
                                             const newBlocked = isBlocked
-                                              ? (node.blockedNetworks || []).filter(sig => sig !== net.sig)
-                                              : [...(node.blockedNetworks || []), net.sig];
+                                              ? (node.blockedNetworks || []).filter(id => id !== target.id)
+                                              : [...(node.blockedNetworks || []), target.id];
                                             setNodes(nodes.map(n => n.id === selectedNode ? { ...n, blockedNetworks: newBlocked } : n));
-                                            logEvent(`${node.name}: ${isBlocked ? 'Unblocked' : 'Blocked'} ${net.name}`, isBlocked ? 'info' : 'error');
+                                            logEvent(`${node.name}: ${isBlocked ? 'Unblocked' : 'Blocked'} ${target.name}`, isBlocked ? 'info' : 'error');
                                           }
                                         }}
                                       >
@@ -2130,39 +2019,112 @@ const NetworkVisualizerContent: React.FC = () => {
                                       </Button>
                                     </div>
                                   );
-                                })}
-                              </div>
+                                })
+                              }
                             </div>
+                          </div>
+                        </div>
+                      )}
 
-                            {/* Device ACL for IPS */}
-                            <div className="space-y-1.5 border-t border-orange-100 dark:border-orange-900/20 pt-2">
-                              <Label className="text-xs uppercase text-muted-foreground flex justify-between items-center">
-                                ACL: Block Individual Device
-                                <Monitor size={12} className="text-slate-400" />
-                              </Label>
-                              <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                                {nodes
-                                  .filter(n => n.id !== selectedNode && (n.type === DeviceType.PC || n.type === DeviceType.SERVER))
-                                  .map(target => {
-                                    const isBlocked = nodes.find(n => n.id === selectedNode)?.blockedNetworks?.includes(target.id);
+                      {/* Server DHCP Configuration */}
+                      {nodes.find(n => n.id === selectedNode)?.type === DeviceType.SERVER && (
+                        <div className="p-3 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-lg border border-indigo-100 dark:border-indigo-900/30 space-y-3">
+                          <div className="flex items-center justify-between text-indigo-600 dark:text-indigo-400">
+                            <div className="flex items-center space-x-2">
+                              <Zap className="w-3 h-3" />
+                              <span className="text-xs font-bold uppercase tracking-wider">Service: DHCP Server</span>
+                            </div>
+                            <Switch
+                              checked={nodes.find(n => n.id === selectedNode)?.dhcpEnabled || false}
+                              onCheckedChange={(checked) => {
+                                setNodes(nodes.map(n => n.id === selectedNode ? { ...n, dhcpEnabled: checked } : n));
+                                logEvent(`${nodes.find(n => n.id === selectedNode)?.name} DHCP Service: ${checked ? 'Online' : 'Offline'}`, checked ? 'success' : 'info');
+                              }}
+                            />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground italic leading-tight">
+                            When enabled, this server will provide IP addresses to the local network segment.
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold">MAC Address</p>
+                        <p className="text-sm font-mono text-blue-600 dark:text-blue-400">{nodes.find(n => n.id === selectedNode)?.interfaces[0].mac}</p>
+                      </div>
+
+                      {/* IPS/IDS Mode Section */}
+                      {nodes.find(n => n.id === selectedNode)?.type === DeviceType.IPS_IDS && (
+                        <div className="p-3 bg-orange-50/50 dark:bg-orange-900/10 rounded-lg border border-orange-100 dark:border-orange-900/30 space-y-3">
+                          <div className="flex items-center space-x-2 text-orange-600 dark:text-orange-400">
+                            <Activity className="w-3 h-3" />
+                            <span className="text-xs font-bold uppercase tracking-wider">Device Mode</span>
+                          </div>
+
+                          <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-md">
+                            <Button
+                              variant={nodes.find(n => n.id === selectedNode)?.ipsMode === 'IDS' ? 'default' : 'ghost'}
+                              size="sm"
+                              className="flex-1 h-7 text-xs uppercase font-bold"
+                              onClick={() => {
+                                setNodes(nodes.map(n => n.id === selectedNode ? { ...n, ipsMode: 'IDS' } : n));
+                                logEvent(`${nodes.find(n => n.id === selectedNode)?.name} set to IDS mode (Detection Only)`, 'info');
+                              }}
+                            >
+                              IDS
+                            </Button>
+                            <Button
+                              variant={nodes.find(n => n.id === selectedNode)?.ipsMode === 'IPS' ? 'default' : 'ghost'}
+                              size="sm"
+                              className="flex-1 h-7 text-xs uppercase font-bold"
+                              onClick={() => {
+                                setNodes(nodes.map(n => n.id === selectedNode ? { ...n, ipsMode: 'IPS' } : n));
+                                logEvent(`${nodes.find(n => n.id === selectedNode)?.name} set to IPS mode (Prevention Enabled)`, 'info');
+                              }}
+                            >
+                              IPS
+                            </Button>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground italic leading-tight">
+                            {nodes.find(n => n.id === selectedNode)?.ipsMode === 'IDS'
+                              ? 'IDS Mode: Sniffs traffic but does not block. Transparent Layer 2 bridge.'
+                              : 'IPS Mode: Inspects and blocks malicious traffic. Transparent Layer 2 bridge.'}
+                          </p>
+
+                          {nodes.find(n => n.id === selectedNode)?.ipsMode === 'IPS' && (
+                            <div className="space-y-4 pt-2 border-t border-orange-100 dark:border-orange-900/20">
+                              {/* Segment ACL for IPS */}
+                              <div className="space-y-1.5">
+                                <Label className="text-xs uppercase text-muted-foreground flex justify-between items-center">
+                                  ACL: Block Network Segment
+                                  <Shield size={12} className="text-orange-500" />
+                                </Label>
+                                <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                                  {detectedNetworks.foundNetworks.map(net => {
+                                    const node = nodes.find(n => n.id === selectedNode);
+                                    const isBlocked = node?.blockedNetworks?.includes(net.sig);
+                                    const isDirectlyConnected = net.devices.includes(selectedNode!);
+
                                     return (
-                                      <div key={target.id} className="flex items-center justify-between p-1.5 rounded bg-white/50 dark:bg-slate-800/50 border border-transparent hover:bg-white dark:hover:bg-slate-900 transition-premium">
+                                      <div key={net.id} className={cn(
+                                        "flex items-center justify-between p-1.5 rounded",
+                                        isDirectlyConnected ? "bg-blue-100/30 dark:bg-blue-900/10" : "hover:bg-white dark:hover:bg-slate-900"
+                                      )}>
                                         <div className="flex flex-col min-w-0">
-                                          <span className="text-[10px] font-bold truncate">{target.name}</span>
-                                          <span className="text-[9px] font-mono opacity-60">ID: {target.id.slice(0, 8)}</span>
+                                          <span className="text-xs font-bold truncate">{net.name}</span>
+                                          <span className="text-[10px] font-mono opacity-60 truncate">{net.subnet}</span>
                                         </div>
                                         <Button
                                           variant={isBlocked ? "destructive" : "outline"}
                                           size="sm"
                                           className={cn("h-5 text-[10px] px-1.5 transition-premium", isBlocked ? "bg-orange-600 hover:bg-orange-700" : "")}
                                           onClick={() => {
-                                            const node = nodes.find(n => n.id === selectedNode);
                                             if (node) {
                                               const newBlocked = isBlocked
-                                                ? (node.blockedNetworks || []).filter(id => id !== target.id)
-                                                : [...(node.blockedNetworks || []), target.id];
+                                                ? (node.blockedNetworks || []).filter(sig => sig !== net.sig)
+                                                : [...(node.blockedNetworks || []), net.sig];
                                               setNodes(nodes.map(n => n.id === selectedNode ? { ...n, blockedNetworks: newBlocked } : n));
-                                              logEvent(`${node.name}: ${isBlocked ? 'Unblocked' : 'Blocked'} ${target.name}`, isBlocked ? 'info' : 'error');
+                                              logEvent(`${node.name}: ${isBlocked ? 'Unblocked' : 'Blocked'} ${net.name}`, isBlocked ? 'info' : 'error');
                                             }
                                           }}
                                         >
@@ -2170,293 +2132,333 @@ const NetworkVisualizerContent: React.FC = () => {
                                         </Button>
                                       </div>
                                     );
-                                  })
-                                }
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* Device ACL for IPS */}
+                              <div className="space-y-1.5 border-t border-orange-100 dark:border-orange-900/20 pt-2">
+                                <Label className="text-xs uppercase text-muted-foreground flex justify-between items-center">
+                                  ACL: Block Individual Device
+                                  <Monitor size={12} className="text-slate-400" />
+                                </Label>
+                                <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                                  {nodes
+                                    .filter(n => n.id !== selectedNode && (n.type === DeviceType.PC || n.type === DeviceType.SERVER))
+                                    .map(target => {
+                                      const isBlocked = nodes.find(n => n.id === selectedNode)?.blockedNetworks?.includes(target.id);
+                                      return (
+                                        <div key={target.id} className="flex items-center justify-between p-1.5 rounded bg-white/50 dark:bg-slate-800/50 border border-transparent hover:bg-white dark:hover:bg-slate-900 transition-premium">
+                                          <div className="flex flex-col min-w-0">
+                                            <span className="text-[10px] font-bold truncate">{target.name}</span>
+                                            <span className="text-[9px] font-mono opacity-60">ID: {target.id.slice(0, 8)}</span>
+                                          </div>
+                                          <Button
+                                            variant={isBlocked ? "destructive" : "outline"}
+                                            size="sm"
+                                            className={cn("h-5 text-[10px] px-1.5 transition-premium", isBlocked ? "bg-orange-600 hover:bg-orange-700" : "")}
+                                            onClick={() => {
+                                              const node = nodes.find(n => n.id === selectedNode);
+                                              if (node) {
+                                                const newBlocked = isBlocked
+                                                  ? (node.blockedNetworks || []).filter(id => id !== target.id)
+                                                  : [...(node.blockedNetworks || []), target.id];
+                                                setNodes(nodes.map(n => n.id === selectedNode ? { ...n, blockedNetworks: newBlocked } : n));
+                                                logEvent(`${node.name}: ${isBlocked ? 'Unblocked' : 'Blocked'} ${target.name}`, isBlocked ? 'info' : 'error');
+                                              }
+                                            }}
+                                          >
+                                            {isBlocked ? 'BLOCKED' : 'ALLOW'}
+                                          </Button>
+                                        </div>
+                                      );
+                                    })
+                                  }
+                                </div>
                               </div>
                             </div>
+                          )}
+                        </div>
+                      )}
+                      {(nodes.find(n => n.id === selectedNode)?.type === DeviceType.PC || nodes.find(n => n.id === selectedNode)?.type === DeviceType.SERVER || nodes.find(n => n.id === selectedNode)?.type === DeviceType.ROUTER || nodes.find(n => n.id === selectedNode)?.type === DeviceType.FIREWALL) && (
+                        <div className="p-3 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/30 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+                              <Zap className="w-3 h-3" />
+                              <span className="text-xs font-bold uppercase tracking-wider">Ping Lab</span>
+                            </div>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-blue-500 hover:bg-blue-100"
+                                onClick={() => handleBroadcast(selectedNode!)}
+                                title="Broadcast to Segment"
+                              >
+                                <Globe className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-blue-500 hover:bg-blue-100"
+                                onClick={() => {
+                                  if (pingTargetId) {
+                                    handlePing(selectedNode!, pingTargetId);
+                                  } else {
+                                    logEvent("Please select a target device first", "error");
+                                  }
+                                }}
+                                title="Send Direct Ping"
+                              >
+                                <Send className="w-3 h-3" />
+                              </Button>
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    )}
-                    {(nodes.find(n => n.id === selectedNode)?.type === DeviceType.PC || nodes.find(n => n.id === selectedNode)?.type === DeviceType.SERVER || nodes.find(n => n.id === selectedNode)?.type === DeviceType.ROUTER || nodes.find(n => n.id === selectedNode)?.type === DeviceType.FIREWALL) && (
-                      <div className="p-3 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/30 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
-                            <Zap className="w-3 h-3" />
-                            <span className="text-xs font-bold uppercase tracking-wider">Ping Lab</span>
-                          </div>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 text-blue-500 hover:bg-blue-100"
-                              onClick={() => handleBroadcast(selectedNode!)}
-                              title="Broadcast to Segment"
-                            >
-                              <Globe className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 text-blue-500 hover:bg-blue-100"
-                              onClick={() => {
-                                if (pingTargetId) {
-                                  handlePing(selectedNode!, pingTargetId);
-                                } else {
-                                  logEvent("Please select a target device first", "error");
+
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between items-center">
+                              <Label className="text-xs uppercase text-muted-foreground">Target Device</Label>
+                              <span className="text-[10px] bg-blue-100 dark:bg-blue-900/40 px-1 rounded text-blue-600 font-bold">BROADCAST BY DEFAULT</span>
+                            </div>
+                            <Select value={pingTargetId} onValueChange={setPingTargetId}>
+                              <SelectTrigger className="h-7 text-xs bg-white dark:bg-slate-900">
+                                <SelectValue placeholder="Broadcast (Segment)..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="broadcast" className="text-xs font-bold text-blue-600">Broadcast to Segment</SelectItem>
+                                {nodes
+                                  .filter(n => n.id !== selectedNode && (
+                                    n.type === DeviceType.PC ||
+                                    n.type === DeviceType.SERVER ||
+                                    n.type === DeviceType.ROUTER ||
+                                    n.type === DeviceType.FIREWALL
+                                  ))
+                                  .map(target => (
+                                    <SelectItem key={target.id} value={target.id} className="text-xs">
+                                      {target.name} ({target.interfaces[0].mac.slice(-4)})
+                                    </SelectItem>
+                                  ))
                                 }
-                              }}
-                              title="Send Direct Ping"
-                            >
-                              <Send className="w-3 h-3" />
-                            </Button>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className="text-xs uppercase text-muted-foreground">Ping Count (1-10)</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={10}
+                              value={pingCount}
+                              onChange={(e) => setPingCount(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
+                              className="h-7 text-xs bg-white dark:bg-slate-900"
+                            />
                           </div>
                         </div>
+                      )}
 
-                        <div className="space-y-1.5">
-                          <div className="flex justify-between items-center">
-                            <Label className="text-xs uppercase text-muted-foreground">Target Device</Label>
-                            <span className="text-[10px] bg-blue-100 dark:bg-blue-900/40 px-1 rounded text-blue-600 font-bold">BROADCAST BY DEFAULT</span>
+                      {/* Switch VLAN Section */}
+                      {nodes.find(n => n.id === selectedNode)?.type === DeviceType.SWITCH && (
+                        <div className="p-3 bg-purple-50/50 dark:bg-purple-900/10 rounded-lg border border-purple-100 dark:border-purple-900/30 space-y-3">
+                          <div className="flex items-center space-x-2 text-purple-600 dark:purple-400">
+                            <Layers className="w-3 h-3" />
+                            <span className="text-xs font-bold uppercase tracking-wider">VLAN Manager (Max 3)</span>
                           </div>
-                          <Select value={pingTargetId} onValueChange={setPingTargetId}>
-                            <SelectTrigger className="h-7 text-xs bg-white dark:bg-slate-900">
-                              <SelectValue placeholder="Broadcast (Segment)..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="broadcast" className="text-xs font-bold text-blue-600">Broadcast to Segment</SelectItem>
-                              {nodes
-                                .filter(n => n.id !== selectedNode && (
-                                  n.type === DeviceType.PC ||
-                                  n.type === DeviceType.SERVER ||
-                                  n.type === DeviceType.ROUTER ||
-                                  n.type === DeviceType.FIREWALL
-                                ))
-                                .map(target => (
-                                  <SelectItem key={target.id} value={target.id} className="text-xs">
-                                    {target.name} ({target.interfaces[0].mac.slice(-4)})
-                                  </SelectItem>
-                                ))
-                              }
-                            </SelectContent>
-                          </Select>
-                        </div>
 
-                        <div className="space-y-1.5">
-                          <Label className="text-xs uppercase text-muted-foreground">Ping Count (1-10)</Label>
-                          <Input
-                            type="number"
-                            min={1}
-                            max={10}
-                            value={pingCount}
-                            onChange={(e) => setPingCount(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
-                            className="h-7 text-xs bg-white dark:bg-slate-900"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Switch VLAN Section */}
-                    {nodes.find(n => n.id === selectedNode)?.type === DeviceType.SWITCH && (
-                      <div className="p-3 bg-purple-50/50 dark:bg-purple-900/10 rounded-lg border border-purple-100 dark:border-purple-900/30 space-y-3">
-                        <div className="flex items-center space-x-2 text-purple-600 dark:purple-400">
-                          <Layers className="w-3 h-3" />
-                          <span className="text-xs font-bold uppercase tracking-wider">VLAN Manager (Max 3)</span>
-                        </div>
-
-                        {/* STP Status */}
-                        <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 space-y-2">
-                           <div className="flex justify-between items-center">
+                          {/* STP Status */}
+                          <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 space-y-2">
+                            <div className="flex justify-between items-center">
                               <span className="text-[10px] uppercase font-bold text-muted-foreground">STP Status</span>
                               {stpData.nodes.find(n => n.id === selectedNode)?.isRootBridge ? (
                                 <span className="text-[10px] bg-amber-100 dark:bg-amber-900/40 text-amber-600 px-1 rounded font-bold">ROOT BRIDGE</span>
                               ) : (
                                 <span className="text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-500 px-1 rounded">DESIGNATED</span>
                               )}
-                           </div>
-                           <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-700 pt-1.5">
-                             <Label className="text-[10px] uppercase text-muted-foreground">Force Root Bridge</Label>
-                             <input 
+                            </div>
+                            <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-700 pt-1.5">
+                              <Label className="text-[10px] uppercase text-muted-foreground">Force Root Bridge</Label>
+                              <input
                                 type="checkbox"
-                                checked={nodes.find(n => n.id === selectedNode)?.isManualRoot || false} 
+                                checked={nodes.find(n => n.id === selectedNode)?.isManualRoot || false}
                                 onChange={(e) => {
                                   const isChecked = e.target.checked;
                                   setNodes(nodes.map(n => n.id === selectedNode ? { ...n, isManualRoot: isChecked } : n));
                                   if (isChecked) logEvent(`${nodes.find(n => n.id === selectedNode)?.name} forced as STP Root`, 'info');
                                 }}
                                 className="w-3 h-3 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                             />
-                           </div>
-                        </div>
+                              />
+                            </div>
+                          </div>
 
-                        <div className="space-y-2">
-                          {nodes.find(n => n.id === selectedNode)?.vlans?.map((vlan, vIdx) => (
-                            <div key={vIdx} className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded border border-purple-100 dark:border-purple-900/20">
-                              <span className="text-xs font-mono">{vlan}</span>
+                          <div className="space-y-2">
+                            {nodes.find(n => n.id === selectedNode)?.vlans?.map((vlan, vIdx) => (
+                              <div key={vIdx} className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded border border-purple-100 dark:border-purple-900/20">
+                                <span className="text-xs font-mono">{vlan}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-5 w-5 text-red-400 hover:text-red-500"
+                                  onClick={() => {
+                                    const node = nodes.find(n => n.id === selectedNode);
+                                    if (node && node.vlans) {
+                                      const newVlans = node.vlans.filter((_, i) => i !== vIdx);
+                                      setNodes(nodes.map(n => n.id === selectedNode ? { ...n, vlans: newVlans } : n));
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            ))}
+
+                            {(nodes.find(n => n.id === selectedNode)?.vlans?.length || 0) < 3 && (
                               <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-5 w-5 text-red-400 hover:text-red-500"
+                                variant="outline"
+                                size="sm"
+                                className="w-full text-xs h-7 border-dashed border-purple-300"
                                 onClick={() => {
                                   const node = nodes.find(n => n.id === selectedNode);
                                   if (node && node.vlans) {
-                                    const newVlans = node.vlans.filter((_, i) => i !== vIdx);
-                                    setNodes(nodes.map(n => n.id === selectedNode ? { ...n, vlans: newVlans } : n));
+                                    const newVlan = `VLAN ${node.vlans.length + 1}`;
+                                    setNodes(nodes.map(n => n.id === selectedNode ? { ...n, vlans: [...node.vlans!, newVlan] } : n));
                                   }
                                 }}
                               >
-                                <Trash2 className="w-3 h-3" />
+                                + Add VLAN
                               </Button>
+                            )}
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className="text-xs uppercase text-muted-foreground">Assign Ports to VLAN</Label>
+                            <div className="space-y-2">
+                              {links
+                                .filter(l => l.fromDeviceId === selectedNode || l.toDeviceId === selectedNode)
+                                .map(link => {
+                                  const otherId = link.fromDeviceId === selectedNode ? link.toDeviceId : link.fromDeviceId;
+                                  const otherNode = nodes.find(n => n.id === otherId);
+                                  const currentVlan = nodes.find(n => n.id === selectedNode)?.vlanMap?.[otherId] || 'VLAN 1';
+
+                                  return (
+                                    <div key={link.id} className="flex items-center space-x-2">
+                                      <span className="text-xs font-mono flex-1 truncate">{otherNode?.name}</span>
+                                      <Select
+                                        value={currentVlan}
+                                        onValueChange={(val) => {
+                                          setNodes(nodes.map(n => {
+                                            if (n.id === selectedNode) {
+                                              return { ...n, vlanMap: { ...n.vlanMap, [otherId]: val } };
+                                            }
+                                            return n;
+                                          }));
+                                        }}
+                                      >
+                                        <SelectTrigger className="h-6 text-xs w-24">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {nodes.find(n => n.id === selectedNode)?.vlans?.map(v => (
+                                            <SelectItem key={v} value={v} className="text-xs">{v}</SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  );
+                                })}
                             </div>
-                          ))}
-
-                          {(nodes.find(n => n.id === selectedNode)?.vlans?.length || 0) < 3 && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full text-xs h-7 border-dashed border-purple-300"
-                              onClick={() => {
-                                const node = nodes.find(n => n.id === selectedNode);
-                                if (node && node.vlans) {
-                                  const newVlan = `VLAN ${node.vlans.length + 1}`;
-                                  setNodes(nodes.map(n => n.id === selectedNode ? { ...n, vlans: [...node.vlans!, newVlan] } : n));
-                                }
-                              }}
-                            >
-                              + Add VLAN
-                            </Button>
-                          )}
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label className="text-xs uppercase text-muted-foreground">Assign Ports to VLAN</Label>
-                          <div className="space-y-2">
-                            {links
-                              .filter(l => l.fromDeviceId === selectedNode || l.toDeviceId === selectedNode)
-                              .map(link => {
-                                const otherId = link.fromDeviceId === selectedNode ? link.toDeviceId : link.fromDeviceId;
-                                const otherNode = nodes.find(n => n.id === otherId);
-                                const currentVlan = nodes.find(n => n.id === selectedNode)?.vlanMap?.[otherId] || 'VLAN 1';
-
-                                return (
-                                  <div key={link.id} className="flex items-center space-x-2">
-                                    <span className="text-xs font-mono flex-1 truncate">{otherNode?.name}</span>
-                                    <Select
-                                      value={currentVlan}
-                                      onValueChange={(val) => {
-                                        setNodes(nodes.map(n => {
-                                          if (n.id === selectedNode) {
-                                            return { ...n, vlanMap: { ...n.vlanMap, [otherId]: val } };
-                                          }
-                                          return n;
-                                        }));
-                                      }}
-                                    >
-                                      <SelectTrigger className="h-6 text-xs w-24">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {nodes.find(n => n.id === selectedNode)?.vlans?.map(v => (
-                                          <SelectItem key={v} value={v} className="text-xs">{v}</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                );
-                              })}
                           </div>
                         </div>
-                      </div>
-                    )}
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase font-bold">Interfaces</p>
-                      <div className="space-y-2">
-                        {nodes.find(n => n.id === selectedNode)?.interfaces.map(iface => {
-                          const connectedLink = links.find(l =>
-                            (l.fromDeviceId === selectedNode && l.fromInterfaceId === iface.id) ||
-                            (l.toDeviceId === selectedNode && l.toInterfaceId === iface.id)
-                          );
+                      )}
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground uppercase font-bold">Interfaces</p>
+                        <div className="space-y-2">
+                          {nodes.find(n => n.id === selectedNode)?.interfaces.map(iface => {
+                            const connectedLink = links.find(l =>
+                              (l.fromDeviceId === selectedNode && l.fromInterfaceId === iface.id) ||
+                              (l.toDeviceId === selectedNode && l.toInterfaceId === iface.id)
+                            );
 
-                          let peerInfo = null;
-                          if (connectedLink) {
-                            const peerId = connectedLink.fromDeviceId === selectedNode ? connectedLink.toDeviceId : connectedLink.fromDeviceId;
-                            const peerIfaceId = connectedLink.fromDeviceId === selectedNode ? connectedLink.toInterfaceId : connectedLink.fromInterfaceId;
-                            const peerNode = nodes.find(n => n.id === peerId);
-                            peerInfo = { name: peerNode?.name, interface: peerIfaceId };
-                          }
+                            let peerInfo = null;
+                            if (connectedLink) {
+                              const peerId = connectedLink.fromDeviceId === selectedNode ? connectedLink.toDeviceId : connectedLink.fromDeviceId;
+                              const peerIfaceId = connectedLink.fromDeviceId === selectedNode ? connectedLink.toInterfaceId : connectedLink.fromInterfaceId;
+                              const peerNode = nodes.find(n => n.id === peerId);
+                              peerInfo = { name: peerNode?.name, interface: peerIfaceId };
+                            }
 
-                          return (
-                            <div key={iface.id} className="flex flex-col p-2 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
-                              <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center space-x-2">
-                                  <div className={cn("w-2 h-2 rounded-full", iface.isConnected ? "bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]" : "bg-slate-400")} />
-                                  <span className="text-xs font-bold uppercase">{iface.id}</span>
+                            return (
+                              <div key={iface.id} className="flex flex-col p-2 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
+                                <div className="flex items-center justify-between mb-1">
+                                  <div className="flex items-center space-x-2">
+                                    <div className={cn("w-2 h-2 rounded-full", iface.isConnected ? "bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]" : "bg-slate-400")} />
+                                    <span className="text-xs font-bold uppercase">{iface.id}</span>
+                                  </div>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span className="text-[10px] font-mono opacity-50 cursor-help">{iface.mac}</span>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]" side="top">MAC: {iface.mac}</TooltipContent>
+                                  </Tooltip>
                                 </div>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span className="text-[10px] font-mono opacity-50 cursor-help">{iface.mac}</span>
-                                  </TooltipTrigger>
-                                  <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]" side="top">MAC: {iface.mac}</TooltipContent>
-                                </Tooltip>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span className="text-xs text-muted-foreground italic truncate mr-2 cursor-help max-w-[140px]">
-                                      {peerInfo ? (
-                                        <>Connected to <span className="text-blue-500 font-bold not-italic">{peerInfo.name}</span> <span className="opacity-70">({peerInfo.interface})</span></>
-                                      ) : 'Disconnected'}
-                                    </span>
-                                  </TooltipTrigger>
-                                  {peerInfo && (
-                                    <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]" side="bottom">
-                                      Connected to {peerInfo.name} on remote interface {peerInfo.interface}
-                                    </TooltipContent>
-                                  )}
-                                </Tooltip>
-                                <div className="flex flex-col items-end shrink-0">
-                                  <span className="text-xs font-mono text-blue-500 font-bold">
-                                    {dhcpStatus[selectedNode!] === 'bound' ? (detectedNetworks.interfaceIps[`${selectedNode}-${iface.id}`] || 'no ip') : (dhcpStatus[selectedNode!] === 'discovering' ? 'DHCP...' : 'no ip')}
-                                  </span>
-                                  {(nodes.find(n => n.id === selectedNode)?.type === DeviceType.PC || nodes.find(n => n.id === selectedNode)?.type === DeviceType.SERVER) &&
-                                    links.some(l => (l.fromDeviceId === selectedNode && l.fromInterfaceId === iface.id) || (l.toDeviceId === selectedNode && l.toInterfaceId === iface.id)) && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-3 text-[10px] px-1 text-blue-400 hover:text-blue-300 p-0"
-                                        onClick={() => handleDhcpDiscovery(selectedNode!)}
-                                      >
-                                        Renew IP
-                                      </Button>
+                                <div className="flex justify-between items-center">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span className="text-xs text-muted-foreground italic truncate mr-2 cursor-help max-w-[140px]">
+                                        {peerInfo ? (
+                                          <>Connected to <span className="text-blue-500 font-bold not-italic">{peerInfo.name}</span> <span className="opacity-70">({peerInfo.interface})</span></>
+                                        ) : 'Disconnected'}
+                                      </span>
+                                    </TooltipTrigger>
+                                    {peerInfo && (
+                                      <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]" side="bottom">
+                                        Connected to {peerInfo.name} on remote interface {peerInfo.interface}
+                                      </TooltipContent>
                                     )}
+                                  </Tooltip>
+                                  <div className="flex flex-col items-end shrink-0">
+                                    <span className="text-xs font-mono text-blue-500 font-bold">
+                                      {dhcpStatus[selectedNode!] === 'bound' ? (detectedNetworks.interfaceIps[`${selectedNode}-${iface.id}`] || 'no ip') : (dhcpStatus[selectedNode!] === 'discovering' ? 'DHCP...' : 'no ip')}
+                                    </span>
+                                    {(nodes.find(n => n.id === selectedNode)?.type === DeviceType.PC || nodes.find(n => n.id === selectedNode)?.type === DeviceType.SERVER) &&
+                                      links.some(l => (l.fromDeviceId === selectedNode && l.fromInterfaceId === iface.id) || (l.toDeviceId === selectedNode && l.toInterfaceId === iface.id)) && (
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-3 text-[10px] px-1 text-blue-400 hover:text-blue-300 p-0"
+                                          onClick={() => handleDhcpDiscovery(selectedNode!)}
+                                        >
+                                          Renew IP
+                                        </Button>
+                                      )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {selectedLink && (
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold">Bandwidth</p>
-                      <p className="text-sm font-mono">1000 Mbps</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold">Status</p>
-                      <div className="flex items-center space-x-2 py-1 px-2 bg-slate-100 dark:bg-slate-800 rounded">
-                        <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]" />
-                        <span className="text-xs font-mono">CONNECTED</span>
+                  {selectedLink && (
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold">Bandwidth</p>
+                        <p className="text-sm font-mono">1000 Mbps</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold">Status</p>
+                        <div className="flex items-center space-x-2 py-1 px-2 bg-slate-100 dark:bg-slate-800 rounded">
+                          <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]" />
+                          <span className="text-xs font-mono">CONNECTED</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </Card>
-        )}
+                  )}
+                </div>
+              )}
+            </Card>
+          )}
 
           {/* Tool Legend & Guide Modal */}
           {showLegend && (

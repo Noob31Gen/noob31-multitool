@@ -489,7 +489,7 @@ export class SimulationEngine {
       const isConnected = (adj[node.id] || []).some(l => l.stpState !== 'blocking');
       if (!isConnected) {
         const sig = node.id;
-        const hasDhcpServer = node.type === DeviceType.ROUTER || node.type === DeviceType.FIREWALL || (node.type === DeviceType.SERVER && node.dhcpEnabled);
+        const hasDhcpServer = node.type === DeviceType.ROUTER || node.type === DeviceType.FIREWALL || (node.type === DeviceType.SERVER && !!node.dhcpEnabled);
         const subnet = generateSubnet(false, sig, hasDhcpServer);
         const iface = node.interfaces[0];
         if (iface) {

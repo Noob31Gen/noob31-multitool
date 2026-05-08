@@ -1,7 +1,7 @@
 {
   "name": "noob31s-multitool",
   "private": true,
-  "version": "1.2.2b",
+  "version": "1.2.3b",
   "type": "module",
   "scripts": {
     "dev": "vite",
