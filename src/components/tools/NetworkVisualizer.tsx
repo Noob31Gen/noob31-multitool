@@ -17,7 +17,7 @@ import {
   Play, RotateCcw, Trash2, Link as LinkIcon,
   MousePointer2, Send, Download, Upload, Monitor,
   Layers, Network, Globe, Grid3X3, Zap, Shield, HardDrive,
-  Activity, Info, X, ChevronUp, ChevronDown, Cloud
+  Activity, Info, X, ChevronUp, ChevronDown, Cloud, FileJson
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -1039,6 +1039,22 @@ const NetworkVisualizerContent: React.FC = () => {
     reader.readAsText(file);
   };
 
+  const loadSampleConfig = async () => {
+    try {
+      const response = await fetch('/sample-sim.json');
+      if (!response.ok) throw new Error('Failed to load sample');
+      const data = await response.json();
+      setNodes(data.nodes);
+      setLinks(data.links);
+      setSelectedNode(null);
+      setSelectedLink(null);
+      logEvent('Sample configuration loaded successfully', 'success');
+    } catch (err) {
+      console.error("Failed to load sample", err);
+      logEvent('Failed to load sample configuration', 'error');
+    }
+  };
+
   const clearCanvas = () => {
     setNodes([]);
     setLinks([]);
@@ -1167,6 +1183,9 @@ const NetworkVisualizerContent: React.FC = () => {
                 }}
               >
                 <Play className="w-4 h-4 mr-1" /> Broadcast
+              </Button>
+              <Button variant="ghost" size="sm" className="h-8 text-xs font-bold uppercase transition-premium hover:bg-slate-100 dark:hover:bg-slate-800 text-blue-500" onClick={loadSampleConfig} title="Load Sample Configuration">
+                <FileJson className="w-4 h-4 mr-1" /> Sample
               </Button>
               <Button variant="ghost" size="sm" className="h-8 text-xs font-bold uppercase transition-premium hover:bg-slate-100 dark:hover:bg-slate-800" onClick={clearCanvas}>
                 <RotateCcw className="w-4 h-4 mr-1" /> Reset

@@ -1,0 +1,666 @@
+{
+  "nodes": [
+    {
+      "id": "node-1-otlvp",
+      "name": "PC-1",
+      "type": "PC",
+      "x": 80,
+      "y": 400,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "01F29865BF7D",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "8BF1420469F1",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {
+        "192.168.187.52": "1AF2269818B0",
+        "10.0.248.148": "D610DCDCA6C5"
+      },
+      "portLimit": 2
+    },
+    {
+      "id": "node-3-ghjpq",
+      "name": "SERVER-2",
+      "type": "SERVER",
+      "x": 320,
+      "y": 400,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "9F49401BD002",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "391FFD58B33B",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {},
+      "portLimit": 2
+    },
+    {
+      "id": "node-5-mm1o4",
+      "name": "SWITCH-3",
+      "type": "SWITCH",
+      "x": 80,
+      "y": 280,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "1AF2269818B0",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "F2E91E8F8AF4",
+          "isConnected": true
+        },
+        {
+          "id": "eth2",
+          "mac": "A04A6836F527",
+          "isConnected": false
+        },
+        {
+          "id": "eth3",
+          "mac": "73B4FB72A6EF",
+          "isConnected": false
+        },
+        {
+          "id": "eth4",
+          "mac": "EE2D592D7640",
+          "isConnected": false
+        },
+        {
+          "id": "eth5",
+          "mac": "AD1F29436E0F",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {},
+      "portLimit": 6,
+      "vlans": [
+        "VLAN 1"
+      ],
+      "vlanMap": {}
+    },
+    {
+      "id": "node-7-oxc6u",
+      "name": "ROUTER-4",
+      "type": "ROUTER",
+      "x": 200,
+      "y": 80,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "65DF0B104298",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "4829D4EA90C8",
+          "isConnected": false
+        },
+        {
+          "id": "eth2",
+          "mac": "B76E14C73A6B",
+          "isConnected": false
+        },
+        {
+          "id": "eth3",
+          "mac": "33C7319889B5",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {},
+      "portLimit": 4,
+      "blockedNetworks": []
+    },
+    {
+      "id": "node-9-b2hfa",
+      "name": "FIREWALL-5",
+      "type": "FIREWALL",
+      "x": 80,
+      "y": 160,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "D610DCDCA6C5",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "C5247A8E88CA",
+          "isConnected": false
+        },
+        {
+          "id": "eth2",
+          "mac": "CBFDA875BFCE",
+          "isConnected": false
+        },
+        {
+          "id": "eth3",
+          "mac": "5D34800346F3",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {},
+      "portLimit": 4,
+      "blockedNetworks": [],
+      "routingEnabled": true
+    },
+    {
+      "id": "node-11-jruw3",
+      "name": "PC-6",
+      "type": "PC",
+      "x": 440,
+      "y": 400,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "7E1FFC021163",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "FA898CAEA557",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {
+        "192.168.71.103": "FF93CFB29614",
+        "192.168.71.63": "3FECEECB280E",
+        "192.168.71.205": "972D866E0E16",
+        "192.168.71.153": "1311F56A6625",
+        "192.168.71.19": "284CF57AF8EB",
+        "192.168.71.30": "6910D8A68238",
+        "192.168.71.197": "CC728A79BBB9"
+      },
+      "portLimit": 2
+    },
+    {
+      "id": "node-13-dzbis",
+      "name": "SWITCH-7",
+      "type": "SWITCH",
+      "x": 440,
+      "y": 280,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "FF93CFB29614",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "454636D01E0F",
+          "isConnected": true
+        },
+        {
+          "id": "eth2",
+          "mac": "9527A86F31E0",
+          "isConnected": true
+        },
+        {
+          "id": "eth3",
+          "mac": "46DD8BE6186C",
+          "isConnected": false
+        },
+        {
+          "id": "eth4",
+          "mac": "7D68D3745E31",
+          "isConnected": false
+        },
+        {
+          "id": "eth5",
+          "mac": "1EEDF850BADB",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {},
+      "portLimit": 6,
+      "vlans": [
+        "VLAN 1"
+      ],
+      "vlanMap": {},
+      "isManualRoot": false
+    },
+    {
+      "id": "node-15-3bns3",
+      "name": "ROUTER-8",
+      "type": "ROUTER",
+      "x": 320,
+      "y": 80,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "338F977335B0",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "0C40933650F9",
+          "isConnected": true
+        },
+        {
+          "id": "eth2",
+          "mac": "178BFA7C8ACB",
+          "isConnected": false
+        },
+        {
+          "id": "eth3",
+          "mac": "4CA2AE9B3167",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {},
+      "portLimit": 4,
+      "blockedNetworks": []
+    },
+    {
+      "id": "node-17-06fyf",
+      "name": "FIREWALL-9",
+      "type": "FIREWALL",
+      "x": 440,
+      "y": 160,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "1311F56A6625",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "18FEF5F7B083",
+          "isConnected": false
+        },
+        {
+          "id": "eth2",
+          "mac": "6539B4524549",
+          "isConnected": false
+        },
+        {
+          "id": "eth3",
+          "mac": "EA65ACBB4A84",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {},
+      "portLimit": 4,
+      "blockedNetworks": [],
+      "routingEnabled": true
+    },
+    {
+      "id": "node-11-6c5vz",
+      "name": "SWITCH-13",
+      "type": "SWITCH",
+      "x": 560,
+      "y": 280,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "3FECEECB280E",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "8A5D532DB6DB",
+          "isConnected": true
+        },
+        {
+          "id": "eth2",
+          "mac": "A00BBEFCAD96",
+          "isConnected": true
+        },
+        {
+          "id": "eth3",
+          "mac": "415089C2CC6D",
+          "isConnected": true
+        },
+        {
+          "id": "eth4",
+          "mac": "5AC77C90F43E",
+          "isConnected": false
+        },
+        {
+          "id": "eth5",
+          "mac": "4F97247BBF74",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {},
+      "portLimit": 6,
+      "vlans": [
+        "VLAN 1"
+      ],
+      "vlanMap": {}
+    },
+    {
+      "id": "node-13-knbxp",
+      "name": "SERVER-14",
+      "type": "SERVER",
+      "x": 560,
+      "y": 400,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "284CF57AF8EB",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "7B2FFC1AB585",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {},
+      "portLimit": 2
+    },
+    {
+      "id": "node-15-q1rv8",
+      "name": "SWITCH-15",
+      "type": "SWITCH",
+      "x": 560,
+      "y": 160,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "972D866E0E16",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "225AE4053130",
+          "isConnected": true
+        },
+        {
+          "id": "eth2",
+          "mac": "0293C910ACA1",
+          "isConnected": false
+        },
+        {
+          "id": "eth3",
+          "mac": "EBEF1DE673F1",
+          "isConnected": true
+        },
+        {
+          "id": "eth4",
+          "mac": "BF4FDFA4D6F3",
+          "isConnected": false
+        },
+        {
+          "id": "eth5",
+          "mac": "26885A58B14E",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {},
+      "portLimit": 6,
+      "vlans": [
+        "VLAN 1"
+      ],
+      "vlanMap": {},
+      "isManualRoot": false
+    },
+    {
+      "id": "node-18-4ek2l",
+      "name": "IPS_IDS-16",
+      "type": "IPS_IDS",
+      "x": 320,
+      "y": 280,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "C91595F5EF9C",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "FE1EFE3CD994",
+          "isConnected": true
+        }
+      ],
+      "arpCache": {},
+      "portLimit": 2,
+      "ipsMode": "IPS"
+    },
+    {
+      "id": "node-29-1tf9k",
+      "name": "PC-14",
+      "type": "PC",
+      "x": 680,
+      "y": 280,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "6910D8A68238",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "08C9B2DC8F61",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {
+        "192.168.71.63": "3FECEECB280E",
+        "192.168.71.103": "FF93CFB29614",
+        "192.168.71.19": "284CF57AF8EB",
+        "192.168.71.199": "7E1FFC021163",
+        "192.168.71.205": "972D866E0E16",
+        "192.168.71.153": "1311F56A6625",
+        "192.168.71.197": "CC728A79BBB9"
+      },
+      "portLimit": 2
+    },
+    {
+      "id": "node-31-2cizd",
+      "name": "PC-15",
+      "type": "PC",
+      "x": 680,
+      "y": 160,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "CC728A79BBB9",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "A613D2282E5E",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {},
+      "portLimit": 2
+    },
+    {
+      "id": "node-19-mc7cc",
+      "name": "SERVER-16",
+      "type": "SERVER",
+      "x": 200,
+      "y": 280,
+      "interfaces": [
+        {
+          "id": "eth0",
+          "mac": "86708EB6FBED",
+          "isConnected": true
+        },
+        {
+          "id": "eth1",
+          "mac": "297147F2FFBD",
+          "isConnected": false
+        }
+      ],
+      "arpCache": {},
+      "portLimit": 2
+    }
+  ],
+  "links": [
+    {
+      "id": "link-19-ouu4s",
+      "fromDeviceId": "node-1-otlvp",
+      "fromInterfaceId": "eth0",
+      "toDeviceId": "node-5-mm1o4",
+      "toInterfaceId": "eth0",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-21-0gv72",
+      "fromDeviceId": "node-5-mm1o4",
+      "fromInterfaceId": "eth0",
+      "toDeviceId": "node-9-b2hfa",
+      "toInterfaceId": "eth0",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-23-1qzhs",
+      "fromDeviceId": "node-9-b2hfa",
+      "fromInterfaceId": "eth0",
+      "toDeviceId": "node-7-oxc6u",
+      "toInterfaceId": "eth0",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-25-y3pqb",
+      "fromDeviceId": "node-7-oxc6u",
+      "fromInterfaceId": "eth0",
+      "toDeviceId": "node-15-3bns3",
+      "toInterfaceId": "eth0",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-27-stt8y",
+      "fromDeviceId": "node-15-3bns3",
+      "fromInterfaceId": "eth0",
+      "toDeviceId": "node-17-06fyf",
+      "toInterfaceId": "eth0",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-29-a8hzi",
+      "fromDeviceId": "node-17-06fyf",
+      "fromInterfaceId": "eth0",
+      "toDeviceId": "node-13-dzbis",
+      "toInterfaceId": "eth0",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-31-bf5t2",
+      "fromDeviceId": "node-13-dzbis",
+      "fromInterfaceId": "eth0",
+      "toDeviceId": "node-11-jruw3",
+      "toInterfaceId": "eth0",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-23-kr73j",
+      "fromDeviceId": "node-15-3bns3",
+      "fromInterfaceId": "eth1",
+      "toDeviceId": "node-18-4ek2l",
+      "toInterfaceId": "eth0",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-25-9jt12",
+      "fromDeviceId": "node-18-4ek2l",
+      "fromInterfaceId": "eth1",
+      "toDeviceId": "node-3-ghjpq",
+      "toInterfaceId": "eth0",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-35-sbzxb",
+      "fromDeviceId": "node-15-q1rv8",
+      "fromInterfaceId": "eth1",
+      "toDeviceId": "node-31-2cizd",
+      "toInterfaceId": "eth0",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-43-9ml8d",
+      "fromDeviceId": "node-11-6c5vz",
+      "fromInterfaceId": "eth0",
+      "toDeviceId": "node-15-q1rv8",
+      "toInterfaceId": "eth3",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-45-hatly",
+      "fromDeviceId": "node-11-6c5vz",
+      "fromInterfaceId": "eth1",
+      "toDeviceId": "node-13-dzbis",
+      "toInterfaceId": "eth2",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-1-mezqd",
+      "fromDeviceId": "node-13-knbxp",
+      "fromInterfaceId": "eth0",
+      "toDeviceId": "node-11-6c5vz",
+      "toInterfaceId": "eth2",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-6-ljgsc",
+      "fromDeviceId": "node-29-1tf9k",
+      "fromInterfaceId": "eth0",
+      "toDeviceId": "node-11-6c5vz",
+      "toInterfaceId": "eth3",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-5-brahn",
+      "fromDeviceId": "node-13-dzbis",
+      "fromInterfaceId": "eth1",
+      "toDeviceId": "node-15-q1rv8",
+      "toInterfaceId": "eth0",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    },
+    {
+      "id": "link-21-jprut",
+      "fromDeviceId": "node-19-mc7cc",
+      "fromInterfaceId": "eth0",
+      "toDeviceId": "node-5-mm1o4",
+      "toInterfaceId": "eth1",
+      "bandwidth": 1000,
+      "latency": 1,
+      "status": "up"
+    }
+  ]
+}
