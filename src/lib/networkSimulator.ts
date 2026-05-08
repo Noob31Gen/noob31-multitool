@@ -52,7 +52,8 @@ export interface Device {
   portLimit: number; // Max connections
   knownNetworks?: string[]; // DEPRECATED: use disabledRoutes
   disabledRoutes?: string[]; // For Routers/Firewalls: list of network signatures to block
-  stpPriority?: number; // For Switches: Default 32768
+  stpPriority?: number; // DEPRECATED
+  isManualRoot?: boolean; // For Switches: User-defined root bridge
   isRootBridge?: boolean; // For Switches: Calculated state
 }
 
@@ -93,24 +94,23 @@ export interface Link {
 }
 
 export const PacketType = {
-  ICMP: 'ICMP', // Ping
-  ARP: 'ARP',
-  TCP: 'TCP',
-  UDP: 'UDP',
-} as const;
-
-export type PacketType = typeof PacketType[keyof typeof PacketType];
+  ICMP: 'icmp',
+  TCP: 'tcp',
+  UDP: 'udp',
+  ARP: 'arp',
+  DHCP: 'dhcp'
+};
 
 export interface Packet {
   id: string;
-  type: PacketType;
-  sourceIp: string;
-  destIp: string;
+  type: string;
   sourceMac: string;
   destMac: string;
-  payload: Record<string, unknown> | string | number | boolean | null;
+  sourceIp: string;
+  destIp: string;
   ttl: number;
-  history: string[]; // List of device IDs this packet has visited
+  history: string[];
+  payload?: any;
 }
 
 /**
@@ -297,7 +297,7 @@ export class SimulationEngine {
     for (const targetId of targets) {
       const result = this.findPath(sourceId, targetId, { foundNetworks });
       if (result && !result.failureId) {
-        results.push({ targetId, path: result.path });
+        results.push({ targetId: targetId, path: result.path });
       }
     }
     return results;
@@ -406,7 +406,7 @@ export class SimulationEngine {
         const currentNode = this.nodes.find(n => n.id === currentId);
         if (!currentNode) continue;
 
-        if (currentNode.type === DeviceType.ROUTER || currentNode.type === DeviceType.FIREWALL || (currentNode.type === DeviceType.IPS_IDS && currentNode.ipsMode === 'IPS')) {
+        if (currentNode.type === DeviceType.ROUTER || currentNode.type === DeviceType.FIREWALL) {
           continue;
         }
 
@@ -487,6 +487,7 @@ export class SimulationEngine {
 
   /**
    * Spanning Tree Protocol (STP) - Simplified implementation for loop prevention.
+   * Now segment-aware to handle isolated switch clusters independently.
    */
   runSTP(): { links: Link[], nodes: Device[] } {
     const switches = this.nodes.filter(n => n.type === DeviceType.SWITCH);
@@ -497,23 +498,95 @@ export class SimulationEngine {
       };
     }
 
-    // 1. Elect Root Bridge (Lowest Priority > Lowest MAC)
-    const rootBridge = [...switches].sort((a, b) => {
-      const pA = a.stpPriority ?? 32768;
-      const pB = b.stpPriority ?? 32768;
-      if (pA !== pB) return pA - pB;
-      return a.interfaces[0].mac.localeCompare(b.interfaces[0].mac);
-    })[0];
+    const getDistanceToGateway = (startNodeId: string) => {
+      const gateways = this.nodes.filter(n => n.type === DeviceType.ROUTER || n.type === DeviceType.FIREWALL);
+      if (gateways.length === 0) return Infinity;
 
-    const updatedNodes = this.nodes.map(n => ({
-      ...n,
-      isRootBridge: n.id === rootBridge.id
-    }));
+      const queue: [string, number][] = gateways.map(g => [g.id, 0]);
+      const visited = new Set(gateways.map(g => g.id));
 
-    // 2. Identify forwarding links (tree edges)
+      while (queue.length > 0) {
+        const [currId, dist] = queue.shift()!;
+        if (currId === startNodeId) return dist;
+
+        const neighbors = this.links
+          .filter(l => l.fromDeviceId === currId || l.toDeviceId === currId)
+          .map(l => l.fromDeviceId === currId ? l.toDeviceId : l.fromDeviceId);
+
+        for (const nId of neighbors) {
+          if (!visited.has(nId)) {
+            visited.add(nId);
+            queue.push([nId, dist + 1]);
+          }
+        }
+      }
+      return Infinity;
+    };
+
+    // 1. Group switches into connected components (isolated Layer 2 clusters)
+    const clusters: string[][] = [];
+    const clusterVisited = new Set<string>();
+
+    switches.forEach(sw => {
+      if (!clusterVisited.has(sw.id)) {
+        const cluster: string[] = [];
+        const queue = [sw.id];
+        clusterVisited.add(sw.id);
+        while (queue.length > 0) {
+          const currId = queue.shift()!;
+          cluster.push(currId);
+          this.links.filter(l => l.fromDeviceId === currId || l.toDeviceId === currId).forEach(l => {
+            const neighborId = l.fromDeviceId === currId ? l.toDeviceId : l.fromDeviceId;
+            const neighbor = this.nodes.find(n => n.id === neighborId);
+            if ((neighbor?.type === DeviceType.SWITCH || neighbor?.type === DeviceType.IPS_IDS) && !clusterVisited.has(neighborId)) {
+              clusterVisited.add(neighborId);
+              queue.push(neighborId);
+            }
+          });
+        }
+        clusters.push(cluster);
+      }
+    });
+
     const forwardingLinkIds = new Set<string>();
-    
-    // Always forward links to non-switch devices (PCs, Routers, etc.)
+    const rootBridgeIds = new Set<string>();
+
+    // 2. Process each cluster independently
+    clusters.forEach(clusterIds => {
+      const clusterSwitches = switches.filter(s => clusterIds.includes(s.id));
+      
+      // Elect Root Bridge for this cluster
+      const root = clusterSwitches.sort((a, b) => {
+        if (a.isManualRoot && !b.isManualRoot) return -1;
+        if (!a.isManualRoot && b.isManualRoot) return 1;
+        const distA = getDistanceToGateway(a.id);
+        const distB = getDistanceToGateway(b.id);
+        if (distA !== distB) return distA - distB;
+        return a.interfaces[0].mac.localeCompare(b.interfaces[0].mac);
+      })[0];
+
+      rootBridgeIds.add(root.id);
+
+      // BFS to find the spanning tree links within this cluster
+      const queue: [string, string[]][] = [[root.id, []]];
+      const visited = new Set([root.id]);
+
+      while (queue.length > 0) {
+        const [currId, pathLinks] = queue.shift()!;
+        pathLinks.forEach(id => forwardingLinkIds.add(id));
+
+        const adjLinks = this.links.filter(l => l.fromDeviceId === currId || l.toDeviceId === currId);
+        for (const link of adjLinks) {
+          const neighborId = link.fromDeviceId === currId ? link.toDeviceId : link.fromDeviceId;
+          if (clusterIds.includes(neighborId) && !visited.has(neighborId)) {
+            visited.add(neighborId);
+            queue.push([neighborId, [...pathLinks, link.id]]);
+          }
+        }
+      }
+    });
+
+    // 3. Links to non-switch devices are always Forwarding
     this.links.forEach(l => {
       const from = this.nodes.find(n => n.id === l.fromDeviceId);
       const to = this.nodes.find(n => n.id === l.toDeviceId);
@@ -522,25 +595,10 @@ export class SimulationEngine {
       }
     });
 
-    // BFS to find the spanning tree from Root Bridge
-    const queue: [string, string[]][] = [[rootBridge.id, []]];
-    const visited = new Set([rootBridge.id]);
-
-    while (queue.length > 0) {
-      const [currId, pathLinks] = queue.shift()!;
-      pathLinks.forEach(id => forwardingLinkIds.add(id));
-
-      const adjLinks = this.links.filter(l => l.fromDeviceId === currId || l.toDeviceId === currId);
-      for (const link of adjLinks) {
-        const neighborId = link.fromDeviceId === currId ? link.toDeviceId : link.fromDeviceId;
-        const neighbor = this.nodes.find(n => n.id === neighborId);
-        
-        if (neighbor?.type === DeviceType.SWITCH && !visited.has(neighborId)) {
-          visited.add(neighborId);
-          queue.push([neighborId, [...pathLinks, link.id]]);
-        }
-      }
-    }
+    const updatedNodes = this.nodes.map(n => ({
+      ...n,
+      isRootBridge: rootBridgeIds.has(n.id)
+    }));
 
     const updatedLinks = this.links.map(l => ({
       ...l,

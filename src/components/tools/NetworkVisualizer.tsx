@@ -70,9 +70,6 @@ export const NetworkVisualizer: React.FC = () => {
   const [isLogsCollapsed, setIsLogsCollapsed] = useState(false);
   const [dhcpStatus, setDhcpStatus] = useState<Record<string, 'none' | 'discovering' | 'bound'>>({});
 
-  // Routing Editor state
-  const [newRouteNetwork, setNewRouteNetwork] = useState('192.168.1.0/24');
-  const [newRouteMetric, setNewRouteMetric] = useState(1);
 
   const stpData = useMemo(() => {
     const baseEngine = new SimulationEngine(nodes, links);
@@ -897,7 +894,7 @@ export const NetworkVisualizer: React.FC = () => {
             })}
 
             {/* Nodes */}
-            {nodes.map(node => (
+            {stpData.nodes.map(node => (
               <g
                 key={node.id}
                 data-node-id={node.id}
@@ -906,6 +903,17 @@ export const NetworkVisualizer: React.FC = () => {
                 onClick={(e) => handleNodeClick(e, node.id)}
                 className="group"
               >
+                {/* Root Bridge Indicator */}
+                {node.isRootBridge && (
+                  <circle
+                    r="34"
+                    fill="none"
+                    stroke="#fbbf24"
+                    strokeWidth="2"
+                    strokeDasharray="4 2"
+                    className="animate-[spin_20s_linear_infinite]"
+                  />
+                )}
                 <circle
                   r="28"
                   fill="white"
@@ -1224,87 +1232,53 @@ export const NetworkVisualizer: React.FC = () => {
 
                         <div className="space-y-1.5 border-t pt-2">
                           <Label className="text-xs uppercase text-muted-foreground flex justify-between items-center">
-                            Static Routing Table
+                            Routing Knowledge (Auto-Learned)
                             <Network size={12} />
                           </Label>
                           
-                          {/* Add New Route */}
-                          <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 space-y-2">
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="space-y-1">
-                                <Label className="text-[10px] text-muted-foreground uppercase">Network (CIDR)</Label>
-                                <Input 
-                                  value={newRouteNetwork} 
-                                  onChange={(e) => setNewRouteNetwork(e.target.value)}
-                                  className="h-6 text-[10px] bg-white dark:bg-slate-900" 
-                                  placeholder="10.0.1.0/24"
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-[10px] text-muted-foreground uppercase">Metric</Label>
-                                <Input 
-                                  type="number"
-                                  value={newRouteMetric} 
-                                  onChange={(e) => setNewRouteMetric(parseInt(e.target.value) || 1)}
-                                  className="h-6 text-[10px] bg-white dark:bg-slate-900" 
-                                />
-                              </div>
-                            </div>
-                            <Button 
-                              size="sm" 
-                              className="w-full h-6 text-[10px] bg-blue-600 hover:bg-blue-700"
-                              onClick={() => {
-                                const node = nodes.find(n => n.id === selectedNode);
-                                if (node) {
-                                  const newRoute = { network: newRouteNetwork, metric: newRouteMetric };
-                                  setNodes(nodes.map(n => n.id === selectedNode ? { 
-                                    ...n, 
-                                    routingTable: [...(n.routingTable || []), newRoute] 
-                                  } : n));
-                                  logEvent(`${node.name}: Added route to ${newRouteNetwork}`, 'success');
-                                }
-                              }}
-                            >
-                              + Add Static Route
-                            </Button>
-                          </div>
+                          <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                            {detectedNetworks.foundNetworks.map(net => {
+                              const node = nodes.find(n => n.id === selectedNode);
+                              const isIgnored = node?.disabledRoutes?.includes(net.sig);
+                              const isDirectlyConnected = net.devices.includes(selectedNode!);
 
-                          <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                            {/* Implicit routes from connected segments */}
-                            {detectedNetworks.foundNetworks.filter(net => net.devices.includes(selectedNode!)).map(net => (
-                              <div key={net.id} className="flex items-center justify-between p-1 rounded bg-blue-100/30 dark:bg-blue-900/10 border border-blue-200/50">
-                                <div className="flex flex-col min-w-0">
-                                  <span className="text-xs font-bold truncate">{net.name}</span>
-                                  <span className="text-[10px] font-mono opacity-60 truncate">{net.subnet}</span>
+                              return (
+                                <div key={net.id} className={cn(
+                                  "flex items-center justify-between p-1 rounded border",
+                                  isDirectlyConnected 
+                                    ? "bg-blue-100/30 border-blue-200/50 dark:bg-blue-900/10 dark:border-blue-800" 
+                                    : "hover:bg-white dark:hover:bg-slate-900 border-transparent"
+                                )}>
+                                  <div className="flex flex-col min-w-0">
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs font-bold truncate">{net.name}</span>
+                                      {isDirectlyConnected && <span className="text-[8px] bg-blue-500 text-white px-0.5 rounded">DIRECT</span>}
+                                    </div>
+                                    <span className="text-[10px] font-mono opacity-60 truncate">{net.subnet}</span>
+                                  </div>
+                                  <Button
+                                    variant={isIgnored ? "outline" : "default"}
+                                    size="sm"
+                                    className={cn("h-5 text-[10px] px-1.5", !isIgnored ? "bg-green-600 hover:bg-green-700" : "text-red-500 border-red-500/50")}
+                                    onClick={() => {
+                                      if (node) {
+                                        const newDisabled = isIgnored
+                                          ? (node.disabledRoutes || []).filter(sig => sig !== net.sig)
+                                          : [...(node.disabledRoutes || []), net.sig];
+                                        setNodes(nodes.map(n => n.id === selectedNode ? { ...n, disabledRoutes: newDisabled } : n));
+                                        logEvent(`${node.name}: ${isIgnored ? 'Learned' : 'Ignoring'} ${net.subnet}`, 'info');
+                                      }
+                                    }}
+                                  >
+                                    {!isIgnored ? 'KNOWS' : 'IGNORE'}
+                                  </Button>
                                 </div>
-                                <span className="text-[10px] font-bold text-blue-500 px-1.5">DIRECT</span>
-                              </div>
-                            ))}
-
-                            {/* Manual Static Routes */}
-                            {nodes.find(n => n.id === selectedNode)?.routingTable?.map((route, rIdx) => (
-                              <div key={rIdx} className="flex items-center justify-between p-1 rounded hover:bg-white dark:hover:bg-slate-900 border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
-                                <div className="flex flex-col min-w-0">
-                                  <span className="text-xs font-bold truncate">{route.network}</span>
-                                  <span className="text-[10px] opacity-60 truncate">Metric: {route.metric}</span>
-                                </div>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-5 w-5 text-red-400 hover:text-red-500"
-                                  onClick={() => {
-                                    const node = nodes.find(n => n.id === selectedNode);
-                                    if (node && node.routingTable) {
-                                      const newTable = node.routingTable.filter((_, i) => i !== rIdx);
-                                      setNodes(nodes.map(n => n.id === selectedNode ? { ...n, routingTable: newTable } : n));
-                                    }
-                                  }}
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
+                          <p className="text-[10px] text-muted-foreground italic leading-tight pt-1">
+                            Routers automatically learn all connected and remote segments. You can manually tell them to IGNORE specific paths.
+                          </p>
                         </div>
 
                         <div className="space-y-1.5 border-t pt-2">
@@ -1550,7 +1524,7 @@ export const NetworkVisualizer: React.FC = () => {
                         </div>
 
                         {/* STP Status */}
-                        <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 space-y-1.5">
+                        <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 space-y-2">
                            <div className="flex justify-between items-center">
                               <span className="text-[10px] uppercase font-bold text-muted-foreground">STP Status</span>
                               {stpData.nodes.find(n => n.id === selectedNode)?.isRootBridge ? (
@@ -1559,16 +1533,17 @@ export const NetworkVisualizer: React.FC = () => {
                                 <span className="text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-500 px-1 rounded">DESIGNATED</span>
                               )}
                            </div>
-                           <div className="flex items-center space-x-2">
-                             <Label className="text-[10px] uppercase text-muted-foreground shrink-0">Priority</Label>
-                             <Input 
-                                type="number" 
-                                step={4096}
-                                value={nodes.find(n => n.id === selectedNode)?.stpPriority || 32768} 
+                           <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-700 pt-1.5">
+                             <Label className="text-[10px] uppercase text-muted-foreground">Force Root Bridge</Label>
+                             <input 
+                                type="checkbox"
+                                checked={nodes.find(n => n.id === selectedNode)?.isManualRoot || false} 
                                 onChange={(e) => {
-                                  setNodes(nodes.map(n => n.id === selectedNode ? { ...n, stpPriority: parseInt(e.target.value) || 32768 } : n));
+                                  const isChecked = e.target.checked;
+                                  setNodes(nodes.map(n => n.id === selectedNode ? { ...n, isManualRoot: isChecked } : n));
+                                  if (isChecked) logEvent(`${nodes.find(n => n.id === selectedNode)?.name} forced as STP Root`, 'info');
                                 }}
-                                className="h-5 text-[10px] py-0"
+                                className="w-3 h-3 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                              />
                            </div>
                         </div>
