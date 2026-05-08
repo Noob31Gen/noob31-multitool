@@ -70,10 +70,12 @@ const NetworkVisualizerContent: React.FC = () => {
   // Linking state
   const [linkStartNodeId, setLinkStartNodeId] = useState<string | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [screenMousePos, setScreenMousePos] = useState({ x: 0, y: 0 });
 
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>(null);
   const [showLegend, setShowLegend] = useState(false);
   const [isNetworksCollapsed, setIsNetworksCollapsed] = useState(false);
+  const [isInfoCollapsed, setIsInfoCollapsed] = useState(false);
   const [isLogsCollapsed, setIsLogsCollapsed] = useState(false);
   const [dhcpStatus, setDhcpStatus] = useState<Record<string, 'none' | 'discovering' | 'bound'>>({});
   const [cloudText, setCloudText] = useState<{ x: number, y: number } | null>(null);
@@ -218,7 +220,7 @@ const NetworkVisualizerContent: React.FC = () => {
       setTimeout(() => g.remove(), 1000);
     }
     
-    overNodeLayerRef.current.appendChild(g);
+    overNodeLayerRef.current?.appendChild(g);
 
     // Animate the ripple
     animate(ripple, {
@@ -498,7 +500,7 @@ const NetworkVisualizerContent: React.FC = () => {
 
         const isLastStepAndFailed = fId === toNode.id;
         const { g: packetGroup, trail, core } = createPacket(c);
-        underNodeLayerRef.current!.appendChild(packetGroup);
+        underNodeLayerRef.current?.appendChild(packetGroup);
 
         const angle = Math.atan2(toNode.y - fromNode.y, toNode.x - fromNode.x) * 180 / Math.PI;
         
@@ -535,7 +537,7 @@ const NetworkVisualizerContent: React.FC = () => {
             ripple.setAttribute("fill", "none");
             ripple.setAttribute("stroke", c);
             ripple.setAttribute("stroke-width", "2");
-            underNodeLayerRef.current!.appendChild(ripple);
+            underNodeLayerRef.current?.appendChild(ripple);
             
             animate(ripple, {
               r: [4, 30],
@@ -611,6 +613,7 @@ const NetworkVisualizerContent: React.FC = () => {
   const [pingCount, setPingCount] = useState<number>(1);
 
   const handleBroadcast = (sourceId: string) => {
+    const sourceNode = nodes.find(n => n.id === sourceId);
     // Find the network segment this device belongs to
     const segment = detectedNetworks.foundNetworks.find(net => net.devices.includes(sourceId));
     if (!segment) {
@@ -640,9 +643,23 @@ const NetworkVisualizerContent: React.FC = () => {
     }).filter((p): p is string[] => p !== null);
 
     if (broadcastPaths.length > 0) {
+      logEvent(`[ICMP] Broadcast Request from ${sourceNode?.name} to ${segment.name}`, 'info');
       animateBroadcastTree(broadcastPaths, '#3b82f6', {
         onComplete: () => {
-          logEvent(`Broadcast complete: ${nodes.find(n => n.id === sourceId)?.name} -> ${segment.name}`, 'success');
+          logEvent(`Broadcast Echo: Receiving responses from ${targets.length} devices...`, 'success');
+          
+          // Trigger responses from all targets
+          targets.forEach((targetId, index) => {
+            setTimeout(() => {
+              const responseResult = findPath(targetId, sourceId);
+              if (responseResult) {
+                animatePacket(responseResult.path, '#34d399', () => {
+                  const targetNode = nodes.find(n => n.id === targetId);
+                  logEvent(`[ICMP] Broadcast Response from ${targetNode?.name}`, 'success');
+                });
+              }
+            }, index * 200); // Stagger responses slightly for visual clarity
+          });
         }
       });
     }
@@ -879,6 +896,7 @@ const NetworkVisualizerContent: React.FC = () => {
   const onMouseMove = (e: React.MouseEvent) => {
     const coords = getMouseCoords(e);
     setMousePos(coords);
+    setScreenMousePos({ x: e.clientX, y: e.clientY });
 
     if (draggingNodeId) {
       let x = coords.x - dragOffset.x;
@@ -1429,11 +1447,11 @@ const NetworkVisualizerContent: React.FC = () => {
             return (
               <div 
                 className="fixed pointer-events-none z-[100] animate-in fade-in zoom-in-95 duration-200"
-              style={{ 
-                left: mousePos.x * (svgRef.current?.getScreenCTM()?.a || 1) + (svgRef.current?.getScreenCTM()?.e || 0) + 15,
-                top: mousePos.y * (svgRef.current?.getScreenCTM()?.d || 1) + (svgRef.current?.getScreenCTM()?.f || 0) + 15
-              }}
-            >
+                style={{ 
+                  left: screenMousePos.x + 15,
+                  top: screenMousePos.y + 15
+                }}
+              >
               <div className="bg-slate-900/90 text-white p-2 rounded-lg shadow-xl backdrop-blur-md border border-slate-700/50 flex flex-col gap-1 min-w-[120px]">
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">
@@ -1669,32 +1687,121 @@ const NetworkVisualizerContent: React.FC = () => {
             )}
           </div>
 
-          {/* Info Overlay */}
+          {/* Info Overlay / Side Drawer */}
           {(selectedNode || selectedLink) && (
-            <Card className="absolute top-4 right-4 w-72 max-h-[calc(100%-2rem)] flex flex-col bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-slate-200/50 dark:border-slate-800/50 rounded-xl animate-in fade-in slide-in-from-right-4 duration-300 overflow-hidden z-40">
-              <div className="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex-shrink-0">
-                <h3 className="font-bold text-[10px] uppercase tracking-widest text-blue-500">
-                  {selectedNode ? 'Device Intelligence' : 'Link Configuration'}
-                </h3>
-                <div className="flex items-center gap-1">
-                  {selectedNode && (nodes.find(n => n.id === selectedNode)?.type === DeviceType.PC || nodes.find(n => n.id === selectedNode)?.type === DeviceType.SERVER || nodes.find(n => n.id === selectedNode)?.type === DeviceType.ROUTER || nodes.find(n => n.id === selectedNode)?.type === DeviceType.FIREWALL) && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 hover:bg-blue-50 dark:hover:bg-blue-900/20 group transition-premium"
-                      onClick={(e) => { e.stopPropagation(); handlePing(selectedNode); }}
-                      title="Initiate Ping Test"
-                    >
-                      <Send className="w-3.5 h-3.5 text-blue-500 group-hover:scale-110 transition-premium" />
-                    </Button>
-                  )}
-                  <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-red-50 dark:hover:bg-red-900/20 group transition-premium" onClick={() => { setSelectedNode(null); setSelectedLink(null); }}>
-                    <X className="w-3.5 h-3.5 text-slate-400 group-hover:text-red-500 transition-premium" />
+            <Card className={cn(
+              "absolute top-4 right-4 max-h-[calc(100%-2rem)] flex flex-col bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-slate-200/50 dark:border-slate-800/50 rounded-xl animate-in fade-in slide-in-from-right-4 duration-300 z-40 transition-all ease-in-out",
+              isInfoCollapsed ? "w-14 items-center" : "w-80"
+            )}>
+              {/* Header / Toggle */}
+              <div className={cn(
+                "flex items-center p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex-shrink-0 w-full",
+                isInfoCollapsed ? "justify-center p-2" : "justify-between"
+              )}>
+                {!isInfoCollapsed && (
+                  <h3 className="font-bold text-[10px] uppercase tracking-widest text-blue-500 truncate mr-2">
+                    {selectedNode ? 'Device Intelligence' : 'Link Configuration'}
+                  </h3>
+                )}
+                <div className={cn("flex items-center gap-1", isInfoCollapsed ? "flex-col" : "")}>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-7 w-7 hover:bg-slate-200 dark:hover:bg-slate-700 transition-premium" 
+                    onClick={() => setIsInfoCollapsed(!isInfoCollapsed)}
+                    title={isInfoCollapsed ? "Expand Panel" : "Collapse Panel"}
+                  >
+                    {isInfoCollapsed ? <ChevronDown className="w-4 h-4 rotate-90" /> : <ChevronUp className="w-4 h-4 rotate-90" />}
                   </Button>
+                  {!isInfoCollapsed && (
+                    <>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-red-50 dark:hover:bg-red-900/20 group transition-premium" onClick={() => { setSelectedNode(null); setSelectedLink(null); }}>
+                        <X className="w-3.5 h-3.5 text-slate-400 group-hover:text-red-500" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4">
+              {isInfoCollapsed ? (
+                /* Collapsed Quick Actions */
+                <div className="flex-1 py-4 flex flex-col items-center gap-4 overflow-y-auto custom-scrollbar w-full">
+                  {selectedNode && (
+                    <>
+                      <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-500 shadow-sm border border-blue-100 dark:border-blue-800 mb-2">
+                        {(() => {
+                          const node = nodes.find(n => n.id === selectedNode);
+                          if (node?.isCloud) return <Cloud size={20} />;
+                          switch (node?.type) {
+                            case DeviceType.PC: return <Monitor size={20} />;
+                            case DeviceType.SWITCH: return <Layers size={20} />;
+                            case DeviceType.ROUTER: return <Network size={20} />;
+                            case DeviceType.SERVER: return <HardDrive size={20} />;
+                            case DeviceType.FIREWALL: return <Shield size={20} />;
+                            case DeviceType.IPS_IDS: return <Activity size={20} />;
+                            default: return <Globe size={20} />;
+                          }
+                        })()}
+                      </div>
+                      
+                      <div className="h-px w-8 bg-slate-200 dark:bg-slate-800" />
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-10 w-10 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 group transition-premium"
+                              onClick={() => handleBroadcast(selectedNode)}
+                            >
+                              <Globe className="w-5 h-5 text-blue-500 group-hover:scale-110" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="left">Broadcast</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <div className="flex-1" />
+
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-10 w-10 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 group transition-premium mb-2"
+                              onClick={() => { setSelectedNode(null); setSelectedLink(null); }}
+                            >
+                              <Trash2 className="w-5 h-5 text-red-400 group-hover:text-red-500" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="left">Deselect Device</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </>
+                  )}
+                  {selectedLink && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-10 w-10 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 group transition-premium"
+                            onClick={() => { setSelectedNode(null); setSelectedLink(null); }}
+                          >
+                            <X className="w-5 h-5 text-slate-400 group-hover:text-red-500" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="left">Deselect Link</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
+              ) : (
+                /* Expanded Content */
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4">
 
                 {selectedNode && (
                   <div className="space-y-4">
@@ -2347,8 +2454,9 @@ const NetworkVisualizerContent: React.FC = () => {
                   </div>
                 )}
               </div>
-            </Card>
-          )}
+            )}
+          </Card>
+        )}
 
           {/* Tool Legend & Guide Modal */}
           {showLegend && (
