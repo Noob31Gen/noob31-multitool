@@ -453,35 +453,30 @@ const NetworkVisualizerContent: React.FC = () => {
         // We use a group for the core to allow rotation and glow
         const core = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
-        // Glow effect
-        const glow = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        glow.setAttribute("width", "20");
-        glow.setAttribute("height", "4");
-        glow.setAttribute("rx", "2");
-        glow.setAttribute("x", "-16");
-        glow.setAttribute("y", "-2");
+        // Enhanced Glow effect (Color-matched)
+        const glow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        glow.setAttribute("d", "M -28 -10 L 6 0 L -28 10 Z");
         glow.setAttribute("fill", packetColor);
-        glow.setAttribute("filter", `blur(3px)`);
+        glow.setAttribute("filter", "blur(6px)");
         glow.setAttribute("opacity", "0.6");
         core.appendChild(glow);
 
-        // Solid core
-        const bolt = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        bolt.setAttribute("width", "16");
-        bolt.setAttribute("height", "2");
-        bolt.setAttribute("rx", "1");
-        bolt.setAttribute("x", "-14");
-        bolt.setAttribute("y", "-1");
-        bolt.setAttribute("fill", "white");
-        core.appendChild(bolt);
+        // Solid Arrow Core (No white center for pure color impact)
+        const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        arrow.setAttribute("d", "M -24 -8 L 4 0 L -24 8 Z");
+        arrow.setAttribute("fill", packetColor);
+        arrow.setAttribute("stroke", "white");
+        arrow.setAttribute("stroke-width", "1.5");
+        arrow.setAttribute("stroke-linejoin", "round");
+        core.appendChild(arrow);
 
-        // Head (Leading edge)
-        const head = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        head.setAttribute("r", "3.5");
-        head.setAttribute("cx", "2");
-        head.setAttribute("fill", "white");
-        head.setAttribute("filter", `drop-shadow(0 0 4px ${packetColor})`);
-        core.appendChild(head);
+        // Leading Pulse (Highlight at the tip)
+        const tip = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        tip.setAttribute("r", "3");
+        tip.setAttribute("cx", "4");
+        tip.setAttribute("fill", "white");
+        tip.setAttribute("filter", "blur(1px)");
+        core.appendChild(tip);
 
         g.appendChild(core);
         return { g, trail, core };
@@ -645,7 +640,7 @@ const NetworkVisualizerContent: React.FC = () => {
 
     if (broadcastPaths.length > 0) {
       logEvent(`[ICMP] Broadcast Request from ${sourceNode?.name} to ${segment.name}`, 'info');
-      animateBroadcastTree(broadcastPaths, '#3b82f6', {
+      animateBroadcastTree(broadcastPaths, '#f97316', {
         onComplete: () => {
           logEvent(`Broadcast Echo: Receiving responses from ${targets.length} devices...`, 'success');
 
@@ -654,7 +649,7 @@ const NetworkVisualizerContent: React.FC = () => {
             setTimeout(() => {
               const responseResult = findPath(targetId, sourceId);
               if (responseResult) {
-                animatePacket(responseResult.path, '#34d399', () => {
+                animatePacket(responseResult.path, '#22c55e', () => {
                   const targetNode = nodes.find(n => n.id === targetId);
                   logEvent(`[ICMP] Broadcast Response from ${targetNode?.name}`, 'success');
                 });
@@ -686,7 +681,7 @@ const NetworkVisualizerContent: React.FC = () => {
     const requestPaths = results.map(r => r.path);
     const leafNodes = new Set(requestPaths.map(p => p[p.length - 1]));
 
-    animateBroadcastTree(requestPaths, '#22d3ee', {
+    animateBroadcastTree(requestPaths, '#94a3b8', {
       onNodeArrival: (nodeId) => {
         // If it's a leaf node but NOT the targetId (and we have a targetId), show drop
         if (targetId && leafNodes.has(nodeId) && nodeId !== targetId && nodeId !== sourceId) {
@@ -709,7 +704,7 @@ const NetworkVisualizerContent: React.FC = () => {
           const tId = result.targetId;
           const targetNode = nodes.find(n => n.id === tId);
           if (targetNode) {
-            animatePacket([...result.path].reverse(), '#2dd4bf', () => {
+            animatePacket([...result.path].reverse(), '#94a3b8', () => {
               const targetIp = Object.entries(detectedNetworks.interfaceIps)
                 .find(([key]) => key.startsWith(`${tId}-`))?.[1] || '?.?.?.?';
 
@@ -742,32 +737,31 @@ const NetworkVisualizerContent: React.FC = () => {
     if (!node) return;
 
     const result = engine.simulateDhcpDiscovery(deviceId, detectedNetworks.foundNetworks);
-    if (!result) {
-      // APIPA Fallback
-      setDhcpStatus(prev => ({ ...prev, [deviceId]: 'discovering' }));
-      logEvent(`[DHCP] Discover: ${node.name} broadcasting for a server...`, 'info');
-      setTimeout(() => {
-        setDhcpStatus(prev => ({ ...prev, [deviceId]: 'bound' }));
-        logEvent(`[DHCP] No server found. ${node.name} using APIPA (169.254.x.x)`, 'info');
-      }, 1500);
-      return;
-    }
+    if (!result) return;
 
     setDhcpStatus(prev => ({ ...prev, [deviceId]: 'discovering' }));
     logEvent(`[DHCP] Discover: ${node.name} broadcasting for a server...`, 'info');
 
-    // Step 1: Discover (Broadcast-ish) - Orange
-    animatePacket(result.path, '#f97316', () => {
-      const serverNode = nodes.find(n => n.id === result.serverId);
-      if (serverNode) {
-        // Step 2: Offer/Ack - Green
-        animatePacket([...result.path].reverse(), '#34d399', () => {
-          setDhcpStatus(prev => ({ ...prev, [deviceId]: 'bound' }));
-          logEvent(`[DHCP] Bound: ${node.name} received IP from ${serverNode.name}`, 'success');
-        });
+    // Step 1: Discover (Broadcast to all nodes in segment) - Purple
+    animateBroadcastTree(result.broadcastPaths, '#a855f7', {
+      onComplete: () => {
+        const serverNode = nodes.find(n => n.id === result.serverId);
+        if (serverNode && result.responsePath.length > 0) {
+          // Step 2: Offer/Ack (Unicast response from THE server) - Purple
+          animatePacket(result.responsePath, '#a855f7', () => {
+            setDhcpStatus(prev => ({ ...prev, [deviceId]: 'bound' }));
+            logEvent(`[DHCP] Bound: ${node.name} received IP from ${serverNode.name}`, 'success');
+          });
+        } else {
+          // No server found
+          setTimeout(() => {
+            setDhcpStatus(prev => ({ ...prev, [deviceId]: 'bound' }));
+            logEvent(`[DHCP] No server found. ${node.name} using APIPA (169.254.x.x)`, 'info');
+          }, 1000);
+        }
       }
     });
-  }, [nodes, engine, detectedNetworks, logEvent, animatePacket]);
+  }, [nodes, engine, detectedNetworks, logEvent, animatePacket, animateBroadcastTree]);
 
   // Auto-DHCP trigger
   useEffect(() => {
@@ -828,11 +822,11 @@ const NetworkVisualizerContent: React.FC = () => {
       // Loop for multiple pings
       for (let i = 0; i < pingCount; i++) {
         setTimeout(() => {
-          animatePacket(path, '#fbbf24', () => {
+          animatePacket(path, '#f97316', () => {
             if (!failureId) {
               // Wait briefly then send the response back
               setTimeout(() => {
-                animatePacket([...path].reverse(), '#34d399', () => {
+                animatePacket([...path].reverse(), '#22c55e', () => {
                   logEvent(`Ping success (${i + 1}/${pingCount}): Response received at ${sourceNode?.name} from ${destNode?.name}`, 'success');
                 });
               }, 400);
@@ -2562,6 +2556,60 @@ const NetworkVisualizerContent: React.FC = () => {
                     </div>
                   </section>
 
+                  {/* Packet Legend */}
+                  <section className="space-y-4">
+                    <h3 className="text-xs font-black uppercase text-blue-500 tracking-wider flex items-center gap-2">
+                      <Zap size={14} /> Packet Analysis
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/30 rounded border">
+                        <div className="w-3 h-3 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
+                        <div>
+                          <p className="font-bold text-[10px] uppercase">ICMP Request</p>
+                          <p className="text-[9px] text-muted-foreground">Vibrant Orange</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/30 rounded border">
+                        <div className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                        <div>
+                          <p className="font-bold text-[10px] uppercase">ICMP Response</p>
+                          <p className="text-[9px] text-muted-foreground">Vibrant Green</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/30 rounded border">
+                        <div className="w-3 h-3 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]" />
+                        <div>
+                          <p className="font-bold text-[10px] uppercase">DHCP Config</p>
+                          <p className="text-[9px] text-muted-foreground">Address Assignment</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/30 rounded border">
+                        <div className="w-3 h-3 rounded-full bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.5)]" />
+                        <div>
+                          <p className="font-bold text-[10px] uppercase">ARP Discovery</p>
+                          <p className="text-[9px] text-muted-foreground">Muted Slate</p>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Protocol Fundamentals */}
+                  <section className="space-y-4">
+                    <h3 className="text-xs font-black uppercase text-blue-500 tracking-wider flex items-center gap-2">
+                      <Network size={14} /> Network Protocols
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] leading-relaxed">
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800/30 rounded-lg border border-slate-200 dark:border-slate-800">
+                        <p className="font-bold uppercase text-slate-900 dark:text-slate-100 mb-1">ARP (Address Resolution)</p>
+                        <p className="text-muted-foreground">Used to map an IP address to a physical MAC address. Before a ping can start, the source sends a broadcast (Grey) asking "Who has this IP?". The target responds with its MAC, allowing data to flow.</p>
+                      </div>
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800/30 rounded-lg border border-slate-200 dark:border-slate-800">
+                        <p className="font-bold uppercase text-slate-900 dark:text-slate-100 mb-1">DHCP (Auto-Configuration)</p>
+                        <p className="text-muted-foreground">Eliminates manual IP setup. When a PC connects, it broadcasts a "Discover" packet (Purple). A DHCP Server or Router responds with an IP lease, automatically configuring the device.</p>
+                      </div>
+                    </div>
+                  </section>
+
                   {/* Device Legend */}
                   <section className="space-y-4">
                     <h3 className="text-xs font-black uppercase text-blue-500 tracking-wider flex items-center gap-2">
@@ -2574,7 +2622,7 @@ const NetworkVisualizerContent: React.FC = () => {
                         </div>
                         <div className="space-y-1">
                           <p className="font-bold text-xs uppercase">PC / Server</p>
-                          <p className="text-[10px] text-muted-foreground leading-tight">Endpoints that generate and receive traffic. Used in the Ping Lab.</p>
+                          <p className="text-[10px] text-muted-foreground leading-tight">Endpoints that generate/receive traffic. Servers can be toggled as <b>DHCP Servers</b> to auto-assign IPs to the segment.</p>
                         </div>
                       </div>
                       <div className="flex gap-4 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-lg border">

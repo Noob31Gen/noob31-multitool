@@ -304,12 +304,24 @@ export class SimulationEngine {
 
   /**
    * Simulates DHCP discovery for a device.
+   * Returns a broadcast tree for discovery and a unicast response from the server.
    */
-  simulateDhcpDiscovery(deviceId: string, foundNetworks: NetworkSegment[]): { serverId: string, path: string[] } | null {
+  simulateDhcpDiscovery(deviceId: string, foundNetworks: NetworkSegment[]): { serverId: string, responsePath: string[], broadcastPaths: string[][] } | null {
     const segment = foundNetworks.find(net => net.devices.includes(deviceId));
     if (!segment) return null;
 
-    // Find all potential DHCP servers in the segment
+    // 1. Calculate all paths for the broadcast discovery
+    const broadcastPaths: string[][] = [];
+    const targets = segment.devices.filter(id => id !== deviceId);
+    
+    for (const targetId of targets) {
+      const result = this.findPath(deviceId, targetId, { foundNetworks });
+      if (result && !result.failureId) {
+        broadcastPaths.push(result.path);
+      }
+    }
+
+    // 2. Find and elect the best DHCP server in the segment
     const potentialServers = segment.devices
       .map(id => this.nodes.find(n => n.id === id)!)
       .filter(n => 
@@ -318,10 +330,9 @@ export class SimulationEngine {
         n.type === DeviceType.FIREWALL
       );
 
-    if (potentialServers.length === 0) return null;
+    if (potentialServers.length === 0) return { serverId: '', responsePath: [], broadcastPaths };
 
     // Priority: Server > Router > Firewall
-    // Tie-breaker: Lowest MAC address
     const sortedServers = potentialServers.sort((a, b) => {
       const getPriority = (n: Device) => {
         if (n.type === DeviceType.SERVER) return 1;
@@ -337,14 +348,14 @@ export class SimulationEngine {
       return a.interfaces[0].mac.localeCompare(b.interfaces[0].mac);
     });
 
-    for (const server of sortedServers) {
-      const result = this.findPath(deviceId, server.id, { foundNetworks });
-      if (result && !result.failureId) {
-        return { serverId: server.id, path: result.path };
-      }
-    }
-    
-    return null;
+    const winner = sortedServers[0];
+    const responseResult = this.findPath(winner.id, deviceId, { foundNetworks });
+
+    return {
+      serverId: winner.id,
+      responsePath: responseResult ? responseResult.path : [],
+      broadcastPaths
+    };
   }
 
   private buildAdjacencyList(): Record<string, Link[]> {
