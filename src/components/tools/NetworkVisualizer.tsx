@@ -73,18 +73,6 @@ export const NetworkVisualizer: React.FC = () => {
   const [ispText, setIspText] = useState<{ x: number, y: number } | null>(null);
   const discoveredTriangles = useRef<Set<string>>(new Set());
 
-  // Dedicated animation effect for easter egg text
-  useEffect(() => {
-    if (ispText) {
-      setTimeout(() => {
-        animate('#isp-discovery-text', {
-          opacity: [0, 1, 0],
-          duration: 3000,
-          easing: 'easeInOutQuad'
-        });
-      }, 50);
-    }
-  }, [ispText]);
 
 
   const stpData = useMemo(() => {
@@ -182,21 +170,25 @@ export const NetworkVisualizer: React.FC = () => {
         // TRIGGER EASTER EGG
         const ids = component.map(n => n.id);
         const avgX = component.reduce((acc, n) => acc + n.x, 0) / component.length;
-        const avgY = component.reduce((acc, n) => acc + n.y, 0) / component.length;
+        const avgY = component.reduce((acc, n) => acc + n.y, 0) / component.length - 60;
         
         // 1. Create Cloud Node
         const cloudNode: Device = {
           id: `cloud-${Date.now()}`,
           name: "The Cloud",
-          type: DeviceType.SERVER,
+          type: DeviceType.ROUTER,
           x: avgX,
-          y: avgY,
+          y: avgY + 60, // Place actual node at original center, text is at y-60
           interfaces: [
             { id: `eth0`, mac: "00:0C:10:0D:5E:01", isConnected: true }
           ],
           arpCache: {},
           portLimit: 10,
-          isCloud: true
+          isCloud: true,
+          routingEnabled: true,
+          blockedNetworks: [],
+          disabledRoutes: [],
+          enabledRoutes: []
         };
         
         // 2. Update Links
@@ -259,8 +251,10 @@ export const NetworkVisualizer: React.FC = () => {
         break;
       }
     }
+  }, [nodes, links, cloudText]);
 
-    // Easter Egg: ISP Discovery (Router Triangle)
+  // Easter Egg: ISP Discovery (Router Triangle)
+  useEffect(() => {
     const routers = nodes.filter(n => n.type === DeviceType.ROUTER);
     if (routers.length >= 3 && !ispText) {
       for (let i = 0; i < routers.length; i++) {
@@ -280,11 +274,18 @@ export const NetworkVisualizer: React.FC = () => {
               
               discoveredTriangles.current.add(triId);
               const avgX = (r1.x + r2.x + r3.x) / 3;
-              const avgY = (r1.y + r2.y + r3.y) / 3;
+              const avgY = (r1.y + r2.y + r3.y) / 3 - 60;
               
               setIspText({ x: avgX, y: avgY });
               logEvent("ISP DISCOVERED! 🌐", "success");
-              setTimeout(() => setIspText(null), 3500);
+              setTimeout(() => {
+                animate('#isp-discovery-text', {
+                  opacity: [0, 1, 0],
+                  duration: 2500,
+                  easing: 'easeInOutQuad'
+                });
+              }, 100);
+              setTimeout(() => setIspText(null), 3000);
               return;
             }
           }
@@ -650,7 +651,8 @@ export const NetworkVisualizer: React.FC = () => {
       blockedNetworks: (type === DeviceType.ROUTER || type === DeviceType.FIREWALL) ? [] : undefined,
       routingEnabled: type === DeviceType.FIREWALL ? true : (type === DeviceType.ROUTER ? true : undefined),
       ipsMode: type === DeviceType.IPS_IDS ? 'IDS' : undefined,
-      disabledRoutes: (type === DeviceType.ROUTER || type === DeviceType.FIREWALL) ? [] : undefined
+      disabledRoutes: (type === DeviceType.ROUTER || type === DeviceType.FIREWALL) ? [] : undefined,
+      enabledRoutes: (type === DeviceType.ROUTER || type === DeviceType.FIREWALL) ? [] : undefined
     };
     setNodes([...nodes, newNode]);
     logEvent(`Added ${type}: ${newNode.name} (Max Ports: ${portLimit})`, 'info');
@@ -1085,6 +1087,17 @@ export const NetworkVisualizer: React.FC = () => {
                     className="animate-[spin_20s_linear_infinite]"
                   />
                 )}
+                {/* Segment Highlight */}
+                {selectedNetworkId && detectedNetworks.foundNetworks.find(net => net.id === selectedNetworkId)?.devices.includes(node.id) && (
+                  <circle
+                    r="32"
+                    fill="none"
+                    stroke="#3b82f6"
+                    strokeWidth="2"
+                    strokeDasharray="4 4"
+                    className="animate-pulse"
+                  />
+                )}
                 <circle
                   r="28"
                   fill="white"
@@ -1118,12 +1131,15 @@ export const NetworkVisualizer: React.FC = () => {
               <text
                 id="cloud-discovery-text"
                 x={cloudText.x}
-                y={cloudText.y - 60}
+                y={cloudText.y}
                 textAnchor="middle"
-                className="text-sm font-black fill-sky-500 uppercase tracking-tighter pointer-events-none drop-shadow-md"
-                style={{ opacity: 0 }}
+                className="text-xl font-black fill-white uppercase tracking-tighter pointer-events-none"
+                style={{ 
+                  opacity: 0,
+                  filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.8))'
+                }}
               >
-                Cloud computing discovered ☁️
+                Cloud Computing Discovered! ☁️✨
               </text>
             )}
             
@@ -1133,8 +1149,11 @@ export const NetworkVisualizer: React.FC = () => {
                 x={ispText.x}
                 y={ispText.y}
                 textAnchor="middle"
-                className="text-sm font-black fill-indigo-500 uppercase tracking-tighter pointer-events-none drop-shadow-md"
-                style={{ opacity: 0 }}
+                className="text-xl font-black fill-white uppercase tracking-tighter pointer-events-none"
+                style={{ 
+                  opacity: 0,
+                  filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.8))'
+                }}
               >
                 ISP Discovered 🌐
               </text>
@@ -1152,7 +1171,7 @@ export const NetworkVisualizer: React.FC = () => {
             </div>
 
             {/* Dynamic Network Browser */}
-            <div className="flex gap-3 pointer-events-auto">
+            <div className="flex flex-col items-start gap-3 pointer-events-auto">
               {/* Networks Box */}
               <div className="w-56 max-h-48 flex flex-col bg-slate-900/90 text-xs text-slate-300 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-md overflow-hidden">
                 <div className="flex items-center justify-between p-2 border-b border-slate-700 bg-slate-800/50">
@@ -1408,6 +1427,50 @@ export const NetworkVisualizer: React.FC = () => {
                         ));
                       })()}
                     </div>
+
+                    {/* Routing Knowledge Toggle */}
+                    {(nodes.find(n => n.id === selectedNode)?.type === DeviceType.ROUTER || nodes.find(n => n.id === selectedNode)?.type === DeviceType.FIREWALL) && (
+                      <div className="p-3 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/30 space-y-2">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold opacity-70">Routing Knowledge</p>
+                        <div className="space-y-1 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+                          {detectedNetworks.foundNetworks.map(net => {
+                            const node = nodes.find(n => n.id === selectedNode);
+                            const isLocal = net.devices.includes(selectedNode!);
+                            const isEnabled = node?.enabledRoutes?.includes(net.sig);
+                            
+                            return (
+                              <div key={net.id} className="flex items-center justify-between p-1.5 rounded bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
+                                <div className="flex flex-col min-w-0">
+                                  <span className="text-[10px] font-bold truncate">{net.name}</span>
+                                  <span className="text-[9px] font-mono opacity-60">{net.subnet}</span>
+                                </div>
+                                <Button
+                                  variant={isEnabled || isLocal ? "default" : "outline"}
+                                  size="sm"
+                                  className={cn(
+                                    "h-5 text-[9px] px-1.5 ml-2",
+                                    (isEnabled || isLocal) && "bg-blue-600 hover:bg-blue-700"
+                                  )}
+                                  disabled={isLocal}
+                                  onClick={() => {
+                                    const node = nodes.find(n => n.id === selectedNode);
+                                    if (node) {
+                                      const newEnabled = isEnabled
+                                        ? (node.enabledRoutes || []).filter(s => s !== net.sig)
+                                        : [...(node.enabledRoutes || []), net.sig];
+                                      setNodes(nodes.map(n => n.id === selectedNode ? { ...n, enabledRoutes: newEnabled } : n));
+                                      logEvent(`${node.name} ${isEnabled ? 'Ignored' : 'Learned'} ${net.name}`, 'info');
+                                    }
+                                  }}
+                                >
+                                  {isLocal ? 'LOCAL' : (isEnabled ? 'KNOWS' : 'IGNORE')}
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Router/Firewall Section */}
                     {(nodes.find(n => n.id === selectedNode)?.type === DeviceType.ROUTER || nodes.find(n => n.id === selectedNode)?.type === DeviceType.FIREWALL) && (

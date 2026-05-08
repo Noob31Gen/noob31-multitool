@@ -50,8 +50,8 @@ export interface Device {
   routingEnabled?: boolean; // For Firewalls: Toggle routing capabilities
   ipsMode?: 'IPS' | 'IDS'; // For IPS/IDS devices
   portLimit: number; // Max connections
-  knownNetworks?: string[]; // DEPRECATED: use disabledRoutes
   disabledRoutes?: string[]; // For Routers/Firewalls: list of network signatures to block
+  enabledRoutes?: string[]; // For Routers/Firewalls: list of remote network signatures explicitly enabled
   stpPriority?: number; // DEPRECATED
   isManualRoot?: boolean; // For Switches: User-defined root bridge
   isRootBridge?: boolean; // For Switches: Calculated state
@@ -253,9 +253,9 @@ export class SimulationEngine {
                 // Check Routing Knowledge (IP-based)
                 if (destIp) {
                   // Real Routing Table Lookup
-                  const hasRoute = nextNode.routingTable?.some(route => isIpInSubnet(destIp, route.network)) || 
-                                  // Fallback to legacy signature-based check for backward compatibility/simplicity
-                                  (destNet && !nextNode.disabledRoutes?.includes(destNet.sig));
+                  const isLocal = destNet && destNet.devices.includes(nextNode.id);
+                  const isEnabled = nextNode.enabledRoutes?.includes(destNet.sig);
+                  const hasRoute = isLocal || isEnabled;
 
                   if (!hasRoute) {
                     return { path: path.slice(0, i + 2), failureId: nextNode.id, failureType: 'routing' };
