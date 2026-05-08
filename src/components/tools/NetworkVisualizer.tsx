@@ -212,9 +212,11 @@ export const NetworkVisualizer: React.FC = () => {
     });
 
     if (isRouting) {
-      logEvent(`ROUTING ERROR at ${node.name}: Dest Network Unknown`, 'error');
+      logEvent(`Routing Error at ${node.name}: Destination Network Unknown`, 'error');
+    } else if (isIds) {
+      logEvent(`IDS Alert at ${node.name}: Malicious traffic detected`, 'info');
     } else {
-      logEvent(`${isIds ? 'IDS ALERT' : 'Packet DROPPED'} at ${node.name}`, isIds ? 'info' : 'error');
+      logEvent(`Packet blocked at ${node.name}`, 'error');
     }
   }, [nodes, logEvent]);
 
@@ -556,6 +558,51 @@ export const NetworkVisualizer: React.FC = () => {
   }, [nodes, showDropAnimation]);
 
 
+  const animateBroadcastTree = useCallback((paths: string[][], color: string = '#22d3ee', options?: { onNodeArrival?: (nodeId: string) => void, onComplete?: () => void }) => {
+    if (paths.length === 0 || !underNodeLayerRef.current) {
+      if (options?.onComplete) options.onComplete();
+      return;
+    }
+
+    const tree: Record<string, Set<string>> = {};
+    paths.forEach(path => {
+      for (let i = 0; i < path.length - 1; i++) {
+        const from = path[i];
+        const to = path[i + 1];
+        if (!tree[from]) tree[from] = new Set();
+        tree[from].add(to);
+      }
+    });
+
+    const animateNode = (nodeId: string, onDone?: () => void) => {
+      const neighbors = tree[nodeId];
+      
+      // Notify arrival at this node
+      if (options?.onNodeArrival) options.onNodeArrival(nodeId);
+
+      if (!neighbors || neighbors.size === 0) {
+        if (onDone) onDone();
+        return;
+      }
+
+      let completedCount = 0;
+      const totalNeighbors = neighbors.size;
+
+      neighbors.forEach(neighborId => {
+        animatePacket([nodeId, neighborId], color, () => {
+          animateNode(neighborId, () => {
+            completedCount++;
+            if (completedCount === totalNeighbors && onDone) {
+              onDone();
+            }
+          });
+        });
+      });
+    };
+
+    animateNode(paths[0][0], options?.onComplete);
+  }, [animatePacket]);
+
   const [pingTargetId, setPingTargetId] = useState<string>('');
   const [pingCount, setPingCount] = useState<number>(1);
 
@@ -582,37 +629,67 @@ export const NetworkVisualizer: React.FC = () => {
       return;
     }
 
-    targets.forEach(targetId => handlePing(sourceId, targetId));
-    logEvent(`Broadcast: ${nodes.find(n => n.id === sourceId)?.name} -> ${segment.name} (${targets.length} targets)`, 'success');
+    // Get all paths for the broadcast
+    const broadcastPaths = targets.map(targetId => {
+      const result = findPath(sourceId, targetId);
+      return result ? result.path : null;
+    }).filter((p): p is string[] => p !== null);
+
+    if (broadcastPaths.length > 0) {
+      animateBroadcastTree(broadcastPaths, '#3b82f6', {
+        onComplete: () => {
+          logEvent(`Broadcast complete: ${nodes.find(n => n.id === sourceId)?.name} -> ${segment.name}`, 'success');
+        }
+      });
+    }
   };
 
-  const handleArpDiscovery = useCallback((sourceId: string, callback: () => void) => {
+  const handleArpDiscovery = useCallback((sourceId: string, targetId?: string, callback?: () => void) => {
     const sourceNode = nodes.find(n => n.id === sourceId);
     if (!sourceNode) {
-      callback();
+      if (callback) callback();
       return;
     }
 
     const results = engine.simulateArpDiscovery(sourceId, detectedNetworks.foundNetworks);
     if (results.length === 0) {
-      setTimeout(callback, 500);
+      if (callback) setTimeout(callback, 500);
       return;
     }
 
     const segment = detectedNetworks.foundNetworks.find(net => net.devices.includes(sourceId));
-    logEvent(`[ARP] Discovery: ${sourceNode.name} broadcasting to ${segment?.name || 'segment'}`, 'info');
+    logEvent(`[ARP] Request: ${sourceNode.name} broadcasting for ${targetId ? 'target' : 'all nodes'} in ${segment?.name || 'segment'}`, 'info');
 
-    results.forEach((result, idx) => {
-      const targetId = result.path[result.path.length - 1];
-      // Step 1: ARP Request (Broadcast) - Cyan
-      setTimeout(() => {
-        animatePacket(result.path, '#22d3ee', () => {
-          const targetNode = nodes.find(n => n.id === targetId);
+    // Step 1: ARP Request (Tree-based Broadcast) - Cyan
+    const requestPaths = results.map(r => r.path);
+    const leafNodes = new Set(requestPaths.map(p => p[p.length - 1]));
+
+    animateBroadcastTree(requestPaths, '#22d3ee', {
+      onNodeArrival: (nodeId) => {
+        // If it's a leaf node but NOT the targetId (and we have a targetId), show drop
+        if (targetId && leafNodes.has(nodeId) && nodeId !== targetId && nodeId !== sourceId) {
+          showDropAnimation(nodeId);
+        }
+      },
+      onComplete: () => {
+        // Step 2: ARP Replies (Unicast back to source) - Teal
+        const targetsToRespond = targetId 
+          ? results.filter(r => r.targetId === targetId)
+          : results;
+
+        if (targetsToRespond.length === 0) {
+          if (callback) callback();
+          return;
+        }
+
+        let repliesDone = 0;
+        targetsToRespond.forEach(result => {
+          const tId = result.targetId;
+          const targetNode = nodes.find(n => n.id === tId);
           if (targetNode) {
-            // Step 2: ARP Reply (Unicast) - Teal
             animatePacket([...result.path].reverse(), '#2dd4bf', () => {
               const targetIp = Object.entries(detectedNetworks.interfaceIps)
-                .find(([key]) => key.startsWith(`${targetId}-`))?.[1] || '?.?.?.?';
+                .find(([key]) => key.startsWith(`${tId}-`))?.[1] || '?.?.?.?';
 
               setNodes(prev => prev.map(n => {
                 if (n.id === sourceId) {
@@ -621,15 +698,22 @@ export const NetworkVisualizer: React.FC = () => {
                 return n;
               }));
               logEvent(`[ARP] Reply from ${targetNode.name}: I am at ${targetIp}`, 'success');
+              
+              repliesDone++;
+              if (repliesDone === targetsToRespond.length && callback) {
+                callback();
+              }
             });
+          } else {
+            repliesDone++;
+            if (repliesDone === targetsToRespond.length && callback) {
+              callback();
+            }
           }
         });
-      }, idx * 100);
+      }
     });
-
-    // Proceed to ping after discovery phase
-    setTimeout(callback, 2000 + (results.length * 50));
-  }, [nodes, engine, detectedNetworks, logEvent, animatePacket]);
+  }, [nodes, engine, detectedNetworks, logEvent, animatePacket, animateBroadcastTree, showDropAnimation]);
 
   const handleDhcpDiscovery = useCallback((deviceId: string) => {
     const node = nodes.find(n => n.id === deviceId);
@@ -700,7 +784,7 @@ export const NetworkVisualizer: React.FC = () => {
     const destNode = nodes.find(n => n.id === destId);
 
     // ARP Discovery Phase First
-    handleArpDiscovery(sourceId, () => {
+    handleArpDiscovery(sourceId, destId, () => {
       logEvent(`Initiating ${pingCount} Ping(s): ${sourceNode?.name} -> ${destNode?.name}`, 'info');
 
       // Resolve destination IP for routing decisions
@@ -1193,20 +1277,21 @@ export const NetworkVisualizer: React.FC = () => {
                 onClick={(e) => handleNodeClick(e, node.id)}
                 className="group"
               >
-                {/* Selected Node Halo */}
+                {/* Selected Node Halo - Lightweight static design */}
                 {selectedNode === node.id && (
                   <g className="pointer-events-none">
                     <circle
-                      r="38"
+                      r="35"
                       fill="none"
                       stroke="#3b82f6"
-                      strokeWidth="1"
-                      className="animate-ripple"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 4"
+                      className="animate-[spin_10s_linear_infinite] opacity-60"
                     />
                     <circle
                       r="32"
                       fill="#3b82f6"
-                      className="opacity-10 animate-pulse-soft blur-md"
+                      className="opacity-10"
                     />
                   </g>
                 )}
@@ -1246,29 +1331,22 @@ export const NetworkVisualizer: React.FC = () => {
                   </g>
                 )}
 
-                {/* Network Selection - Sonar Pulse Effect */}
+                {/* Network Selection - Visible Highlight */}
                 {selectedNetworkId && detectedNetworks.foundNetworks.find(net => net.id === selectedNetworkId)?.devices.includes(node.id) && (
                   <g className="pointer-events-none">
                     <circle
-                      r="45"
+                      r="40"
                       fill="none"
                       stroke="#3b82f6"
-                      strokeWidth="1"
-                      className="animate-ripple"
-                      style={{ animationDelay: '0s' }}
-                    />
-                    <circle
-                      r="45"
-                      fill="none"
-                      stroke="#3b82f6"
-                      strokeWidth="1"
-                      className="animate-ripple"
-                      style={{ animationDelay: '0.5s' }}
+                      strokeWidth="2"
+                      strokeDasharray="4 2"
+                      className="animate-[spin_12s_linear_infinite] opacity-60"
                     />
                     <circle
                       r="35"
                       fill="#3b82f6"
-                      className="opacity-10 animate-pulse-soft blur-lg"
+                      className="opacity-20 animate-pulse"
+                      style={{ animationDuration: '2s' }}
                     />
                   </g>
                 )}
@@ -1277,8 +1355,7 @@ export const NetworkVisualizer: React.FC = () => {
                   fill="white"
                   stroke={selectedNode === node.id || linkStartNodeId === node.id ? '#3b82f6' : '#cbd5e1'}
                   strokeWidth={selectedNode === node.id || linkStartNodeId === node.id ? '3' : '2'}
-                  className="dark:fill-slate-800 transition-premium group-hover:stroke-blue-400 group-hover:scale-110 shadow-xl"
-                  style={{ filter: selectedNode === node.id ? 'drop-shadow(0 0 12px rgba(59, 130, 246, 0.4))' : 'none' }}
+                  className="dark:fill-slate-800 transition-premium group-hover:stroke-blue-400 group-hover:scale-110 shadow-lg"
                 />
                 <text
                   y="45"
