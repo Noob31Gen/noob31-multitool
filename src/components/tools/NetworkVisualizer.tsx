@@ -20,6 +20,13 @@ import {
   Activity, Info, X, ChevronUp, ChevronDown, Cloud
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Switch } from '@/components/ui/switch';
 import { animate } from 'animejs';
 
 // Impure logic moved outside to satisfy strict purity linters
@@ -48,7 +55,7 @@ const getRandomCoords = (nodes: Device[]) => {
 
 const getRandomMac = () => Math.random().toString(16).slice(2, 14).toUpperCase();
 
-export const NetworkVisualizer: React.FC = () => {
+const NetworkVisualizerContent: React.FC = () => {
   const [nodes, setNodes] = useState<Device[]>([]);
   const [links, setLinks] = useState<Link[]>([]);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
@@ -71,6 +78,7 @@ export const NetworkVisualizer: React.FC = () => {
   const [dhcpStatus, setDhcpStatus] = useState<Record<string, 'none' | 'discovering' | 'bound'>>({});
   const [cloudText, setCloudText] = useState<{ x: number, y: number } | null>(null);
   const [ispText, setIspText] = useState<{ x: number, y: number } | null>(null);
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const discoveredTriangles = useRef<Set<string>>(new Set());
 
 
@@ -149,13 +157,16 @@ export const NetworkVisualizer: React.FC = () => {
     setLogs(prev => [newLog, ...prev].slice(0, 50));
   }, [setLogs]);
 
-  const showDropAnimation = useCallback((nodeId: string, type: 'firewall' | 'routing' = 'firewall') => {
+  const showDropAnimation = useCallback((nodeId: string, type: 'firewall' | 'routing' | 'silent' = 'firewall') => {
     const node = nodes.find(n => n.id === nodeId);
     if (!node || !overNodeLayerRef.current) return;
 
+    const isSilent = type === 'silent';
     const isIds = node.type === DeviceType.IPS_IDS && node.ipsMode === 'IDS';
     const isRouting = type === 'routing';
-    const color = isIds ? "#f59e0b" : (isRouting ? "#a855f7" : "#ef4444");
+    
+    // Silent drops use a neutral grey
+    const color = isSilent ? "#94a3b8" : (isIds ? "#f59e0b" : (isRouting ? "#a855f7" : "#ef4444"));
 
     // Create a group for the drop effect
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -168,55 +179,63 @@ export const NetworkVisualizer: React.FC = () => {
     ripple.setAttribute("r", "10");
     ripple.setAttribute("fill", "none");
     ripple.setAttribute("stroke", color);
-    ripple.setAttribute("stroke-width", "2");
+    ripple.setAttribute("stroke-width", isSilent ? "1" : "2");
     g.appendChild(ripple);
 
-    // Create the icon/mark
-    const mark = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    mark.setAttribute("transform", `translate(${node.x}, ${node.y})`);
-    
-    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    circle.setAttribute("r", "15");
-    circle.setAttribute("fill", color);
-    circle.setAttribute("opacity", "0.9");
-    mark.appendChild(circle);
+    if (!isSilent) {
+      // Create the icon/mark (Only for non-silent drops)
+      const mark = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      mark.setAttribute("transform", `translate(${node.x}, ${node.y})`);
+      
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("r", "15");
+      circle.setAttribute("fill", color);
+      circle.setAttribute("opacity", "0.9");
+      mark.appendChild(circle);
 
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.textContent = isIds ? "!" : (isRouting ? "?" : "×");
-    text.setAttribute("text-anchor", "middle");
-    text.setAttribute("dy", ".35em");
-    text.setAttribute("font-size", "20");
-    text.setAttribute("fill", "white");
-    text.setAttribute("font-weight", "bold");
-    mark.appendChild(text);
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.textContent = isIds ? "!" : (isRouting ? "?" : "×");
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("dy", ".35em");
+      text.setAttribute("font-size", "20");
+      text.setAttribute("fill", "white");
+      text.setAttribute("font-weight", "bold");
+      mark.appendChild(text);
+      
+      g.appendChild(mark);
+
+      // Animate the mark
+      animate(mark, {
+        translateY: [0, -30],
+        opacity: [0, 1, 1, 0],
+        scale: [0.5, 1.2, 1],
+        duration: 1200,
+        easing: 'easeOutElastic(1, .8)',
+        onComplete: () => g.remove()
+      });
+    } else {
+      // Silent drop cleanup
+      setTimeout(() => g.remove(), 1000);
+    }
     
-    g.appendChild(mark);
     overNodeLayerRef.current.appendChild(g);
 
     // Animate the ripple
     animate(ripple, {
-      r: [10, 40],
+      r: [10, isSilent ? 30 : 40],
       opacity: [1, 0],
-      duration: 800,
+      duration: isSilent ? 600 : 800,
       easing: 'easeOutExpo'
     });
 
-    // Animate the mark
-    animate(mark, {
-      translateY: [0, -30],
-      opacity: [0, 1, 1, 0],
-      scale: [0.5, 1.2, 1],
-      duration: 1200,
-      easing: 'easeOutElastic(1, .8)',
-      onComplete: () => g.remove()
-    });
-
-    if (isRouting) {
-      logEvent(`Routing Error at ${node.name}: Destination Network Unknown`, 'error');
-    } else if (isIds) {
-      logEvent(`IDS Alert at ${node.name}: Malicious traffic detected`, 'info');
-    } else {
-      logEvent(`Packet blocked at ${node.name}`, 'error');
+    if (!isSilent) {
+      if (isRouting) {
+        logEvent(`Routing Error at ${node.name}: Destination Network Unknown`, 'error');
+      } else if (isIds) {
+        logEvent(`IDS Alert at ${node.name}: Malicious traffic detected`, 'info');
+      } else {
+        logEvent(`Packet blocked at ${node.name}`, 'error');
+      }
     }
   }, [nodes, logEvent]);
 
@@ -293,21 +312,8 @@ export const NetworkVisualizer: React.FC = () => {
         setTimeout(() => {
           animate('#cloud-discovery-text', {
             opacity: [0, 1, 1, 0],
-            translateY: [20, 0, 0, -20],
-            scale: [0.8, 1.1, 1, 0.8],
             duration: 3000,
-            easing: 'easeOutElastic(1, .6)'
-          });
-          
-          // Flash effect
-          const flash = document.createElement('div');
-          flash.className = 'absolute inset-0 bg-white dark:bg-blue-400 opacity-20 pointer-events-none z-50';
-          document.body.appendChild(flash);
-          animate(flash, {
-            opacity: [0.3, 0],
-            duration: 500,
-            easing: 'easeOutQuad',
-            onComplete: () => flash.remove()
+            easing: 'easeInOutQuad'
           });
         }, 100);
         setTimeout(() => setCloudText(null), 3000);
@@ -377,10 +383,8 @@ export const NetworkVisualizer: React.FC = () => {
               setTimeout(() => {
                 animate('#isp-discovery-text', {
                   opacity: [0, 1, 1, 0],
-                  translateY: [20, 0, 0, -20],
-                  scale: [0.8, 1.1, 1, 0.8],
                   duration: 3000,
-                  easing: 'easeOutElastic(1, .6)'
+                  easing: 'easeInOutQuad'
                 });
                 
                 // Pulse effect on the routers
@@ -418,15 +422,15 @@ export const NetworkVisualizer: React.FC = () => {
     };
   };
 
-  const findPath = useCallback((startId: string, endId: string, destIp?: string): { path: string[], failureId?: string, failureType?: 'firewall' | 'routing' } | null => {
+  const findPath = useCallback((startId: string, endId: string, destIp?: string): { path: string[], failureId?: string, failureType?: 'firewall' | 'routing' | 'silent' } | null => {
     return engine.findPath(startId, endId, {
       foundNetworks: detectedNetworks.foundNetworks,
       destIp,
       onDropAnimation: (nodeId, type) => showDropAnimation(nodeId, type)
     });
   }, [engine, detectedNetworks, showDropAnimation]);
-  const animatePacket = useCallback((path: string[], color: string = '#3b82f6', callback?: () => void, failureId?: string, failureType?: 'firewall' | 'routing') => {
-    const startAnimation = (p: string[], c: string, cb?: () => void, fId?: string, fType?: 'firewall' | 'routing') => {
+  const animatePacket = useCallback((path: string[], color: string = '#3b82f6', callback?: () => void, failureId?: string, failureType?: 'firewall' | 'routing' | 'silent') => {
+    const startAnimation = (p: string[], c: string, cb?: () => void, fId?: string, fType?: 'firewall' | 'routing' | 'silent') => {
       if (p.length < 2 || !underNodeLayerRef.current) return;
 
       const createPacket = (packetColor: string) => {
@@ -668,7 +672,7 @@ export const NetworkVisualizer: React.FC = () => {
       onNodeArrival: (nodeId) => {
         // If it's a leaf node but NOT the targetId (and we have a targetId), show drop
         if (targetId && leafNodes.has(nodeId) && nodeId !== targetId && nodeId !== sourceId) {
-          showDropAnimation(nodeId);
+          showDropAnimation(nodeId, 'silent');
         }
       },
       onComplete: () => {
@@ -1274,8 +1278,10 @@ export const NetworkVisualizer: React.FC = () => {
                 data-node-id={node.id}
                 transform={`translate(${node.x}, ${node.y})`}
                 onMouseDown={(e) => startDrag(e, node.id)}
+                onMouseEnter={() => setHoveredNodeId(node.id)}
+                onMouseLeave={() => setHoveredNodeId(null)}
                 onClick={(e) => handleNodeClick(e, node.id)}
-                className="group"
+                className="group cursor-pointer"
               >
                 {/* Selected Node Halo - Lightweight static design */}
                 {selectedNode === node.id && (
@@ -1388,8 +1394,7 @@ export const NetworkVisualizer: React.FC = () => {
                 className="text-2xl font-black fill-blue-500 dark:fill-blue-400 uppercase tracking-tighter pointer-events-none"
                 style={{ 
                   opacity: 0,
-                  filter: 'drop-shadow(0 0 12px rgba(59, 130, 246, 0.8))',
-                  fontFamily: 'Pacifico, sans-serif'
+                  filter: 'drop-shadow(0 0 12px rgba(59, 130, 246, 0.8))'
                 }}
               >
                 Cloud Computing Discovered!
@@ -1415,6 +1420,61 @@ export const NetworkVisualizer: React.FC = () => {
             {/* Over-Node Layer (Drop marks/Alerts) */}
             <g ref={overNodeLayerRef} />
           </svg>
+
+          {/* Device Hover Tooltip */}
+          {(() => {
+            const hoveredNode = nodes.find(n => n.id === hoveredNodeId);
+            if (!hoveredNodeId || !hoveredNode) return null;
+            
+            return (
+              <div 
+                className="fixed pointer-events-none z-[100] animate-in fade-in zoom-in-95 duration-200"
+              style={{ 
+                left: mousePos.x * (svgRef.current?.getScreenCTM()?.a || 1) + (svgRef.current?.getScreenCTM()?.e || 0) + 15,
+                top: mousePos.y * (svgRef.current?.getScreenCTM()?.d || 1) + (svgRef.current?.getScreenCTM()?.f || 0) + 15
+              }}
+            >
+              <div className="bg-slate-900/90 text-white p-2 rounded-lg shadow-xl backdrop-blur-md border border-slate-700/50 flex flex-col gap-1 min-w-[120px]">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">
+                    {nodes.find(n => n.id === hoveredNodeId)?.type}
+                  </span>
+                  <span className="text-[9px] font-mono opacity-50">
+                    {nodes.find(n => n.id === hoveredNodeId)?.interfaces[0].mac.slice(-4)}
+                  </span>
+                </div>
+                <span className="text-xs font-bold truncate">
+                  {nodes.find(n => n.id === hoveredNodeId)?.name}
+                </span>
+                <div className="pt-1 border-t border-white/10 flex flex-col gap-0.5">
+                  {(() => {
+                    const nodeNets = detectedNetworks.foundNetworks.filter(net => net.devices.includes(hoveredNodeId));
+                    if (nodeNets.length === 0) return (
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                        <span className="text-[9px] uppercase font-bold opacity-70">Isolated Node</span>
+                      </div>
+                    );
+                    
+                    const primaryNet = nodeNets[0];
+                    return (
+                      <>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                          <span className="text-[9px] uppercase font-bold text-blue-400">
+                            {nodeNets.length > 1 ? `Multi-Segment (${nodeNets.length})` : primaryNet.name}
+                          </span>
+                        </div>
+                        <span className="text-[8px] font-mono opacity-50 ml-3 truncate">
+                          {nodeNets.length > 1 ? "Layer 3 Gateway" : primaryNet.subnet}
+                        </span>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          ); })()}
 
           {/* Bottom Left UI Stack */}
           <div className="absolute bottom-4 left-4 flex flex-col gap-2 pointer-events-none">
@@ -1660,7 +1720,14 @@ export const NetworkVisualizer: React.FC = () => {
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
                         <p className="text-xs text-muted-foreground uppercase font-bold">Identifier</p>
-                        <p className="text-sm font-mono">{nodes.find(n => n.id === selectedNode)?.name}</p>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <p className="text-sm font-mono truncate max-w-[150px] cursor-help">{nodes.find(n => n.id === selectedNode)?.name}</p>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]">
+                            {nodes.find(n => n.id === selectedNode)?.name}
+                          </TooltipContent>
+                        </Tooltip>
                       </div>
                       <div className="text-right space-y-1">
                         <p className="text-xs text-muted-foreground uppercase font-bold">Ports</p>
@@ -1686,13 +1753,23 @@ export const NetworkVisualizer: React.FC = () => {
                             <div key={net.id} className="flex items-center justify-between p-1.5 rounded bg-white/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 group/net transition-premium">
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 truncate">
-                                  {net.name}
-                                </span>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400 truncate cursor-help">
+                                      {net.name}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]" side="left">{net.name}</TooltipContent>
+                                </Tooltip>
                               </div>
-                              <span className="text-[10px] font-mono text-slate-500">
-                                {net.subnet}
-                              </span>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="text-[10px] font-mono text-slate-500 cursor-help">
+                                    {net.subnet}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]" side="bottom">Subnet Signature: {net.sig}</TooltipContent>
+                              </Tooltip>
                             </div>
                           ));
                         })()}
@@ -1837,6 +1914,28 @@ export const NetworkVisualizer: React.FC = () => {
                             }
                           </div>
                         </div>
+                      </div>
+                    )}
+
+                    {/* Server DHCP Configuration */}
+                    {nodes.find(n => n.id === selectedNode)?.type === DeviceType.SERVER && (
+                      <div className="p-3 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-lg border border-indigo-100 dark:border-indigo-900/30 space-y-3">
+                        <div className="flex items-center justify-between text-indigo-600 dark:text-indigo-400">
+                          <div className="flex items-center space-x-2">
+                            <Zap className="w-3 h-3" />
+                            <span className="text-xs font-bold uppercase tracking-wider">Service: DHCP Server</span>
+                          </div>
+                          <Switch 
+                            checked={nodes.find(n => n.id === selectedNode)?.dhcpEnabled || false}
+                            onCheckedChange={(checked) => {
+                              setNodes(nodes.map(n => n.id === selectedNode ? { ...n, dhcpEnabled: checked } : n));
+                              logEvent(`${nodes.find(n => n.id === selectedNode)?.name} DHCP Service: ${checked ? 'Online' : 'Offline'}`, checked ? 'success' : 'info');
+                            }}
+                          />
+                        </div>
+                        <p className="text-[10px] text-muted-foreground italic leading-tight">
+                          When enabled, this server will provide IP addresses to the local network segment.
+                        </p>
                       </div>
                     )}
 
@@ -2052,7 +2151,7 @@ export const NetworkVisualizer: React.FC = () => {
                     {/* Switch VLAN Section */}
                     {nodes.find(n => n.id === selectedNode)?.type === DeviceType.SWITCH && (
                       <div className="p-3 bg-purple-50/50 dark:bg-purple-900/10 rounded-lg border border-purple-100 dark:border-purple-900/30 space-y-3">
-                        <div className="flex items-center space-x-2 text-purple-600 dark:text-purple-400">
+                        <div className="flex items-center space-x-2 text-purple-600 dark:purple-400">
                           <Layers className="w-3 h-3" />
                           <span className="text-xs font-bold uppercase tracking-wider">VLAN Manager (Max 3)</span>
                         </div>
@@ -2185,14 +2284,28 @@ export const NetworkVisualizer: React.FC = () => {
                                   <div className={cn("w-2 h-2 rounded-full", iface.isConnected ? "bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]" : "bg-slate-400")} />
                                   <span className="text-xs font-bold uppercase">{iface.id}</span>
                                 </div>
-                                <span className="text-[10px] font-mono opacity-50">{iface.mac}</span>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="text-[10px] font-mono opacity-50 cursor-help">{iface.mac}</span>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]" side="top">MAC: {iface.mac}</TooltipContent>
+                                </Tooltip>
                               </div>
                               <div className="flex justify-between items-center">
-                                <span className="text-xs text-muted-foreground italic truncate mr-2">
-                                  {peerInfo ? (
-                                    <>Connected to <span className="text-blue-500 font-bold not-italic">{peerInfo.name}</span> <span className="opacity-70">({peerInfo.interface})</span></>
-                                  ) : 'Disconnected'}
-                                </span>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="text-xs text-muted-foreground italic truncate mr-2 cursor-help max-w-[140px]">
+                                      {peerInfo ? (
+                                        <>Connected to <span className="text-blue-500 font-bold not-italic">{peerInfo.name}</span> <span className="opacity-70">({peerInfo.interface})</span></>
+                                      ) : 'Disconnected'}
+                                    </span>
+                                  </TooltipTrigger>
+                                  {peerInfo && (
+                                    <TooltipContent className="bg-slate-900/95 text-white border-slate-700/50 backdrop-blur-md shadow-2xl p-2 min-w-[120px]" side="bottom">
+                                      Connected to {peerInfo.name} on remote interface {peerInfo.interface}
+                                    </TooltipContent>
+                                  )}
+                                </Tooltip>
                                 <div className="flex flex-col items-end shrink-0">
                                   <span className="text-xs font-mono text-blue-500 font-bold">
                                     {dhcpStatus[selectedNode!] === 'bound' ? (detectedNetworks.interfaceIps[`${selectedNode}-${iface.id}`] || 'no ip') : (dhcpStatus[selectedNode!] === 'discovering' ? 'DHCP...' : 'no ip')}
@@ -2386,5 +2499,13 @@ export const NetworkVisualizer: React.FC = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+export const NetworkVisualizer: React.FC = () => {
+  return (
+    <TooltipProvider delayDuration={300}>
+      <NetworkVisualizerContent />
+    </TooltipProvider>
   );
 };

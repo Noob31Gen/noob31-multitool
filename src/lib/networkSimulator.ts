@@ -56,6 +56,7 @@ export interface Device {
   isManualRoot?: boolean; // For Switches: User-defined root bridge
   isRootBridge?: boolean; // For Switches: Calculated state
   isCloud?: boolean; // Easter Egg: Combined server cluster
+  dhcpEnabled?: boolean; // For Servers: Can act as DHCP server
 }
 
 /**
@@ -191,8 +192,8 @@ export class SimulationEngine {
     foundNetworks: NetworkSegment[], 
     destIp?: string,
     isReply?: boolean,
-    onDropAnimation?: (nodeId: string, type?: 'firewall' | 'routing') => void 
-  }): { path: string[], failureId?: string, failureType?: 'firewall' | 'routing' } | null {
+    onDropAnimation?: (nodeId: string, type?: 'firewall' | 'routing' | 'silent') => void 
+  }): { path: string[], failureId?: string, failureType?: 'firewall' | 'routing' | 'silent' } | null {
     const queue: [string, string[]][] = [[startId, [startId]]];
     const visited = new Set([startId]);
 
@@ -215,7 +216,9 @@ export class SimulationEngine {
             if (prevId) {
               const vlanIn = node.vlanMap?.[prevId] || 'VLAN 1';
               const vlanOut = node.vlanMap?.[nextNode.id] || 'VLAN 1';
-              if (vlanIn !== vlanOut) return { path: path.slice(0, i + 1), failureId: node.id, failureType: 'firewall' };
+              if (vlanIn !== vlanOut) {
+                return { path: path.slice(0, i + 1), failureId: node.id, failureType: 'silent' };
+              }
             }
           }
 
@@ -245,9 +248,8 @@ export class SimulationEngine {
                   }
                 }
 
-                // Check if firewall routing is disabled (only for Firewalls)
                 if (nextNode.type === DeviceType.FIREWALL && nextNode.routingEnabled === false) {
-                   return { path: path.slice(0, i + 1), failureId: nextNode.id, failureType: 'firewall' };
+                   return { path: path.slice(0, i + 2), failureId: nextNode.id, failureType: 'firewall' };
                 }
 
                 // Routing Logic (Simplified: All segments reachable unless blocked by ACL)
@@ -307,17 +309,41 @@ export class SimulationEngine {
     const segment = foundNetworks.find(net => net.devices.includes(deviceId));
     if (!segment) return null;
 
-    const dhcpServerId = segment.devices.find(id => {
-      const n = this.nodes.find(dn => dn.id === id);
-      return n?.type === DeviceType.ROUTER || n?.type === DeviceType.FIREWALL;
+    // Find all potential DHCP servers in the segment
+    const potentialServers = segment.devices
+      .map(id => this.nodes.find(n => n.id === id)!)
+      .filter(n => 
+        (n.type === DeviceType.SERVER && n.dhcpEnabled) ||
+        n.type === DeviceType.ROUTER ||
+        n.type === DeviceType.FIREWALL
+      );
+
+    if (potentialServers.length === 0) return null;
+
+    // Priority: Server > Router > Firewall
+    // Tie-breaker: Lowest MAC address
+    const sortedServers = potentialServers.sort((a, b) => {
+      const getPriority = (n: Device) => {
+        if (n.type === DeviceType.SERVER) return 1;
+        if (n.type === DeviceType.ROUTER) return 2;
+        if (n.type === DeviceType.FIREWALL) return 3;
+        return 4;
+      };
+
+      const pA = getPriority(a);
+      const pB = getPriority(b);
+      
+      if (pA !== pB) return pA - pB;
+      return a.interfaces[0].mac.localeCompare(b.interfaces[0].mac);
     });
 
-    if (dhcpServerId) {
-      const result = this.findPath(deviceId, dhcpServerId, { foundNetworks });
+    for (const server of sortedServers) {
+      const result = this.findPath(deviceId, server.id, { foundNetworks });
       if (result && !result.failureId) {
-        return { serverId: dhcpServerId, path: result.path };
+        return { serverId: server.id, path: result.path };
       }
     }
+    
     return null;
   }
 
@@ -427,7 +453,7 @@ export class SimulationEngine {
         const hasSwitch = devices.some(id => this.nodes.find(n => n.id === id)?.type === DeviceType.SWITCH);
         const hasDhcpServer = devices.some(id => {
           const node = this.nodes.find(n => n.id === id);
-          return node?.type === DeviceType.ROUTER || node?.type === DeviceType.FIREWALL;
+          return node?.type === DeviceType.ROUTER || node?.type === DeviceType.FIREWALL || (node?.type === DeviceType.SERVER && node.dhcpEnabled);
         });
 
         const sig = devices.sort().join('|');
@@ -463,7 +489,7 @@ export class SimulationEngine {
       const isConnected = (adj[node.id] || []).some(l => l.stpState !== 'blocking');
       if (!isConnected) {
         const sig = node.id;
-        const hasDhcpServer = node.type === DeviceType.ROUTER || node.type === DeviceType.FIREWALL;
+        const hasDhcpServer = node.type === DeviceType.ROUTER || node.type === DeviceType.FIREWALL || (node.type === DeviceType.SERVER && node.dhcpEnabled);
         const subnet = generateSubnet(false, sig, hasDhcpServer);
         const iface = node.interfaces[0];
         if (iface) {
