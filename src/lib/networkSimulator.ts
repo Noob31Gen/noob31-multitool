@@ -43,6 +43,8 @@ export interface Device {
   routingEnabled?: boolean; // For Firewalls: Toggle routing capabilities
   ipsMode?: 'IPS' | 'IDS'; // For IPS/IDS devices
   portLimit: number; // Max connections
+  knownNetworks?: string[]; // DEPRECATED: use disabledRoutes
+  disabledRoutes?: string[]; // For Routers/Firewalls: list of network signatures to block
 }
 
 export interface Link {

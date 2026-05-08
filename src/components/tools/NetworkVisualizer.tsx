@@ -71,23 +71,31 @@ export const NetworkVisualizer: React.FC = () => {
   const detectedNetworks = useMemo(() => {
     const visitedLinks = new Set<string>();
     const usedSubnets = new Set<string>();
-    const foundNetworks: { id: string, name: string, devices: string[], subnet: string }[] = [];
 
-    const generateSubnet = (hasSwitch: boolean) => {
+    const generateSubnet = (hasSwitch: boolean, sig: string) => {
       const prefix = hasSwitch ? '192.168' : '10.0';
-      let subnet = '';
-      let attempts = 0;
-      while (attempts < 256) {
-        const x = Math.floor(Math.random() * 256);
-        subnet = `${prefix}.${x}.0/24`;
-        if (!usedSubnets.has(subnet)) {
-          usedSubnets.add(subnet);
-          return subnet;
-        }
-        attempts++;
+      let hash = 0;
+      for (let i = 0; i < sig.length; i++) {
+        hash = ((hash << 5) - hash) + sig.charCodeAt(i);
+        hash |= 0;
       }
-      return `${prefix}.err.0/24`; // Fallback
+
+      let x = Math.abs(hash) % 256;
+      let subnet = `${prefix}.${x}.0/24`;
+
+      // Resolve collisions deterministically
+      let salt = 0;
+      while (usedSubnets.has(subnet) && salt < 256) {
+        salt++;
+        x = (Math.abs(hash) + salt) % 256;
+        subnet = `${prefix}.${x}.0/24`;
+      }
+
+      usedSubnets.add(subnet);
+      return subnet;
     };
+    
+    // Pass sig to generateSubnet calls
 
     const generateIpForMac = (mac: string, subnet: string) => {
       let hash = 0;
@@ -100,9 +108,9 @@ export const NetworkVisualizer: React.FC = () => {
       return `${subnet.split('.0/24')[0]}.${lastOctet}`;
     };
 
-    const interfaceIps: Record<string, string> = {}; // key: deviceId-interfaceId, value: ip
-
-    // Helper to get VLAN for a device connection on a switch
+    const interfaceIps: Record<string, string> = {}; 
+    const foundNetworks: { id: string, name: string, devices: string[], subnet: string, sig: string }[] = [];
+// Helper to get VLAN for a device connection on a switch
     const getVlan = (switchNode: Device, otherDeviceId: string) => {
       return switchNode.vlanMap?.[otherDeviceId] || 'VLAN 1';
     };
@@ -155,7 +163,8 @@ export const NetworkVisualizer: React.FC = () => {
       if (networkDevices.size > 0) {
         const devices = Array.from(networkDevices);
         const hasSwitch = devices.some(id => nodes.find(n => n.id === id)?.type === DeviceType.SWITCH);
-        const subnet = generateSubnet(hasSwitch);
+        const sig = devices.sort().join('|');
+        const subnet = generateSubnet(hasSwitch, sig);
         
         // Assign IPs to interfaces in this segment
         devices.forEach(devId => {
@@ -181,7 +190,8 @@ export const NetworkVisualizer: React.FC = () => {
           id: `net-${foundNetworks.length + 1}`,
           name: `Network Segment ${foundNetworks.length + 1}`,
           devices,
-          subnet
+          subnet,
+          sig
         });
       }
     });
@@ -190,7 +200,8 @@ export const NetworkVisualizer: React.FC = () => {
     nodes.forEach(node => {
       const isConnected = links.some(l => l.fromDeviceId === node.id || l.toDeviceId === node.id);
       if (!isConnected) {
-        const subnet = generateSubnet(false);
+        const sig = node.id;
+        const subnet = generateSubnet(false, sig);
         const iface = node.interfaces[0];
         if (iface) {
           interfaceIps[`${node.id}-${iface.id}`] = generateIpForMac(iface.mac, subnet);
@@ -199,7 +210,8 @@ export const NetworkVisualizer: React.FC = () => {
           id: `net-iso-${node.id}`,
           name: `Isolated: ${node.name}`,
           devices: [node.id],
-          subnet
+          subnet,
+          sig
         });
       }
     });
@@ -223,9 +235,12 @@ export const NetworkVisualizer: React.FC = () => {
     };
   };
 
-  const findPath = (startId: string, endId: string): { path: string[], failureId?: string } | null => {
+  const findPath = (startId: string, endId: string): { path: string[], failureId?: string, failureType?: 'firewall' | 'routing' } | null => {
     const queue: [string, string[]][] = [[startId, [startId]]];
     const visited = new Set([startId]);
+
+    // Destination network signature
+    const destNet = detectedNetworks.foundNetworks.find(net => net.devices.includes(endId));
 
     while (queue.length > 0) {
       const [currentId, path] = queue.shift()!;
@@ -242,26 +257,22 @@ export const NetworkVisualizer: React.FC = () => {
             if (prevId) {
               const vlanIn = node.vlanMap?.[prevId] || 'VLAN 1';
               const vlanOut = node.vlanMap?.[nextNode.id] || 'VLAN 1';
-              if (vlanIn !== vlanOut) return { path: path.slice(0, i + 1), failureId: node.id };
+              if (vlanIn !== vlanOut) return { path: path.slice(0, i + 1), failureId: node.id, failureType: 'firewall' };
             }
           }
 
           // Firewall / Router / IPS blocking check
           if (nextNode.type === DeviceType.FIREWALL || nextNode.type === DeviceType.ROUTER || nextNode.type === DeviceType.IPS_IDS) {
-            // Rule: Only block if the device is an INTERMEDIATE node in the path (acting as a bridge/gateway)
-            // If it's the start or the end, it shouldn't "block" the path itself in this context
             const isIntermediate = i + 1 < path.length - 1;
 
             if (isIntermediate) {
               // IPS/IDS specific logic
               if (nextNode.type === DeviceType.IPS_IDS) {
                 if (nextNode.ipsMode === 'IDS') {
-                  // IDS shows alert but DOES NOT block
                   showDropAnimation(nextNode.id);
                 } else if (nextNode.ipsMode === 'IPS') {
-                  // IPS blocks if in blocked list
                   if (nextNode.blockedNetworks?.includes(startId) || nextNode.blockedNetworks?.includes(endId)) {
-                    return { path: path.slice(0, i + 2), failureId: nextNode.id };
+                    return { path: path.slice(0, i + 2), failureId: nextNode.id, failureType: 'firewall' };
                   }
                 }
               }
@@ -269,17 +280,25 @@ export const NetworkVisualizer: React.FC = () => {
               // Firewall logic
               if (nextNode.type === DeviceType.FIREWALL) {
                 if (nextNode.routingEnabled === false) {
-                  return { path: path.slice(0, i + 1), failureId: nextNode.id };
+                  return { path: path.slice(0, i + 1), failureId: nextNode.id, failureType: 'firewall' };
                 }
                 if (nextNode.blockedNetworks?.includes(startId) || nextNode.blockedNetworks?.includes(endId)) {
-                  return { path: path.slice(0, i + 2), failureId: nextNode.id };
+                  return { path: path.slice(0, i + 2), failureId: nextNode.id, failureType: 'firewall' };
+                }
+                // Check routing knowledge
+                if (destNet && nextNode.disabledRoutes?.includes(destNet.sig)) {
+                  return { path: path.slice(0, i + 2), failureId: nextNode.id, failureType: 'routing' };
                 }
               }
 
               // Router logic
               if (nextNode.type === DeviceType.ROUTER) {
                 if (nextNode.blockedNetworks?.includes(startId) || nextNode.blockedNetworks?.includes(endId)) {
-                  return { path: path.slice(0, i + 2), failureId: nextNode.id };
+                  return { path: path.slice(0, i + 2), failureId: nextNode.id, failureType: 'firewall' };
+                }
+                // Check routing knowledge
+                if (destNet && nextNode.disabledRoutes?.includes(destNet.sig)) {
+                  return { path: path.slice(0, i + 2), failureId: nextNode.id, failureType: 'routing' };
                 }
               }
             }
@@ -314,13 +333,14 @@ export const NetworkVisualizer: React.FC = () => {
     setLogs(prev => [newLog, ...prev].slice(0, 50));
   };
 
-  const showDropAnimation = (nodeId: string) => {
+  const showDropAnimation = (nodeId: string, type: 'firewall' | 'routing' = 'firewall') => {
     const node = nodes.find(n => n.id === nodeId);
     if (!node || !overNodeLayerRef.current) return;
 
     const isIds = node.type === DeviceType.IPS_IDS && node.ipsMode === 'IDS';
-    const symbol = isIds ? "!" : "×";
-    const color = isIds ? "#f59e0b" : "#ef4444"; // Amber for IDS, Red for IPS/Firewall
+    const isRouting = type === 'routing';
+    const symbol = isIds ? "!" : (isRouting ? "?" : "×");
+    const color = isIds ? "#f59e0b" : (isRouting ? "#a855f7" : "#ef4444"); // Purple for routing
 
     const mark = document.createElementNS("http://www.w3.org/2000/svg", "text");
     mark.textContent = symbol;
@@ -341,10 +361,14 @@ export const NetworkVisualizer: React.FC = () => {
       onComplete: () => mark.remove()
     });
 
-    logEvent(`${isIds ? 'IDS ALERT' : 'Packet DROPPED'} at ${node.name}`, isIds ? 'info' : 'error');
+    if (isRouting) {
+      logEvent(`ROUTING ERROR at ${node.name}: Dest Network Unknown`, 'error');
+    } else {
+      logEvent(`${isIds ? 'IDS ALERT' : 'Packet DROPPED'} at ${node.name}`, isIds ? 'info' : 'error');
+    }
   };
 
-  const animatePacket = (path: string[], color: string = '#fbbf24', callback?: () => void, failureId?: string) => {
+  const animatePacket = (path: string[], color: string = '#fbbf24', callback?: () => void, failureId?: string, failureType?: 'firewall' | 'routing') => {
     if (path.length < 2 || !underNodeLayerRef.current) return;
 
     // Helper to create arrow path
@@ -391,7 +415,15 @@ export const NetworkVisualizer: React.FC = () => {
         onComplete: () => {
           packet.remove();
           if (isLastStepAndFailed) {
-            showDropAnimation(toNode.id);
+            showDropAnimation(toNode.id, failureType);
+            if (failureType === 'routing') {
+              // Return to sender animation
+              setTimeout(() => {
+                animatePacket([...path].reverse(), '#a855f7', () => {
+                   logEvent(`Routing Error message received at source`, 'error');
+                });
+              }, 300);
+            }
             return; // Stop the path
           }
           step++;
@@ -433,6 +465,59 @@ export const NetworkVisualizer: React.FC = () => {
     logEvent(`Broadcast: ${nodes.find(n => n.id === sourceId)?.name} -> ${segment.name} (${targets.length} targets)`, 'success');
   };
 
+  const handleArpDiscovery = (sourceId: string, callback: () => void) => {
+    const sourceNode = nodes.find(n => n.id === sourceId);
+    if (!sourceNode) {
+      callback();
+      return;
+    }
+
+    // Find the network segment this device belongs to
+    const segment = detectedNetworks.foundNetworks.find(net => net.devices.includes(sourceId));
+    if (!segment) {
+      callback();
+      return;
+    }
+
+    const targets = segment.devices.filter(id => id !== sourceId);
+    if (targets.length === 0) {
+      setTimeout(callback, 500);
+      return;
+    }
+
+    logEvent(`[ARP] Discovery: ${sourceNode.name} broadcasting to ${segment.name}`, 'info');
+
+    targets.forEach((targetId, idx) => {
+      const result = findPath(sourceId, targetId);
+      if (result && !result.failureId) {
+        // Step 1: ARP Request (Broadcast) - Cyan
+        setTimeout(() => {
+          animatePacket(result.path, '#22d3ee', () => {
+            const targetNode = nodes.find(n => n.id === targetId);
+            if (targetNode) {
+              // Step 2: ARP Reply (Unicast) - Teal
+              animatePacket([...result.path].reverse(), '#2dd4bf', () => {
+                const targetIp = Object.entries(detectedNetworks.interfaceIps)
+                  .find(([key]) => key.startsWith(`${targetId}-`))?.[1] || '?.?.?.?';
+                
+                setNodes(prev => prev.map(n => {
+                  if (n.id === sourceId) {
+                    return { ...n, arpCache: { ...n.arpCache, [targetIp]: targetNode.interfaces[0].mac } };
+                  }
+                  return n;
+                }));
+                logEvent(`[ARP] Reply from ${targetNode.name}: I am at ${targetIp}`, 'success');
+              });
+            }
+          });
+        }, idx * 100);
+      }
+    });
+
+    // Proceed to ping after discovery phase
+    setTimeout(callback, 2000 + (targets.length * 50));
+  };
+
   const handlePing = (sourceId: string, targetIdOverride?: string) => {
     const sourceNode = nodes.find(n => n.id === sourceId);
     const destId = targetIdOverride || pingTargetId;
@@ -448,35 +533,38 @@ export const NetworkVisualizer: React.FC = () => {
     }
     const destNode = nodes.find(n => n.id === destId);
 
-    logEvent(`Initiating ${pingCount} Ping(s): ${sourceNode?.name} -> ${destNode?.name}`, 'info');
+    // ARP Discovery Phase First
+    handleArpDiscovery(sourceId, () => {
+      logEvent(`Initiating ${pingCount} Ping(s): ${sourceNode?.name} -> ${destNode?.name}`, 'info');
 
-    const result = findPath(sourceId, destId);
-    if (!result) {
-      logEvent(`Unreachable: No path between ${sourceNode?.name} and ${destNode?.name}`, 'error');
-      animate(`[data-node-id="${sourceId}"] circle`, {
-        stroke: ['#ef4444', '#cbd5e1'],
-        duration: 1000
-      });
-      return;
-    }
+      const result = findPath(sourceId, destId);
+      if (!result) {
+        logEvent(`Unreachable: No path between ${sourceNode?.name} and ${destNode?.name}`, 'error');
+        animate(`[data-node-id="${sourceId}"] circle`, {
+          stroke: ['#ef4444', '#cbd5e1'],
+          duration: 1000
+        });
+        return;
+      }
 
-    const { path, failureId } = result;
+      const { path, failureId, failureType } = result;
 
-    // Loop for multiple pings
-    for (let i = 0; i < pingCount; i++) {
-      setTimeout(() => {
-        animatePacket(path, '#fbbf24', () => {
-          if (!failureId) {
-            // Wait briefly then send the response back
-            setTimeout(() => {
-              animatePacket([...path].reverse(), '#34d399', () => {
-                logEvent(`Ping success (${i + 1}/${pingCount}): Response received at ${sourceNode?.name} from ${destNode?.name}`, 'success');
-              });
-            }, 400);
-          }
-        }, failureId);
-      }, i * 1500); // Stagger pings by 1.5s
-    }
+      // Loop for multiple pings
+      for (let i = 0; i < pingCount; i++) {
+        setTimeout(() => {
+          animatePacket(path, '#fbbf24', () => {
+            if (!failureId) {
+              // Wait briefly then send the response back
+              setTimeout(() => {
+                animatePacket([...path].reverse(), '#34d399', () => {
+                  logEvent(`Ping success (${i + 1}/${pingCount}): Response received at ${sourceNode?.name} from ${destNode?.name}`, 'success');
+                });
+              }, 400);
+            }
+          }, failureId, failureType);
+        }, i * 1500); // Stagger pings by 1.5s
+      }
+    });
   };
 
   const highlightDevices = (deviceIds: string[]) => {
@@ -518,7 +606,8 @@ export const NetworkVisualizer: React.FC = () => {
       vlanMap: type === DeviceType.SWITCH ? {} : undefined,
       blockedNetworks: (type === DeviceType.ROUTER || type === DeviceType.FIREWALL) ? [] : undefined,
       routingEnabled: type === DeviceType.FIREWALL ? true : (type === DeviceType.ROUTER ? true : undefined),
-      ipsMode: type === DeviceType.IPS_IDS ? 'IDS' : undefined
+      ipsMode: type === DeviceType.IPS_IDS ? 'IDS' : undefined,
+      disabledRoutes: (type === DeviceType.ROUTER || type === DeviceType.FIREWALL) ? [] : undefined
     };
     setNodes([...nodes, newNode]);
     logEvent(`Added ${type}: ${newNode.name} (Max Ports: ${portLimit})`, 'info');
@@ -1147,7 +1236,7 @@ export const NetworkVisualizer: React.FC = () => {
                       <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
                         <Shield className="w-3 h-3" />
                         <span className="text-[10px] font-bold uppercase tracking-wider">
-                          {nodes.find(n => n.id === selectedNode)?.type === DeviceType.FIREWALL ? 'Traffic Filter' : 'Static Routes'}
+                          Routing & Security
                         </span>
                       </div>
 
@@ -1171,9 +1260,54 @@ export const NetworkVisualizer: React.FC = () => {
                         </div>
                       )}
 
-                      <div className="space-y-1.5">
-                        <Label className="text-[9px] uppercase text-muted-foreground">Block Traffic From (Source)</Label>
-                        <div className="max-h-24 overflow-y-auto space-y-1 pr-1">
+                      <div className="space-y-1.5 border-t pt-2">
+                        <Label className="text-[9px] uppercase text-muted-foreground flex justify-between items-center">
+                          Routing Table (Known Networks)
+                          <Network size={10} />
+                        </Label>
+                        <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                           {detectedNetworks.foundNetworks.map(net => {
+                              const node = nodes.find(n => n.id === selectedNode);
+                              const isDisabled = node?.disabledRoutes?.includes(net.sig);
+                              const isDirectlyConnected = net.devices.includes(selectedNode!);
+
+                              return (
+                                <div key={net.id} className={cn(
+                                  "flex items-center justify-between p-1 rounded",
+                                  isDirectlyConnected ? "bg-blue-100/30 dark:bg-blue-900/10" : "hover:bg-white dark:hover:bg-slate-900"
+                                )}>
+                                  <div className="flex flex-col min-w-0">
+                                    <span className="text-[9px] font-bold truncate">{net.name}</span>
+                                    <span className="text-[7px] font-mono opacity-60 truncate">{net.subnet}</span>
+                                  </div>
+                                  <Button
+                                    variant={isDisabled ? "outline" : "default"}
+                                    size="sm"
+                                    className={cn("h-5 text-[8px] px-1.5", !isDisabled ? "bg-green-600 hover:bg-green-700" : "text-red-500 border-red-500/50")}
+                                    onClick={() => {
+                                      if (node) {
+                                        const newDisabled = isDisabled
+                                          ? (node.disabledRoutes || []).filter(sig => sig !== net.sig)
+                                          : [...(node.disabledRoutes || []), net.sig];
+                                        setNodes(nodes.map(n => n.id === selectedNode ? { ...n, disabledRoutes: newDisabled } : n));
+                                        logEvent(`${node.name} route to ${net.name} ${isDisabled ? 'ENABLED' : 'DISABLED'}`, 'info');
+                                      }
+                                    }}
+                                  >
+                                    {!isDisabled ? 'KNOWS' : 'IGNORE'}
+                                  </Button>
+                                </div>
+                              );
+                           })}
+                        </div>
+                        <p className="text-[7px] text-muted-foreground italic leading-tight">
+                          By default, routers know all networks. You can manually tell them to IGNORE specific networks here.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5 border-t pt-2">
+                        <Label className="text-[9px] uppercase text-muted-foreground">ACL: Block Source Device</Label>
+                        <div className="max-h-24 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
                           {nodes
                             .filter(n => n.id !== selectedNode && (n.type === DeviceType.PC || n.type === DeviceType.SERVER))
                             .map(target => {
