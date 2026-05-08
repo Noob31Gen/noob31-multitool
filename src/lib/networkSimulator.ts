@@ -55,6 +55,7 @@ export interface Device {
   stpPriority?: number; // DEPRECATED
   isManualRoot?: boolean; // For Switches: User-defined root bridge
   isRootBridge?: boolean; // For Switches: Calculated state
+  isCloud?: boolean; // Easter Egg: Combined server cluster
 }
 
 /**

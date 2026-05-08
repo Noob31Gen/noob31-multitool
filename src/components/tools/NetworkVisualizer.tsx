@@ -17,7 +17,7 @@ import {
   Play, RotateCcw, Trash2, Link as LinkIcon,
   MousePointer2, Send, Download, Upload, Monitor,
   Layers, Network, Globe, Grid3X3, Zap, Shield, HardDrive,
-  Activity, Info, X, ChevronUp, ChevronDown
+  Activity, Info, X, ChevronUp, ChevronDown, Cloud
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { animate } from 'animejs';
@@ -69,6 +69,22 @@ export const NetworkVisualizer: React.FC = () => {
   const [isNetworksCollapsed, setIsNetworksCollapsed] = useState(false);
   const [isLogsCollapsed, setIsLogsCollapsed] = useState(false);
   const [dhcpStatus, setDhcpStatus] = useState<Record<string, 'none' | 'discovering' | 'bound'>>({});
+  const [cloudText, setCloudText] = useState<{ x: number, y: number } | null>(null);
+  const [ispText, setIspText] = useState<{ x: number, y: number } | null>(null);
+  const discoveredTriangles = useRef<Set<string>>(new Set());
+
+  // Dedicated animation effect for easter egg text
+  useEffect(() => {
+    if (ispText) {
+      setTimeout(() => {
+        animate('#isp-discovery-text', {
+          opacity: [0, 1, 0],
+          duration: 3000,
+          easing: 'easeInOutQuad'
+        });
+      }, 50);
+    }
+  }, [ispText]);
 
 
   const stpData = useMemo(() => {
@@ -132,6 +148,150 @@ export const NetworkVisualizer: React.FC = () => {
       }, 0);
     }
   }, [links, nodes]); // Check whenever links change or nodes change
+
+  // Easter Egg: Cloud Computing
+  useEffect(() => {
+    const servers = nodes.filter(n => n.type === DeviceType.SERVER && !n.isCloud);
+    if (servers.length < 3) return;
+
+    // Find connected components of servers
+    const visited = new Set<string>();
+    for (const server of servers) {
+      if (visited.has(server.id)) continue;
+      
+      const component: Device[] = [];
+      const queue = [server.id];
+      visited.add(server.id);
+      
+      while (queue.length > 0) {
+        const currId = queue.shift()!;
+        const currNode = nodes.find(n => n.id === currId)!;
+        component.push(currNode);
+        
+        links.filter(l => l.fromDeviceId === currId || l.toDeviceId === currId).forEach(l => {
+          const neighborId = l.fromDeviceId === currId ? l.toDeviceId : l.fromDeviceId;
+          const neighbor = nodes.find(n => n.id === neighborId);
+          if (neighbor?.type === DeviceType.SERVER && !visited.has(neighborId)) {
+            visited.add(neighborId);
+            queue.push(neighborId);
+          }
+        });
+      }
+      
+      if (component.length >= 3) {
+        // TRIGGER EASTER EGG
+        const ids = component.map(n => n.id);
+        const avgX = component.reduce((acc, n) => acc + n.x, 0) / component.length;
+        const avgY = component.reduce((acc, n) => acc + n.y, 0) / component.length;
+        
+        // 1. Create Cloud Node
+        const cloudNode: Device = {
+          id: `cloud-${Date.now()}`,
+          name: "The Cloud",
+          type: DeviceType.SERVER,
+          x: avgX,
+          y: avgY,
+          interfaces: [
+            { id: `eth0`, mac: "00:0C:10:0D:5E:01", isConnected: true }
+          ],
+          arpCache: {},
+          portLimit: 10,
+          isCloud: true
+        };
+        
+        // 2. Update Links
+        const newLinks = links
+          .filter(l => !(ids.includes(l.fromDeviceId) && ids.includes(l.toDeviceId))) // Remove links between the servers
+          .map(l => {
+            if (ids.includes(l.fromDeviceId)) return { ...l, fromDeviceId: cloudNode.id };
+            if (ids.includes(l.toDeviceId)) return { ...l, toDeviceId: cloudNode.id };
+            return l;
+          });
+          
+        // 3. Update Nodes
+        const newNodes = nodes.filter(n => !ids.includes(n.id));
+        newNodes.push(cloudNode);
+        
+        // 4. Celebration Animation
+        logEvent("CLOUD COMPUTING DISCOVERED! ☁️✨", "success");
+        setCloudText({ x: avgX, y: avgY });
+        setTimeout(() => {
+          animate('#cloud-discovery-text', {
+            opacity: [0, 1, 0],
+            duration: 2500,
+            easing: 'easeInOutQuad'
+          });
+        }, 100);
+        setTimeout(() => setCloudText(null), 3000);
+        
+        // Animate the merge
+        ids.forEach(id => {
+          animate(`[data-node-id="${id}"] circle, [data-node-id="${id}"] foreignObject, [data-node-id="${id}"] text`, {
+            scale: [1, 0],
+            opacity: [1, 0],
+            duration: 500,
+            easing: 'easeInBack'
+          });
+        });
+
+        setTimeout(() => {
+          setNodes(newNodes);
+          setLinks(newLinks);
+          setSelectedNode(cloudNode.id);
+          
+          // Flash the new cloud node
+          setTimeout(() => {
+            // Animate the contents to avoid overriding the group's translate transform
+            animate(`[data-node-id="${cloudNode.id}"] circle`, {
+              scale: [0.1, 1.2, 1],
+              duration: 1500,
+              easing: 'easeOutElastic(1, .8)'
+            });
+            animate(`[data-node-id="${cloudNode.id}"] foreignObject`, {
+              scale: [0.1, 1.2, 1],
+              rotate: '1turn',
+              duration: 1500,
+              easing: 'easeOutElastic(1, .8)'
+            });
+          }, 100);
+        }, 600);
+
+        break;
+      }
+    }
+
+    // Easter Egg: ISP Discovery (Router Triangle)
+    const routers = nodes.filter(n => n.type === DeviceType.ROUTER);
+    if (routers.length >= 3 && !ispText) {
+      for (let i = 0; i < routers.length; i++) {
+        for (let j = i + 1; j < routers.length; j++) {
+          for (let k = j + 1; k < routers.length; k++) {
+            const r1 = routers[i];
+            const r2 = routers[j];
+            const r3 = routers[k];
+            
+            const l12 = links.find(l => (l.fromDeviceId === r1.id && l.toDeviceId === r2.id) || (l.fromDeviceId === r2.id && l.toDeviceId === r1.id));
+            const l23 = links.find(l => (l.fromDeviceId === r2.id && l.toDeviceId === r3.id) || (l.fromDeviceId === r3.id && l.toDeviceId === r2.id));
+            const l31 = links.find(l => (l.fromDeviceId === r3.id && l.toDeviceId === r1.id) || (l.fromDeviceId === r1.id && l.toDeviceId === r3.id));
+            
+            if (l12 && l23 && l31) {
+              const triId = [r1.id, r2.id, r3.id].sort().join('-');
+              if (discoveredTriangles.current.has(triId)) continue;
+              
+              discoveredTriangles.current.add(triId);
+              const avgX = (r1.x + r2.x + r3.x) / 3;
+              const avgY = (r1.y + r2.y + r3.y) / 3;
+              
+              setIspText({ x: avgX, y: avgY });
+              logEvent("ISP DISCOVERED! 🌐", "success");
+              setTimeout(() => setIspText(null), 3500);
+              return;
+            }
+          }
+        }
+      }
+    }
+  }, [nodes, links, ispText]);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const underNodeLayerRef = useRef<SVGGElement>(null);
@@ -845,19 +1005,16 @@ export const NetworkVisualizer: React.FC = () => {
               const isBlocked = link.stpState === 'blocking';
 
               return (
-                <g key={link.id}>
+                <g key={link.id} className="group">
+                  {/* Transparent Hit Target (Wider for easier clicking) */}
                   <line
                     x1={fromNode.x}
                     y1={fromNode.y}
                     x2={toNode.x}
                     y2={toNode.y}
-                    stroke={selectedLink === link.id ? '#3b82f6' : (isBlocked ? '#94a3b8' : '#cbd5e1')}
-                    strokeWidth={selectedLink === link.id ? 4 : 2}
-                    strokeDasharray={isBlocked ? "4 4" : "0"}
-                    className={cn(
-                      "transition-all duration-300",
-                      !isBlocked && "cursor-pointer hover:stroke-blue-400"
-                    )}
+                    stroke="transparent"
+                    strokeWidth={12}
+                    className="cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedLink(link.id);
@@ -880,13 +1037,27 @@ export const NetworkVisualizer: React.FC = () => {
                       }
                     }}
                   />
+                  {/* Visible Link Line */}
+                  <line
+                    x1={fromNode.x}
+                    y1={fromNode.y}
+                    x2={toNode.x}
+                    y2={toNode.y}
+                    stroke={selectedLink === link.id ? '#3b82f6' : (isBlocked ? '#94a3b8' : '#cbd5e1')}
+                    strokeWidth={selectedLink === link.id ? 4 : 2}
+                    strokeDasharray={isBlocked ? "4 4" : "0"}
+                    className={cn(
+                      "transition-all duration-300 pointer-events-none",
+                      !isBlocked && "group-hover:stroke-blue-400"
+                    )}
+                  />
                   {isBlocked && (
                     <circle
                       cx={(fromNode.x + toNode.x) / 2}
                       cy={(fromNode.y + toNode.y) / 2}
                       r={6}
                       fill="#ef4444"
-                      className="animate-pulse"
+                      className="animate-pulse pointer-events-none"
                     />
                   )}
                 </g>
@@ -930,17 +1101,44 @@ export const NetworkVisualizer: React.FC = () => {
                 </text>
                 <foreignObject x="-12" y="-12" width="24" height="24" className="pointer-events-none overflow-visible">
                   <div className="flex items-center justify-center w-full h-full text-slate-600 dark:text-slate-300">
-                    {node.type === DeviceType.PC ? <Monitor size={20} /> :
-                      node.type === DeviceType.SWITCH ? <Layers size={20} /> :
-                        node.type === DeviceType.ROUTER ? <Network size={20} /> :
-                          node.type === DeviceType.SERVER ? <HardDrive size={20} /> :
-                            node.type === DeviceType.FIREWALL ? <Shield size={20} className="text-red-500" /> :
-                              node.type === DeviceType.IPS_IDS ? <Activity size={20} className="text-orange-500" /> :
-                                <Globe size={20} />}
+                    {node.isCloud ? <Cloud size={20} className="text-sky-400 animate-pulse" /> :
+                      node.type === DeviceType.PC ? <Monitor size={20} /> :
+                        node.type === DeviceType.SWITCH ? <Layers size={20} /> :
+                          node.type === DeviceType.ROUTER ? <Network size={20} /> :
+                            node.type === DeviceType.SERVER ? <HardDrive size={20} /> :
+                              node.type === DeviceType.FIREWALL ? <Shield size={20} className="text-red-500" /> :
+                                node.type === DeviceType.IPS_IDS ? <Activity size={20} className="text-orange-500" /> :
+                                  <Globe size={20} />}
                   </div>
                 </foreignObject>
               </g>
             ))}
+            
+            {cloudText && (
+              <text
+                id="cloud-discovery-text"
+                x={cloudText.x}
+                y={cloudText.y - 60}
+                textAnchor="middle"
+                className="text-sm font-black fill-sky-500 uppercase tracking-tighter pointer-events-none drop-shadow-md"
+                style={{ opacity: 0 }}
+              >
+                Cloud computing discovered ☁️
+              </text>
+            )}
+            
+            {ispText && (
+              <text
+                id="isp-discovery-text"
+                x={ispText.x}
+                y={ispText.y}
+                textAnchor="middle"
+                className="text-sm font-black fill-indigo-500 uppercase tracking-tighter pointer-events-none drop-shadow-md"
+                style={{ opacity: 0 }}
+              >
+                ISP Discovered 🌐
+              </text>
+            )}
 
             {/* Over-Node Layer (Drop marks/Alerts) */}
             <g ref={overNodeLayerRef} />
@@ -1188,16 +1386,27 @@ export const NetworkVisualizer: React.FC = () => {
                     </div>
 
                     {/* Network Context */}
-                    <div className="p-2 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/30">
-                      <p className="text-xs text-muted-foreground uppercase font-bold mb-1 opacity-70">Current Network</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                          {detectedNetworks.foundNetworks.find(net => net.devices.includes(selectedNode!))?.name || "Isolated"}
-                        </span>
-                        <span className="text-[10px] font-mono opacity-80">
-                          {detectedNetworks.foundNetworks.find(net => net.devices.includes(selectedNode!))?.subnet}
-                        </span>
-                      </div>
+                    <div className="p-2 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/30 space-y-2">
+                      <p className="text-xs text-muted-foreground uppercase font-bold mb-1 opacity-70">Current Networks</p>
+                      {(() => {
+                        const activeSegments = detectedNetworks.foundNetworks.filter(net => net.devices.includes(selectedNode!));
+                        if (activeSegments.length === 0) return (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-blue-600 dark:text-blue-400">Isolated</span>
+                            <span className="text-[10px] font-mono opacity-80">No active link</span>
+                          </div>
+                        );
+                        return activeSegments.map(net => (
+                          <div key={net.id} className="flex items-center justify-between border-b border-blue-200/20 last:border-0 pb-1 last:pb-0">
+                            <span className="text-xs font-bold text-blue-600 dark:text-blue-400 truncate pr-2">
+                              {net.name}
+                            </span>
+                            <span className="text-[10px] font-mono opacity-80 shrink-0">
+                              {net.subnet}
+                            </span>
+                          </div>
+                        ));
+                      })()}
                     </div>
 
                     {/* Router/Firewall Section */}
