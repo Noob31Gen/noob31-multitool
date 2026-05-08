@@ -979,7 +979,7 @@ export const NetworkVisualizer: React.FC = () => {
               >
                 <Play className="w-4 h-4 mr-1" /> Broadcast
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 text-[10px] font-bold uppercase" onClick={clearCanvas}>
+              <Button variant="ghost" size="sm" className="h-8 text-xs font-bold uppercase" onClick={clearCanvas}>
                 <RotateCcw className="w-4 h-4 mr-1" /> Reset
               </Button>
               <Button
@@ -1118,14 +1118,14 @@ export const NetworkVisualizer: React.FC = () => {
           {/* Bottom Left UI Stack */}
           <div className="absolute bottom-4 left-4 flex flex-col gap-2 pointer-events-none">
             {/* Help Text */}
-            <div className="self-start text-[10px] text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded backdrop-blur-sm">
+            <div className="self-start text-xs text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded backdrop-blur-sm">
               {mode === 'select' ? "DRAG TO MOVE • CLICK TO SELECT" : "CLICK TWO DEVICES TO CONNECT • ESC TO CANCEL"}
             </div>
 
             {/* Dynamic Network Browser */}
             <div className="flex gap-3 pointer-events-auto">
               {/* Networks Box */}
-              <div className="w-48 max-h-48 flex flex-col bg-slate-900/90 text-[10px] text-slate-300 p-2 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-md">
+              <div className="w-56 max-h-48 flex flex-col bg-slate-900/90 text-xs text-slate-300 p-2 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-md">
                 <div className="flex items-center justify-between mb-2 border-b border-slate-700 pb-1">
                   <span className="font-bold uppercase tracking-wider flex items-center gap-1">
                     <Network size={12} className="text-blue-400" /> Networks ({detectedNetworks.foundNetworks.length})
@@ -1147,9 +1147,9 @@ export const NetworkVisualizer: React.FC = () => {
                     >
                       <div className="flex flex-col min-w-0">
                         <span className="truncate">{net.name}</span>
-                        <span className="text-[7px] opacity-60 font-mono">{net.subnet}</span>
+                        <span className="text-[10px] opacity-60 font-mono">{net.subnet}</span>
                       </div>
-                      <span className="text-[8px] bg-slate-800 px-1 rounded opacity-50 group-hover:opacity-100">
+                      <span className="text-[10px] bg-slate-800 px-1 rounded opacity-50 group-hover:opacity-100">
                         {net.devices.length}d
                       </span>
                     </button>
@@ -1162,14 +1162,14 @@ export const NetworkVisualizer: React.FC = () => {
 
               {/* Connected Devices Box (Shown when a network is selected) */}
               {selectedNetworkId && (
-                <div className="w-48 max-h-48 flex flex-col bg-slate-900/90 text-[10px] text-slate-300 p-2 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-md animate-in slide-in-from-left-2 duration-200">
+                <div className="w-56 max-h-48 flex flex-col bg-slate-900/90 text-xs text-slate-300 p-2 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-md animate-in slide-in-from-left-2 duration-200">
                   <div className="flex items-center justify-between mb-2 border-b border-slate-700 pb-1 text-blue-400 font-bold uppercase tracking-wider">
                     <div className="flex flex-col min-w-0">
                       <span className="truncate">Devices in {detectedNetworks.foundNetworks.find(n => n.id === selectedNetworkId)?.name}</span>
-                      <span className="text-[7px] opacity-70 font-mono lowercase">{detectedNetworks.foundNetworks.find(n => n.id === selectedNetworkId)?.subnet}</span>
+                      <span className="text-[10px] opacity-70 font-mono lowercase">{detectedNetworks.foundNetworks.find(n => n.id === selectedNetworkId)?.subnet}</span>
                     </div>
                     <Button variant="ghost" size="icon" className="h-4 w-4 hover:bg-white/10" onClick={() => setSelectedNetworkId(null)}>
-                      <Trash2 size={10} className="text-slate-500" />
+                      <Trash2 size={12} className="text-slate-500" />
                     </Button>
                   </div>
                   <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
@@ -1199,13 +1199,13 @@ export const NetworkVisualizer: React.FC = () => {
                             <div className="flex flex-col min-w-0">
                               <span className="truncate">{node.name}</span>
                               {ifaceIps.length > 0 && (
-                                <span className="text-[6px] font-mono text-blue-400 truncate">
+                                <span className="text-[10px] font-mono text-blue-400 truncate">
                                   {ifaceIps.join(', ')}
                                 </span>
                               )}
                             </div>
                           </div>
-                          <span className="text-[8px] font-mono text-slate-500 ml-1 shrink-0">{node.interfaces[0].mac.slice(-4)}</span>
+                          <span className="text-[10px] font-mono text-slate-500 ml-1 shrink-0">{node.interfaces[0].mac.slice(-4)}</span>
                         </button>
                       );
                     })}
@@ -1216,7 +1216,7 @@ export const NetworkVisualizer: React.FC = () => {
           </div>
 
           {/* Network Log Terminal */}
-          <div className="absolute bottom-4 right-4 w-72 max-h-48 flex flex-col-reverse overflow-y-auto bg-black/80 text-[10px] font-mono text-green-400 p-2 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-sm">
+          <div className="absolute bottom-4 right-4 w-80 max-h-48 flex flex-col-reverse overflow-y-auto bg-black/80 text-xs font-mono text-green-400 p-2 rounded-lg border border-slate-700 shadow-2xl backdrop-blur-sm">
             {logs.length === 0 ? (
               <div className="text-slate-500 italic">Waiting for network events...</div>
             ) : (
@@ -1268,8 +1268,8 @@ export const NetworkVisualizer: React.FC = () => {
                   <div className="space-y-4">
                     {/* Device Role Description */}
                     <div className="p-2 bg-slate-100/50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
-                      <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1 opacity-70">Device Role</p>
-                      <p className="text-[10px] leading-tight italic text-slate-600 dark:text-slate-400">
+                      <p className="text-xs text-muted-foreground uppercase font-bold mb-1 opacity-70">Device Role</p>
+                      <p className="text-xs leading-tight italic text-slate-600 dark:text-slate-400">
                         {(() => {
                           const node = nodes.find(n => n.id === selectedNode);
                           switch (node?.type) {
@@ -1287,12 +1287,12 @@ export const NetworkVisualizer: React.FC = () => {
 
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold">Identifier</p>
+                        <p className="text-xs text-muted-foreground uppercase font-bold">Identifier</p>
                         <p className="text-sm font-mono">{nodes.find(n => n.id === selectedNode)?.name}</p>
                       </div>
                       <div className="text-right space-y-1">
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold">Ports</p>
-                        <p className="text-[10px] font-mono">
+                        <p className="text-xs text-muted-foreground uppercase font-bold">Ports</p>
+                        <p className="text-xs font-mono">
                           {links.filter(l => l.fromDeviceId === selectedNode || l.toDeviceId === selectedNode).length} / {nodes.find(n => n.id === selectedNode)?.portLimit}
                         </p>
                       </div>
@@ -1300,12 +1300,12 @@ export const NetworkVisualizer: React.FC = () => {
 
                     {/* Network Context */}
                     <div className="p-2 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/30">
-                      <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1 opacity-70">Current Network</p>
+                      <p className="text-xs text-muted-foreground uppercase font-bold mb-1 opacity-70">Current Network</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
                           {detectedNetworks.foundNetworks.find(net => net.devices.includes(selectedNode!))?.name || "Isolated"}
                         </span>
-                        <span className="text-[9px] font-mono opacity-80">
+                        <span className="text-[10px] font-mono opacity-80">
                           {detectedNetworks.foundNetworks.find(net => net.devices.includes(selectedNode!))?.subnet}
                         </span>
                       </div>
@@ -1316,18 +1316,18 @@ export const NetworkVisualizer: React.FC = () => {
                       <div className="p-3 bg-red-50/50 dark:bg-red-900/10 rounded-lg border border-red-100 dark:border-red-900/30 space-y-3">
                         <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
                           <Shield className="w-3 h-3" />
-                          <span className="text-[10px] font-bold uppercase tracking-wider">
+                          <span className="text-xs font-bold uppercase tracking-wider">
                             Routing & Security
                           </span>
                         </div>
 
                         {nodes.find(n => n.id === selectedNode)?.type === DeviceType.FIREWALL && (
                           <div className="flex items-center justify-between p-1 bg-white dark:bg-slate-900 rounded border border-red-100 dark:border-red-900/20">
-                            <Label className="text-[10px] uppercase font-bold">Routing Enabled</Label>
+                            <Label className="text-xs uppercase font-bold">Routing Enabled</Label>
                             <Button
                               variant={nodes.find(n => n.id === selectedNode)?.routingEnabled ? "default" : "outline"}
                               size="sm"
-                              className="h-5 text-[8px] px-1.5"
+                              className="h-5 text-[10px] px-1.5"
                               onClick={() => {
                                 const node = nodes.find(n => n.id === selectedNode);
                                 if (node) {
@@ -1342,9 +1342,9 @@ export const NetworkVisualizer: React.FC = () => {
                         )}
 
                         <div className="space-y-1.5 border-t pt-2">
-                          <Label className="text-[9px] uppercase text-muted-foreground flex justify-between items-center">
+                          <Label className="text-xs uppercase text-muted-foreground flex justify-between items-center">
                             Routing Table (Known Networks)
-                            <Network size={10} />
+                            <Network size={12} />
                           </Label>
                           <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
                             {detectedNetworks.foundNetworks.map(net => {
@@ -1358,13 +1358,13 @@ export const NetworkVisualizer: React.FC = () => {
                                   isDirectlyConnected ? "bg-blue-100/30 dark:bg-blue-900/10" : "hover:bg-white dark:hover:bg-slate-900"
                                 )}>
                                   <div className="flex flex-col min-w-0">
-                                    <span className="text-[9px] font-bold truncate">{net.name}</span>
-                                    <span className="text-[7px] font-mono opacity-60 truncate">{net.subnet}</span>
+                                    <span className="text-xs font-bold truncate">{net.name}</span>
+                                    <span className="text-[10px] font-mono opacity-60 truncate">{net.subnet}</span>
                                   </div>
                                   <Button
                                     variant={isDisabled ? "outline" : "default"}
                                     size="sm"
-                                    className={cn("h-5 text-[8px] px-1.5", !isDisabled ? "bg-green-600 hover:bg-green-700" : "text-red-500 border-red-500/50")}
+                                    className={cn("h-5 text-[10px] px-1.5", !isDisabled ? "bg-green-600 hover:bg-green-700" : "text-red-500 border-red-500/50")}
                                     onClick={() => {
                                       if (node) {
                                         const newDisabled = isDisabled
@@ -1381,15 +1381,15 @@ export const NetworkVisualizer: React.FC = () => {
                               );
                             })}
                           </div>
-                          <p className="text-[7px] text-muted-foreground italic leading-tight">
+                          <p className="text-[10px] text-muted-foreground italic leading-tight">
                             By default, routers know all networks. You can manually tell them to IGNORE specific networks here.
                           </p>
                         </div>
 
                         <div className="space-y-1.5 border-t pt-2">
-                          <Label className="text-[9px] uppercase text-muted-foreground flex justify-between items-center">
+                          <Label className="text-xs uppercase text-muted-foreground flex justify-between items-center">
                             ACL: Block Network Segment
-                            <Shield size={10} className="text-red-500" />
+                            <Shield size={12} className="text-red-500" />
                           </Label>
                           <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
                             {detectedNetworks.foundNetworks.map(net => {
@@ -1403,13 +1403,13 @@ export const NetworkVisualizer: React.FC = () => {
                                   isDirectlyConnected ? "bg-blue-100/30 dark:bg-blue-900/10" : "hover:bg-white dark:hover:bg-slate-900"
                                 )}>
                                   <div className="flex flex-col min-w-0">
-                                    <span className="text-[9px] font-bold truncate">{net.name}</span>
-                                    <span className="text-[7px] font-mono opacity-60 truncate">{net.subnet}</span>
+                                    <span className="text-xs font-bold truncate">{net.name}</span>
+                                    <span className="text-[10px] font-mono opacity-60 truncate">{net.subnet}</span>
                                   </div>
                                   <Button
                                     variant={isBlocked ? "destructive" : "outline"}
                                     size="sm"
-                                    className={cn("h-5 text-[8px] px-1.5", isBlocked ? "bg-red-600 hover:bg-red-700" : "")}
+                                    className={cn("h-5 text-[10px] px-1.5", isBlocked ? "bg-red-600 hover:bg-red-700" : "")}
                                     onClick={() => {
                                       if (node) {
                                         const newBlocked = isBlocked
@@ -1429,7 +1429,7 @@ export const NetworkVisualizer: React.FC = () => {
                         </div>
 
                         <div className="space-y-1.5 border-t pt-2">
-                          <Label className="text-[9px] uppercase text-muted-foreground">ACL: Block Individual Device</Label>
+                          <Label className="text-xs uppercase text-muted-foreground">ACL: Block Individual Device</Label>
                           <div className="max-h-24 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
                             {nodes
                               .filter(n => n.id !== selectedNode && (n.type === DeviceType.PC || n.type === DeviceType.SERVER))
@@ -1437,11 +1437,11 @@ export const NetworkVisualizer: React.FC = () => {
                                 const isBlocked = nodes.find(n => n.id === selectedNode)?.blockedNetworks?.includes(target.id);
                                 return (
                                   <div key={target.id} className="flex items-center justify-between p-1 hover:bg-white dark:hover:bg-slate-900 rounded">
-                                    <span className="text-[10px] font-mono">{target.name}</span>
+                                    <span className="text-xs font-mono">{target.name}</span>
                                     <Button
                                       variant={isBlocked ? "destructive" : "outline"}
                                       size="sm"
-                                      className="h-5 text-[8px] px-1.5"
+                                      className="h-5 text-[10px] px-1.5"
                                       onClick={() => {
                                         const node = nodes.find(n => n.id === selectedNode);
                                         if (node) {
@@ -1474,14 +1474,14 @@ export const NetworkVisualizer: React.FC = () => {
                       <div className="p-3 bg-orange-50/50 dark:bg-orange-900/10 rounded-lg border border-orange-100 dark:border-orange-900/30 space-y-3">
                         <div className="flex items-center space-x-2 text-orange-600 dark:text-orange-400">
                           <Activity className="w-3 h-3" />
-                          <span className="text-[10px] font-bold uppercase tracking-wider">Device Mode</span>
+                          <span className="text-xs font-bold uppercase tracking-wider">Device Mode</span>
                         </div>
 
                         <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-md">
                           <Button
                             variant={nodes.find(n => n.id === selectedNode)?.ipsMode === 'IDS' ? 'default' : 'ghost'}
                             size="sm"
-                            className="flex-1 h-7 text-[10px] uppercase font-bold"
+                            className="flex-1 h-7 text-xs uppercase font-bold"
                             onClick={() => {
                               setNodes(nodes.map(n => n.id === selectedNode ? { ...n, ipsMode: 'IDS' } : n));
                               logEvent(`${nodes.find(n => n.id === selectedNode)?.name} set to IDS mode (Detection Only)`, 'info');
@@ -1492,7 +1492,7 @@ export const NetworkVisualizer: React.FC = () => {
                           <Button
                             variant={nodes.find(n => n.id === selectedNode)?.ipsMode === 'IPS' ? 'default' : 'ghost'}
                             size="sm"
-                            className="flex-1 h-7 text-[10px] uppercase font-bold"
+                            className="flex-1 h-7 text-xs uppercase font-bold"
                             onClick={() => {
                               setNodes(nodes.map(n => n.id === selectedNode ? { ...n, ipsMode: 'IPS' } : n));
                               logEvent(`${nodes.find(n => n.id === selectedNode)?.name} set to IPS mode (Prevention Enabled)`, 'info');
@@ -1501,7 +1501,7 @@ export const NetworkVisualizer: React.FC = () => {
                             IPS
                           </Button>
                         </div>
-                        <p className="text-[8px] text-muted-foreground italic leading-tight">
+                        <p className="text-[10px] text-muted-foreground italic leading-tight">
                           {nodes.find(n => n.id === selectedNode)?.ipsMode === 'IDS'
                             ? 'IDS Mode: Sniffs traffic but does not block. Transparent Layer 2 bridge.'
                             : 'IPS Mode: Inspects and blocks malicious traffic. Transparent Layer 2 bridge.'}
@@ -1509,7 +1509,7 @@ export const NetworkVisualizer: React.FC = () => {
 
                         {nodes.find(n => n.id === selectedNode)?.ipsMode === 'IPS' && (
                           <div className="space-y-1.5 pt-2 border-t border-orange-100 dark:border-orange-900/20">
-                            <Label className="text-[9px] uppercase text-muted-foreground">Block Traffic From (Source)</Label>
+                            <Label className="text-xs uppercase text-muted-foreground">Block Traffic From (Source)</Label>
                             <div className="max-h-24 overflow-y-auto space-y-1 pr-1">
                               {nodes
                                 .filter(n => n.id !== selectedNode && (n.type === DeviceType.PC || n.type === DeviceType.SERVER))
@@ -1517,11 +1517,11 @@ export const NetworkVisualizer: React.FC = () => {
                                   const isBlocked = nodes.find(n => n.id === selectedNode)?.blockedNetworks?.includes(target.id);
                                   return (
                                     <div key={target.id} className="flex items-center justify-between p-1 hover:bg-white dark:hover:bg-slate-900 rounded">
-                                      <span className="text-[10px] font-mono">{target.name}</span>
+                                      <span className="text-xs font-mono">{target.name}</span>
                                       <Button
                                         variant={isBlocked ? "destructive" : "outline"}
                                         size="sm"
-                                        className="h-5 text-[8px] px-1.5"
+                                        className="h-5 text-[10px] px-1.5"
                                         onClick={() => {
                                           const node = nodes.find(n => n.id === selectedNode);
                                           if (node) {
@@ -1548,7 +1548,7 @@ export const NetworkVisualizer: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
                             <Zap className="w-3 h-3" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider">Ping Lab</span>
+                            <span className="text-xs font-bold uppercase tracking-wider">Ping Lab</span>
                           </div>
                           <div className="flex gap-1">
                             <Button
@@ -1580,8 +1580,8 @@ export const NetworkVisualizer: React.FC = () => {
 
                         <div className="space-y-1.5">
                           <div className="flex justify-between items-center">
-                            <Label className="text-[9px] uppercase text-muted-foreground">Target Device</Label>
-                            <span className="text-[8px] bg-blue-100 dark:bg-blue-900/40 px-1 rounded text-blue-600 font-bold">BROADCAST BY DEFAULT</span>
+                            <Label className="text-xs uppercase text-muted-foreground">Target Device</Label>
+                            <span className="text-[10px] bg-blue-100 dark:bg-blue-900/40 px-1 rounded text-blue-600 font-bold">BROADCAST BY DEFAULT</span>
                           </div>
                           <Select value={pingTargetId} onValueChange={setPingTargetId}>
                             <SelectTrigger className="h-7 text-xs bg-white dark:bg-slate-900">
@@ -1607,7 +1607,7 @@ export const NetworkVisualizer: React.FC = () => {
                         </div>
 
                         <div className="space-y-1.5">
-                          <Label className="text-[9px] uppercase text-muted-foreground">Ping Count (1-10)</Label>
+                          <Label className="text-xs uppercase text-muted-foreground">Ping Count (1-10)</Label>
                           <Input
                             type="number"
                             min={1}
@@ -1625,7 +1625,7 @@ export const NetworkVisualizer: React.FC = () => {
                       <div className="p-3 bg-purple-50/50 dark:bg-purple-900/10 rounded-lg border border-purple-100 dark:border-purple-900/30 space-y-3">
                         <div className="flex items-center space-x-2 text-purple-600 dark:text-purple-400">
                           <Layers className="w-3 h-3" />
-                          <span className="text-[10px] font-bold uppercase tracking-wider">VLAN Manager (Max 3)</span>
+                          <span className="text-xs font-bold uppercase tracking-wider">VLAN Manager (Max 3)</span>
                         </div>
 
                         <div className="space-y-2">
@@ -1653,7 +1653,7 @@ export const NetworkVisualizer: React.FC = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full text-[10px] h-7 border-dashed border-purple-300"
+                              className="w-full text-xs h-7 border-dashed border-purple-300"
                               onClick={() => {
                                 const node = nodes.find(n => n.id === selectedNode);
                                 if (node && node.vlans) {
@@ -1668,7 +1668,7 @@ export const NetworkVisualizer: React.FC = () => {
                         </div>
 
                         <div className="space-y-1.5">
-                          <Label className="text-[9px] uppercase text-muted-foreground">Assign Ports to VLAN</Label>
+                          <Label className="text-xs uppercase text-muted-foreground">Assign Ports to VLAN</Label>
                           <div className="space-y-2">
                             {links
                               .filter(l => l.fromDeviceId === selectedNode || l.toDeviceId === selectedNode)
@@ -1679,7 +1679,7 @@ export const NetworkVisualizer: React.FC = () => {
 
                                 return (
                                   <div key={link.id} className="flex items-center space-x-2">
-                                    <span className="text-[10px] font-mono flex-1 truncate">{otherNode?.name}</span>
+                                    <span className="text-xs font-mono flex-1 truncate">{otherNode?.name}</span>
                                     <Select
                                       value={currentVlan}
                                       onValueChange={(val) => {
@@ -1691,12 +1691,12 @@ export const NetworkVisualizer: React.FC = () => {
                                         }));
                                       }}
                                     >
-                                      <SelectTrigger className="h-6 text-[10px] w-24">
+                                      <SelectTrigger className="h-6 text-xs w-24">
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
                                         {nodes.find(n => n.id === selectedNode)?.vlans?.map(v => (
-                                          <SelectItem key={v} value={v} className="text-[10px]">{v}</SelectItem>
+                                          <SelectItem key={v} value={v} className="text-xs">{v}</SelectItem>
                                         ))}
                                       </SelectContent>
                                     </Select>
@@ -1708,23 +1708,23 @@ export const NetworkVisualizer: React.FC = () => {
                       </div>
                     )}
                     <div className="space-y-1">
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold">Interfaces</p>
+                      <p className="text-xs text-muted-foreground uppercase font-bold">Interfaces</p>
                       <div className="space-y-2">
                         {nodes.find(n => n.id === selectedNode)?.interfaces.map(iface => (
                           <div key={iface.id} className="flex flex-col p-2 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
                             <div className="flex items-center justify-between mb-1">
                               <div className="flex items-center space-x-2">
                                 <div className={cn("w-2 h-2 rounded-full", iface.isConnected ? "bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]" : "bg-slate-400")} />
-                                <span className="text-[10px] font-bold uppercase">{iface.id}</span>
+                                <span className="text-xs font-bold uppercase">{iface.id}</span>
                               </div>
-                              <span className="text-[8px] font-mono opacity-50">{iface.mac}</span>
+                              <span className="text-[10px] font-mono opacity-50">{iface.mac}</span>
                             </div>
                             <div className="flex justify-between items-center">
-                              <span className="text-[9px] text-muted-foreground italic">
+                              <span className="text-xs text-muted-foreground italic">
                                 {links.some(l => (l.fromDeviceId === selectedNode && l.fromInterfaceId === iface.id) || (l.toDeviceId === selectedNode && l.toInterfaceId === iface.id)) ? 'Connected' : 'Disconnected'}
                               </span>
                               <div className="flex flex-col items-end">
-                                <span className="text-[10px] font-mono text-blue-500 font-bold">
+                                <span className="text-xs font-mono text-blue-500 font-bold">
                                   {dhcpStatus[selectedNode!] === 'bound' ? (detectedNetworks.interfaceIps[`${selectedNode}-${iface.id}`] || 'no ip') : (dhcpStatus[selectedNode!] === 'discovering' ? 'DHCP...' : 'no ip')}
                                 </span>
                                 {(nodes.find(n => n.id === selectedNode)?.type === DeviceType.PC || nodes.find(n => n.id === selectedNode)?.type === DeviceType.SERVER) &&
@@ -1732,7 +1732,7 @@ export const NetworkVisualizer: React.FC = () => {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="h-3 text-[6px] px-1 text-blue-400 hover:text-blue-300 p-0"
+                                      className="h-3 text-[10px] px-1 text-blue-400 hover:text-blue-300 p-0"
                                       onClick={() => handleDhcpDiscovery(selectedNode!)}
                                     >
                                       Renew IP
@@ -1807,43 +1807,43 @@ export const NetworkVisualizer: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center"><MousePointer2 size={16} /></div>
                         <div>
-                          <p className="font-bold text-[10px] uppercase">Select</p>
-                          <p className="text-[9px] text-muted-foreground italic">Move & Edit devices</p>
+                          <p className="font-bold text-xs uppercase">Select</p>
+                          <p className="text-[10px] text-muted-foreground italic">Move & Edit devices</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600"><LinkIcon size={16} /></div>
                         <div>
-                          <p className="font-bold text-[10px] uppercase">Link</p>
-                          <p className="text-[9px] text-muted-foreground italic">Create connections</p>
+                          <p className="font-bold text-xs uppercase">Link</p>
+                          <p className="text-[10px] text-muted-foreground italic">Create connections</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 text-red-500">
                         <div className="w-8 h-8 rounded bg-red-100 dark:bg-red-900/30 flex items-center justify-center"><Trash2 size={16} /></div>
                         <div>
-                          <p className="font-bold text-[10px] uppercase">Delete</p>
-                          <p className="text-[9px] text-muted-foreground italic">Remove nodes/links</p>
+                          <p className="font-bold text-xs uppercase">Delete</p>
+                          <p className="text-[10px] text-muted-foreground italic">Remove nodes/links</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center"><Grid3X3 size={16} /></div>
                         <div>
-                          <p className="font-bold text-[10px] uppercase">Grid</p>
-                          <p className="text-[9px] text-muted-foreground italic">Toggle 40px snapping</p>
+                          <p className="font-bold text-xs uppercase">Grid</p>
+                          <p className="text-[10px] text-muted-foreground italic">Toggle 40px snapping</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 text-green-600">
                         <div className="w-8 h-8 rounded bg-green-100 dark:bg-green-900/30 flex items-center justify-center"><Play size={16} /></div>
                         <div>
-                          <p className="font-bold text-[10px] uppercase">Broadcast</p>
-                          <p className="text-[9px] text-muted-foreground italic">All PCs ping at once</p>
+                          <p className="font-bold text-xs uppercase">Broadcast</p>
+                          <p className="text-[10px] text-muted-foreground italic">All PCs ping at once</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 text-slate-500">
                         <div className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center"><RotateCcw size={16} /></div>
                         <div>
-                          <p className="font-bold text-[10px] uppercase">Reset</p>
-                          <p className="text-[9px] text-muted-foreground italic">Clear entire canvas</p>
+                          <p className="font-bold text-xs uppercase">Reset</p>
+                          <p className="text-[10px] text-muted-foreground italic">Clear entire canvas</p>
                         </div>
                       </div>
                     </div>
@@ -1860,8 +1860,8 @@ export const NetworkVisualizer: React.FC = () => {
                           <Monitor size={20} className="text-slate-600" />
                         </div>
                         <div className="space-y-1">
-                          <p className="font-bold text-[10px] uppercase">PC / Server</p>
-                          <p className="text-[9px] text-muted-foreground leading-tight">Endpoints that generate and receive traffic. Used in the Ping Lab.</p>
+                          <p className="font-bold text-xs uppercase">PC / Server</p>
+                          <p className="text-[10px] text-muted-foreground leading-tight">Endpoints that generate and receive traffic. Used in the Ping Lab.</p>
                         </div>
                       </div>
                       <div className="flex gap-4 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-lg border">
@@ -1869,8 +1869,8 @@ export const NetworkVisualizer: React.FC = () => {
                           <Layers size={20} className="text-slate-600" />
                         </div>
                         <div className="space-y-1">
-                          <p className="font-bold text-[10px] uppercase">Switch</p>
-                          <p className="text-[9px] text-muted-foreground leading-tight">L2 bridge. Supports up to 3 VLANs for logical network isolation.</p>
+                          <p className="font-bold text-xs uppercase">Switch</p>
+                          <p className="text-[10px] text-muted-foreground leading-tight">L2 bridge. Supports up to 3 VLANs for logical network isolation.</p>
                         </div>
                       </div>
                       <div className="flex gap-4 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-lg border">
@@ -1878,8 +1878,8 @@ export const NetworkVisualizer: React.FC = () => {
                           <Network size={20} className="text-slate-600" />
                         </div>
                         <div className="space-y-1">
-                          <p className="font-bold text-[10px] uppercase">Router</p>
-                          <p className="text-[9px] text-muted-foreground leading-tight">L3 gateway. Connects different segments and filters by source ID.</p>
+                          <p className="font-bold text-xs uppercase">Router</p>
+                          <p className="text-[10px] text-muted-foreground leading-tight">L3 gateway. Connects different segments and filters by source ID.</p>
                         </div>
                       </div>
                       <div className="flex gap-4 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-lg border border-red-200/50">
@@ -1887,8 +1887,8 @@ export const NetworkVisualizer: React.FC = () => {
                           <Shield size={20} className="text-red-500" />
                         </div>
                         <div className="space-y-1">
-                          <p className="font-bold text-[10px] uppercase">Firewall</p>
-                          <p className="text-[9px] text-muted-foreground leading-tight">Security boundary. Toggles routing and blocks specific source devices.</p>
+                          <p className="font-bold text-xs uppercase">Firewall</p>
+                          <p className="text-[10px] text-muted-foreground leading-tight">Security boundary. Toggles routing and blocks specific source devices.</p>
                         </div>
                       </div>
                       <div className="flex gap-4 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-lg border border-orange-200/50">
@@ -1896,8 +1896,8 @@ export const NetworkVisualizer: React.FC = () => {
                           <Activity size={20} className="text-orange-500" />
                         </div>
                         <div className="space-y-1">
-                          <p className="font-bold text-[10px] uppercase">IPS / IDS</p>
-                          <p className="text-[9px] text-muted-foreground leading-tight">Intrusion system. Transparent in IDS mode; Partitions network in IPS mode.</p>
+                          <p className="font-bold text-xs uppercase">IPS / IDS</p>
+                          <p className="text-[10px] text-muted-foreground leading-tight">Intrusion system. Transparent in IDS mode; Partitions network in IPS mode.</p>
                         </div>
                       </div>
                     </div>
@@ -1905,7 +1905,7 @@ export const NetworkVisualizer: React.FC = () => {
                 </div>
 
                 <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t flex justify-center">
-                  <Button variant="default" size="sm" className="font-bold uppercase text-[10px] px-8" onClick={() => setShowLegend(false)}>
+                  <Button variant="default" size="sm" className="font-bold uppercase text-xs px-8" onClick={() => setShowLegend(false)}>
                     Got it!
                   </Button>
                 </div>
