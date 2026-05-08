@@ -85,6 +85,7 @@ const FEATURE_CATEGORIES = [
       { name: "DMARC Generator", path: "/bonus/dmarc-generator" },
       { name: "QR/Bar Code Generator", path: "/bonus/code-generator" },
       { name: "QR/BarCode Scanner", path: "/bonus/code-scanner" },
+      { name: "Network Visualiser", path: "/bonus/visualizer" },
     ],
   },
 ]
