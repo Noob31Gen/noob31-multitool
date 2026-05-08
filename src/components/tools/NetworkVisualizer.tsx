@@ -236,6 +236,54 @@ export const NetworkVisualizer: React.FC = () => {
     return { foundNetworks, interfaceIps };
   }, [nodes, links]);
 
+  // Repair/Sync interfaces effect: Ensures interface array and connectivity status are always accurate
+  useEffect(() => {
+    const needsRepair = nodes.some(node =>
+      node.interfaces.length < node.portLimit ||
+      node.interfaces.some(iface => {
+        const isLinked = links.some(l =>
+          (l.fromDeviceId === node.id && l.fromInterfaceId === iface.id) ||
+          (l.toDeviceId === node.id && l.toInterfaceId === iface.id)
+        );
+        return iface.isConnected !== isLinked;
+      })
+    );
+
+    if (needsRepair) {
+      setNodes(prevNodes => prevNodes.map(node => {
+        let nodeChanged = false;
+        let updatedInterfaces = [...node.interfaces];
+
+        // 1. Ensure interfaces array length matches portLimit
+        if (updatedInterfaces.length < node.portLimit) {
+          for (let i = updatedInterfaces.length; i < node.portLimit; i++) {
+            updatedInterfaces.push({
+              id: `eth${i}`,
+              mac: getRandomMac(),
+              isConnected: false
+            });
+          }
+          nodeChanged = true;
+        }
+
+        // 2. Ensure isConnected accurately reflects current links
+        updatedInterfaces = updatedInterfaces.map(iface => {
+          const isLinked = links.some(l =>
+            (l.fromDeviceId === node.id && l.fromInterfaceId === iface.id) ||
+            (l.toDeviceId === node.id && l.toInterfaceId === iface.id)
+          );
+          if (iface.isConnected !== isLinked) {
+            nodeChanged = true;
+            return { ...iface, isConnected: isLinked };
+          }
+          return iface;
+        });
+
+        return nodeChanged ? { ...node, interfaces: updatedInterfaces } : node;
+      }));
+    }
+  }, [links, nodes.length]); // Check whenever links change or nodes are added/removed
+
   const svgRef = useRef<SVGSVGElement>(null);
   const underNodeLayerRef = useRef<SVGGElement>(null);
   const overNodeLayerRef = useRef<SVGGElement>(null);
@@ -735,8 +783,10 @@ export const NetworkVisualizer: React.FC = () => {
     e.stopPropagation();
     if (mode === 'delete') {
       const node = nodes.find(n => n.id === nodeId);
+      // Remove node and its links
       setNodes(nodes.filter(n => n.id !== nodeId));
       setLinks(links.filter(l => l.fromDeviceId !== nodeId && l.toDeviceId !== nodeId));
+      
       if (selectedNode === nodeId) setSelectedNode(null);
       logEvent(`Deleted ${node?.name}`, 'info');
       return;
@@ -1710,38 +1760,55 @@ export const NetworkVisualizer: React.FC = () => {
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground uppercase font-bold">Interfaces</p>
                       <div className="space-y-2">
-                        {nodes.find(n => n.id === selectedNode)?.interfaces.map(iface => (
-                          <div key={iface.id} className="flex flex-col p-2 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="flex items-center space-x-2">
-                                <div className={cn("w-2 h-2 rounded-full", iface.isConnected ? "bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]" : "bg-slate-400")} />
-                                <span className="text-xs font-bold uppercase">{iface.id}</span>
+                        {nodes.find(n => n.id === selectedNode)?.interfaces.map(iface => {
+                          const connectedLink = links.find(l =>
+                            (l.fromDeviceId === selectedNode && l.fromInterfaceId === iface.id) ||
+                            (l.toDeviceId === selectedNode && l.toInterfaceId === iface.id)
+                          );
+
+                          let peerInfo = null;
+                          if (connectedLink) {
+                            const peerId = connectedLink.fromDeviceId === selectedNode ? connectedLink.toDeviceId : connectedLink.fromDeviceId;
+                            const peerIfaceId = connectedLink.fromDeviceId === selectedNode ? connectedLink.toInterfaceId : connectedLink.fromInterfaceId;
+                            const peerNode = nodes.find(n => n.id === peerId);
+                            peerInfo = { name: peerNode?.name, interface: peerIfaceId };
+                          }
+
+                          return (
+                            <div key={iface.id} className="flex flex-col p-2 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center space-x-2">
+                                  <div className={cn("w-2 h-2 rounded-full", iface.isConnected ? "bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]" : "bg-slate-400")} />
+                                  <span className="text-xs font-bold uppercase">{iface.id}</span>
+                                </div>
+                                <span className="text-[10px] font-mono opacity-50">{iface.mac}</span>
                               </div>
-                              <span className="text-[10px] font-mono opacity-50">{iface.mac}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-muted-foreground italic">
-                                {links.some(l => (l.fromDeviceId === selectedNode && l.fromInterfaceId === iface.id) || (l.toDeviceId === selectedNode && l.toInterfaceId === iface.id)) ? 'Connected' : 'Disconnected'}
-                              </span>
-                              <div className="flex flex-col items-end">
-                                <span className="text-xs font-mono text-blue-500 font-bold">
-                                  {dhcpStatus[selectedNode!] === 'bound' ? (detectedNetworks.interfaceIps[`${selectedNode}-${iface.id}`] || 'no ip') : (dhcpStatus[selectedNode!] === 'discovering' ? 'DHCP...' : 'no ip')}
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs text-muted-foreground italic truncate mr-2">
+                                  {peerInfo ? (
+                                    <>Connected to <span className="text-blue-500 font-bold not-italic">{peerInfo.name}</span> <span className="opacity-70">({peerInfo.interface})</span></>
+                                  ) : 'Disconnected'}
                                 </span>
-                                {(nodes.find(n => n.id === selectedNode)?.type === DeviceType.PC || nodes.find(n => n.id === selectedNode)?.type === DeviceType.SERVER) &&
-                                  links.some(l => (l.fromDeviceId === selectedNode && l.fromInterfaceId === iface.id) || (l.toDeviceId === selectedNode && l.toInterfaceId === iface.id)) && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-3 text-[10px] px-1 text-blue-400 hover:text-blue-300 p-0"
-                                      onClick={() => handleDhcpDiscovery(selectedNode!)}
-                                    >
-                                      Renew IP
-                                    </Button>
-                                  )}
+                                <div className="flex flex-col items-end shrink-0">
+                                  <span className="text-xs font-mono text-blue-500 font-bold">
+                                    {dhcpStatus[selectedNode!] === 'bound' ? (detectedNetworks.interfaceIps[`${selectedNode}-${iface.id}`] || 'no ip') : (dhcpStatus[selectedNode!] === 'discovering' ? 'DHCP...' : 'no ip')}
+                                  </span>
+                                  {(nodes.find(n => n.id === selectedNode)?.type === DeviceType.PC || nodes.find(n => n.id === selectedNode)?.type === DeviceType.SERVER) &&
+                                    links.some(l => (l.fromDeviceId === selectedNode && l.fromInterfaceId === iface.id) || (l.toDeviceId === selectedNode && l.toInterfaceId === iface.id)) && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-3 text-[10px] px-1 text-blue-400 hover:text-blue-300 p-0"
+                                        onClick={() => handleDhcpDiscovery(selectedNode!)}
+                                      >
+                                        Renew IP
+                                      </Button>
+                                    )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
