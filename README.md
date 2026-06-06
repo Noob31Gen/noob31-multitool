@@ -8,6 +8,8 @@ Created by [Noob31](https://noob31.com/).
 
 [https://tools.noob31.com/](https://tools.noob31.com/)
 
+(This project was partly made with the assistance of AI (Gemini/Claude Opus).)
+
 ## Features
 
 - **DNS Diagnostics**: Standard DNS lookups (A, AAAA, MX, TXT, etc.) and DNSSEC verification.
