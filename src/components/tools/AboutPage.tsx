@@ -23,6 +23,11 @@ export function AboutPage() {
           </p>
           <p className="text-muted-foreground">
             This project is open source. The source code is below.
+          </p> &nbsp;
+          <p className="text-sm text-muted-foreground">
+            Find more tools by me and others here: &nbsp;
+            <a className="underline font-medium hover:text-foreground" href="https://noob31.com/webtools" target="_blank" rel="noreferrer">Web Tools</a> |&nbsp;
+            <a className="underline font-medium hover:text-foreground" href="https://noob31.com/selfhost" target="_blank" rel="noreferrer">My SelfHosted</a>
           </p>
         </div>
         <p className="text-muted-foreground">
