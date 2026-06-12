@@ -121,50 +121,6 @@ export function SettingsSheet() {
               disabled={localSettings.corsProvider !== 'custom'}
             />
           </div>
-          <details className="group border border-border/60 rounded-xl p-3 bg-muted/20">
-            <summary className="text-xs font-bold uppercase tracking-wider flex justify-between items-center cursor-pointer select-none text-muted-foreground hover:text-foreground">
-              <span>API Keys (Optional Premium Sources)</span>
-              <span className="text-[10px] transition-transform group-open:rotate-180">▼</span>
-            </summary>
-            <div className="mt-4 space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-muted-foreground uppercase">Censys API ID</label>
-                <Input
-                  type="password"
-                  placeholder="Censys API ID"
-                  value={localSettings.censysApiId || ''}
-                  onChange={(e) => setLocalSettings({ ...localSettings, censysApiId: e.target.value })}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-muted-foreground uppercase">Censys API Secret</label>
-                <Input
-                  type="password"
-                  placeholder="Censys API Secret"
-                  value={localSettings.censysApiSecret || ''}
-                  onChange={(e) => setLocalSettings({ ...localSettings, censysApiSecret: e.target.value })}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-muted-foreground uppercase">Google Safe Browsing API Key</label>
-                <Input
-                  type="password"
-                  placeholder="Safe Browsing API Key"
-                  value={localSettings.googleSafeBrowsingApiKey || ''}
-                  onChange={(e) => setLocalSettings({ ...localSettings, googleSafeBrowsingApiKey: e.target.value })}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-muted-foreground uppercase">VirusTotal API Key</label>
-                <Input
-                  type="password"
-                  placeholder="VirusTotal API Key"
-                  value={localSettings.virusTotalApiKey || ''}
-                  onChange={(e) => setLocalSettings({ ...localSettings, virusTotalApiKey: e.target.value })}
-                />
-              </div>
-            </div>
-          </details>
           <Button onClick={handleApply} className="w-full mt-4">Apply</Button>
         </div>
       </SheetContent>

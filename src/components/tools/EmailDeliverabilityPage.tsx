@@ -18,7 +18,7 @@ export function EmailDeliverabilityPage() {
   const { settings } = useSettings()
   const location = useLocation();
   const [domain, setDomain] = useState("")
-  const [selector, setSelector] = useState("default")
+  const [selector, setSelector] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<{ recommendations: { level: string; msg: string }[]; results: { type: string; records?: unknown[] }[]; grade: string; score: number; queryTime: number } | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
@@ -68,7 +68,7 @@ export function EmailDeliverabilityPage() {
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <Input
-            placeholder="DKIM Selector (default)"
+            placeholder="DKIM Selector (optional)"
             className="w-full sm:w-[180px] bg-background"
             value={selector}
             onChange={(e) => setSelector(e.target.value)}

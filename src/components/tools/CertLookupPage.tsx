@@ -114,7 +114,14 @@ export function CertLookupPage() {
           status="success"
           timeMs={result.queryTime}
           action={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open(`https://search.censys.io/search?resource=certificates&q=${encodeURIComponent(domain)}`, '_blank', 'noopener,noreferrer')}
+              >
+                Search Censys
+              </Button>
               <CopyButton data={JSON.stringify(result.data, null, 2)} text="Copy JSON" />
               <ExportButton data={result.data} filename={`${domain}-certs.json`} />
             </div>

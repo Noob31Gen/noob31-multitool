@@ -33,8 +33,6 @@ export interface DomainReputationResult {
   dnssecActive: boolean;
   queryTime: number;
   threatMinerMalwareCount: number;
-  googleSafeBrowsing: { listed: boolean; details?: string } | null;
-  virusTotal: { maliciousCount: number; suspiciousCount: number; totalEngines: number; details?: string } | null;
 }
 
 function classifySpamhausDbl(ip: string): string {
@@ -308,102 +306,20 @@ export async function checkDomainReputation(
     }
   })();
 
-  // 7. Google Safe Browsing Check
-  const googleSafeBrowsingPromise = (async (): Promise<{ listed: boolean; details?: string } | null> => {
-    const apiKey = settings.googleSafeBrowsingApiKey;
-    if (!apiKey) return null;
-    try {
-      const targetUrl = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${apiKey}`;
-      const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
-      const body = {
-        client: { clientId: "noob31-multitool", clientVersion: "1.0.0" },
-        threatInfo: {
-          threatTypes: ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION"],
-          platformTypes: ["ANY_PLATFORM"],
-          threatEntryTypes: ["URL"],
-          threatEntries: [{ url: cleanDomain }]
-        }
-      };
-      const res = await fetch(proxyUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (data && Array.isArray(data.matches) && data.matches.length > 0) {
-        const types = data.matches.map((m: { threatType: string }) => m.threatType).join(', ');
-        return { listed: true, details: `Flagged: ${types}` };
-      }
-      return { listed: false };
-    } catch (err) {
-      logger.warn("Google Safe Browsing check failed:", err);
-      return { listed: false, details: `Error: ${err instanceof Error ? err.message : String(err)}` };
-    }
-  })();
-
-  // 8. VirusTotal Check
-  const virusTotalPromise = (async (): Promise<{ maliciousCount: number; suspiciousCount: number; totalEngines: number; details?: string } | null> => {
-    const apiKey = settings.virusTotalApiKey;
-    if (!apiKey) return null;
-    try {
-      const targetUrl = `https://www.virustotal.com/api/v3/domains/${cleanDomain}`;
-      const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
-      const res = await fetch(proxyUrl, {
-        headers: { 'x-apikey': apiKey },
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (data && data.data?.attributes?.last_analysis_stats) {
-        const stats = data.data.attributes.last_analysis_stats;
-        const malicious = stats.malicious || 0;
-        const suspicious = stats.suspicious || 0;
-        const total = (stats.harmless || 0) + (stats.undetected || 0) + malicious + suspicious;
-        return {
-          maliciousCount: malicious,
-          suspiciousCount: suspicious,
-          totalEngines: total,
-          details: `${malicious}/${total} security vendors flagged this domain as malicious.`
-        };
-      }
-      return { maliciousCount: 0, suspiciousCount: 0, totalEngines: 0 };
-    } catch (err) {
-      logger.warn("VirusTotal check failed:", err);
-      return {
-        maliciousCount: 0,
-        suspiciousCount: 0,
-        totalEngines: 0,
-        details: `Error: ${err instanceof Error ? err.message : String(err)}`
-      };
-    }
-  })();
-
   const [
     blocklists,
     quad9Blocked,
     otxPulses,
     rdapInfo,
     dnssecActive,
-    threatMinerMalwareCount,
-    googleSafeBrowsing,
-    virusTotal
+    threatMinerMalwareCount
   ] = await Promise.all([
     Promise.all(dblPromises),
     quad9Promise,
     otxPromise,
     rdapPromise,
     dnssecPromise,
-    threatMinerPromise,
-    googleSafeBrowsingPromise,
-    virusTotalPromise
+    threatMinerPromise
   ]);
 
   // Score computation
@@ -437,18 +353,6 @@ export async function checkDomainReputation(
     score -= 30; // Deduct 30 points if malware associated
   }
 
-  if (googleSafeBrowsing && googleSafeBrowsing.listed) {
-    score -= 50; // Heavy penalty for Safe Browsing flags
-  }
-
-  if (virusTotal && virusTotal.maliciousCount > 0) {
-    if (virusTotal.maliciousCount > 5) {
-      score -= 50;
-    } else {
-      score -= 30;
-    }
-  }
-
   // DNSSEC Bonus points
   if (dnssecActive) {
     score += 5;
@@ -476,8 +380,6 @@ export async function checkDomainReputation(
     registrationDate: rdapInfo ? rdapInfo.date : null,
     dnssecActive,
     queryTime: Date.now() - startTime,
-    threatMinerMalwareCount,
-    googleSafeBrowsing,
-    virusTotal
+    threatMinerMalwareCount
   };
 }

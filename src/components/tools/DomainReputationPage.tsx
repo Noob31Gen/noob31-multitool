@@ -17,7 +17,8 @@ import {
   Calendar,
   ShieldCheck,
   ShieldAlert,
-  Activity
+  Activity,
+  ExternalLink
 } from "lucide-react"
 
 export function DomainReputationPage() {
@@ -310,78 +311,61 @@ export function DomainReputationPage() {
               )}
             </ResultCard>
 
-            {/* Premium Intelligence Scans */}
-            <ResultCard title="Premium Security Scans" status="success">
+            {/* Manual External Threat Analysis */}
+            <ResultCard title="Manual External Threat Analysis" status="success">
               <div className="space-y-4">
-                {/* Google Safe Browsing */}
-                {result.googleSafeBrowsing ? (
-                  <div
-                    className={`flex items-start gap-3 p-3 rounded-md border bg-card ${
-                      result.googleSafeBrowsing.listed ? 'border-destructive/30 bg-destructive/5' : 'border-border/50'
-                    }`}
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  For deeper verification, scan or inspect this domain directly on official security databases and threat intelligence platforms:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between h-auto py-3 px-4 text-left font-normal border-border/80 hover:bg-muted/50 hover:border-border"
+                    onClick={() => window.open(`https://www.virustotal.com/gui/domain/${encodeURIComponent(result.domain)}`, '_blank', 'noopener,noreferrer')}
                   >
-                    {result.googleSafeBrowsing.listed ? (
-                      <XCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-                    ) : (
-                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center gap-2">
-                        <span className="font-semibold text-sm">Google Safe Browsing</span>
-                        <Badge variant={result.googleSafeBrowsing.listed ? "destructive" : "secondary"}>
-                          {result.googleSafeBrowsing.listed ? "FLAGGED" : "CLEAN"}
-                        </Badge>
-                      </div>
-                      {result.googleSafeBrowsing.details && (
-                        <p className="text-xs text-muted-foreground mt-1 font-mono">
-                          {result.googleSafeBrowsing.details}
-                        </p>
-                      )}
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-semibold text-sm text-foreground">VirusTotal Report</span>
+                      <span className="text-[10px] text-muted-foreground">Scan domain, IPs, and historical URLs</span>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-xs text-muted-foreground p-3 border border-dashed rounded-md bg-muted/10">
-                    Google Safe Browsing API key not configured.
-                  </div>
-                )}
+                    <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0 ml-2" />
+                  </Button>
 
-                {/* VirusTotal */}
-                {result.virusTotal ? (
-                  <div
-                    className={`flex items-start gap-3 p-3 rounded-md border bg-card ${
-                      result.virusTotal.maliciousCount > 0 ? 'border-destructive/30 bg-destructive/5' : 'border-border/50'
-                    }`}
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between h-auto py-3 px-4 text-left font-normal border-border/80 hover:bg-muted/50 hover:border-border"
+                    onClick={() => window.open(`https://transparencyreport.google.com/safe-browsing/search?url=${encodeURIComponent(result.domain)}`, '_blank', 'noopener,noreferrer')}
                   >
-                    {result.virusTotal.maliciousCount > 0 ? (
-                      <XCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-                    ) : (
-                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center gap-2">
-                        <span className="font-semibold text-sm">VirusTotal Domain Scan</span>
-                        <Badge variant={result.virusTotal.maliciousCount > 0 ? "destructive" : "secondary"}>
-                          {result.virusTotal.maliciousCount > 0 ? `${result.virusTotal.maliciousCount} ALERTS` : "CLEAN"}
-                        </Badge>
-                      </div>
-                      {result.virusTotal.details && (
-                        <p className="text-xs text-muted-foreground mt-1 font-mono">
-                          {result.virusTotal.details}
-                        </p>
-                      )}
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-semibold text-sm text-foreground">Google Safe Browsing</span>
+                      <span className="text-[10px] text-muted-foreground">Check official site safety status</span>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-xs text-muted-foreground p-3 border border-dashed rounded-md bg-muted/10">
-                    VirusTotal API key not configured.
-                  </div>
-                )}
+                    <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0 ml-2" />
+                  </Button>
 
-                {(!settings.googleSafeBrowsingApiKey || !settings.virusTotalApiKey) && (
-                  <div className="text-xs text-muted-foreground bg-muted/20 p-3 rounded-lg leading-relaxed">
-                    💡 <strong>Tip:</strong> You can configure free API keys for <strong>Google Safe Browsing</strong> and <strong>VirusTotal</strong> in the settings panel (gear icon in header) to unlock premium reputation database scans.
-                  </div>
-                )}
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between h-auto py-3 px-4 text-left font-normal border-border/80 hover:bg-muted/50 hover:border-border"
+                    onClick={() => window.open(`https://otx.alienvault.com/indicator/domain/${encodeURIComponent(result.domain)}`, '_blank', 'noopener,noreferrer')}
+                  >
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-semibold text-sm text-foreground">AlienVault OTX</span>
+                      <span className="text-[10px] text-muted-foreground">Explore full community pulse indicators</span>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0 ml-2" />
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between h-auto py-3 px-4 text-left font-normal border-border/80 hover:bg-muted/50 hover:border-border"
+                    onClick={() => window.open(`https://search.censys.io/search?resource=certificates&q=${encodeURIComponent(result.domain)}`, '_blank', 'noopener,noreferrer')}
+                  >
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-semibold text-sm text-foreground">Search Censys Certificates</span>
+                      <span className="text-[10px] text-muted-foreground">Inspect certificates and host details</span>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0 ml-2" />
+                  </Button>
+                </div>
               </div>
             </ResultCard>
 

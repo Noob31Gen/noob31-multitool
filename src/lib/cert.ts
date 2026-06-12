@@ -8,23 +8,17 @@ export interface NormalizedCert {
 }
 export async function queryCert(domain: string, settings: AppSettings): Promise<NormalizedCert[]> {
   domain = domain.trim().toLowerCase();
-  const sources = [
-    { name: "crt.sh", fn: () => fetchCrtSh(domain, settings) },
-    { name: "CertSpotter", fn: () => fetchCertSpotter(domain, settings) }
-  ];
-
-  if (settings.censysApiId && settings.censysApiSecret) {
-    sources.push({ name: "Censys", fn: () => fetchCensys(domain, settings) });
-  }
-
-  const results = await Promise.allSettled(sources.map(s => s.fn()));
+  const results = await Promise.allSettled([
+    fetchCrtSh(domain, settings),
+    fetchCertSpotter(domain, settings)
+  ]);
 
   const allCerts: NormalizedCert[] = [];
   const errors: string[] = [];
   let successCount = 0;
 
   results.forEach((result, idx) => {
-    const sourceName = sources[idx].name;
+    const sourceName = idx === 0 ? "crt.sh" : "CertSpotter";
     if (result.status === 'fulfilled') {
       successCount++;
       if (result.value) {
@@ -101,70 +95,6 @@ async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<
     }));
   } catch {
     throw new Error('Returned HTML instead of JSON. The proxy failed to route the request.');
-  }
-}
-async function fetchCensys(domain: string, settings: AppSettings): Promise<NormalizedCert[]> {
-  const apiId = settings.censysApiId;
-  const apiSecret = settings.censysApiSecret;
-  if (!apiId || !apiSecret) return [];
-
-  const targetUrl = `https://search.censys.io/api/v2/certificates/search?q=parsed.names:${domain}&per_page=50`;
-  const proxyUrl = getProxiedUrl(
-    targetUrl,
-    settings.corsProvider as AppSettings['corsProvider'],
-    settings.customCorsUrl
-  );
-  
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 12000);
-  
-  try {
-    const headers: HeadersInit = {
-      'Accept': 'application/json',
-      'Authorization': `Basic ${btoa(`${apiId}:${apiSecret}`)}`
-    };
-    
-    const res = await authenticatedFetch(proxyUrl, {
-      headers,
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    
-    if (!res.ok) {
-      if (res.status === 404) return [];
-      throw new Error(`HTTP ${res.status} - ${res.statusText}`);
-    }
-    const text = await res.text();
-    if (!text || !text.trim()) return [];
-    
-    const data = JSON.parse(text);
-    if (!data.result || !Array.isArray(data.result.hits)) return [];
-    
-    return data.result.hits.map((hit: {
-      parsed?: {
-        subject?: { common_name?: string | string[] };
-        issuer?: { common_name?: string | string[] };
-        validity?: { start?: string; end?: string };
-      };
-    }) => {
-      const parsed = hit.parsed || {};
-      const subjectCommonName = Array.isArray(parsed.subject?.common_name) 
-        ? parsed.subject.common_name[0] 
-        : parsed.subject?.common_name || '';
-      const issuerCommonName = Array.isArray(parsed.issuer?.common_name)
-        ? parsed.issuer.common_name[0]
-        : parsed.issuer?.common_name || '';
-      
-      return {
-        not_before: parsed.validity?.start ? parsed.validity.start.split('T')[0] : '',
-        not_after: parsed.validity?.end ? parsed.validity.end.split('T')[0] : '',
-        common_name: subjectCommonName || domain,
-        issuer_name: issuerCommonName || ''
-      };
-    });
-  } catch (err) {
-    clearTimeout(timeoutId);
-    throw err;
   }
 }
 function deduplicateCerts(certs: NormalizedCert[]): NormalizedCert[] {

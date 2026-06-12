@@ -18,7 +18,7 @@ export function DomainHealthPage() {
   const { settings } = useSettings()
   const location = useLocation();
   const [domain, setDomain] = useState("")
-  const [selector] = useState("default")
+  const [selector, setSelector] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<{ recommendations: { level: string; msg: string }[]; dnsResults: ({ type: string; success: boolean; data?: { records: DNSRecord[] }; error?: string })[]; emailResults: ({ type: string; success: boolean; records: DNSRecord[]; allRecords: DNSRecord[]; error?: string })[]; grade: string; score: number; queryTime: number } | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
@@ -74,6 +74,14 @@ export function DomainHealthPage() {
               className="pl-9 bg-background"
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
+            />
+          </div>
+          <div className="w-full sm:w-[220px]">
+            <Input
+              placeholder="DKIM Selector (optional)"
+              className="bg-background"
+              value={selector}
+              onChange={(e) => setSelector(e.target.value)}
             />
           </div>
           <Button type="submit" disabled={status === 'loading'} className="w-full sm:w-auto">

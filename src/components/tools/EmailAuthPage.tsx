@@ -91,7 +91,7 @@ export function EmailAuthPage() {
   const recordType = (type || 'spf').toUpperCase()
   const info = EMAIL_AUTH_INFO[recordType] || { title: `${recordType} Lookup`, desc: `Check ${recordType} records.` }
   const [domain, setDomain] = useState("")
-  const [selector, setSelector] = useState("default")
+  const [selector, setSelector] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<DNSResponse | null>(null)
   const [filteredRecords, setFilteredRecords] = useState<DNSRecord[]>([])
