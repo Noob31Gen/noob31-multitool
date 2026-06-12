@@ -11,8 +11,7 @@ import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, AlertTriangle, CheckCircle, HelpCircle, XCircle } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
 import { HealthItem } from "@/components/shared/HealthReportCard"
 import { DNSResultTable } from "@/components/shared/DNSResultTable"
 export function DomainHealthPage() {
@@ -23,26 +22,6 @@ export function DomainHealthPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<{ recommendations: { level: string; msg: string }[]; dnsResults: ({ type: string; success: boolean; data?: { records: DNSRecord[] }; error?: string })[]; emailResults: ({ type: string; success: boolean; records: DNSRecord[]; allRecords: DNSRecord[]; error?: string })[]; grade: string; score: number; queryTime: number } | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-
-  const getGradeColor = (grade: string) => {
-    switch (grade) {
-      case 'A': return 'text-green-500 border-green-500/20 bg-green-500/10'
-      case 'B': return 'text-green-400 border-green-400/20 bg-green-400/10'
-      case 'C': return 'text-amber-500 border-amber-500/20 bg-amber-500/10'
-      case 'D': return 'text-orange-500 border-orange-500/20 bg-orange-500/10'
-      default: return 'text-destructive border-destructive/20 bg-destructive/10'
-    }
-  }
-
-  const getGradeTextClass = (grade: string) => {
-    switch (grade) {
-      case 'A': return 'text-green-500'
-      case 'B': return 'text-green-400'
-      case 'C': return 'text-amber-500'
-      case 'D': return 'text-orange-500'
-      default: return 'text-destructive'
-    }
-  }
   const performSearch = useCallback(async (targetDomain: string) => {
     if (!targetDomain.trim()) return
     setStatus('loading')
@@ -123,60 +102,8 @@ export function DomainHealthPage() {
         </ResultCard>
       )}
       {status === 'success' && result && (
-        <div className="space-y-6">
-          {/* Quick Info Summary Banner */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="md:col-span-3 border-border/80 flex flex-col justify-center shadow-sm">
-              <CardContent className="py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                      Target Domain
-                    </span>
-                    <Badge variant="outline" className="bg-indigo-500/10 text-indigo-500 border-indigo-500/20 font-mono">
-                      Domain Health Check
-                    </Badge>
-                  </div>
-                  <h2 className="text-xl font-bold font-mono text-foreground break-all">{domain}</h2>
-                </div>
-                
-                <div className="flex flex-wrap gap-4 items-center">
-                  {/* Health Score Metric */}
-                  <div className="p-3 border border-border/60 bg-muted/10 rounded-lg text-center min-w-[120px]">
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">
-                      Health Score
-                    </span>
-                    <span className={`text-2xl font-black ${getGradeTextClass(result.grade)}`}>
-                      {result.score} <span className="text-xs text-muted-foreground font-normal">/100</span>
-                    </span>
-                  </div>
-
-                  {/* Overall Grade Badge */}
-                  <div className={`p-3 border rounded-lg text-center min-w-[130px] ${getGradeColor(result.grade)}`}>
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">
-                      Overall Grade
-                    </span>
-                    <span className="text-xl font-black">{result.grade}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border/80 bg-muted/10 flex flex-col justify-between h-full shadow-sm">
-              <CardContent className="py-6 text-center flex flex-col justify-between h-full">
-                <div className="space-y-1">
-                  <span className="text-xs uppercase tracking-wider text-muted-foreground block">Query Time</span>
-                  <span className="text-2xl font-black text-primary font-mono">{result.queryTime} ms</span>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 justify-center mt-3">
-                  <CopyButton data={JSON.stringify(result, null, 2)} text="Copy Full Report JSON" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Core Results Cascade */}
-          <div className="space-y-6">
+        <div className="grid gap-6 md:grid-cols-[1fr_300px] items-start">
+          <div className="order-2 md:order-1 space-y-6">
             {result.recommendations && result.recommendations.length > 0 && (
               <ResultCard title="Actionable Insights" status="success">
                 <div className="space-y-3">
@@ -208,7 +135,6 @@ export function DomainHealthPage() {
                 </div>
               </ResultCard>
             )}
-
             <ResultCard title="Core DNS Health" status="success">
               {result.dnsResults.map((r: { type: string; success: boolean; data?: { records: DNSRecord[] }; error?: string }) => {
                 const count = r.data?.records?.length || 0;
@@ -224,7 +150,6 @@ export function DomainHealthPage() {
                 )
               })}
             </ResultCard>
-
             <ResultCard title="Email Authentication" status="success">
               {result.emailResults.map((r: { type: string; success: boolean; records: DNSRecord[]; allRecords: DNSRecord[]; error?: string }) => {
                 const count = r.records?.length || 0;
@@ -241,6 +166,23 @@ export function DomainHealthPage() {
                 )
               })}
             </ResultCard>
+          </div>
+          <div className="order-1 md:order-2 md:sticky md:top-20">
+            <Card className="p-6 flex flex-col items-center justify-center text-center">
+              <h3 className="font-semibold text-lg text-muted-foreground mb-4">Overall Grade</h3>
+              <div className={`text-7xl sm:text-8xl font-black mb-4 
+                ${result.grade === 'A' ? 'text-green-500' : ''}
+                ${result.grade === 'B' ? 'text-green-400' : ''}
+                ${result.grade === 'C' ? 'text-amber-500' : ''}
+                ${result.grade === 'D' ? 'text-orange-500' : ''}
+                ${result.grade === 'F' ? 'text-destructive' : ''}
+              `}>
+                {result.grade}
+              </div>
+              <div className="text-2xl font-bold mb-1">{result.score} / 100</div>
+              <p className="text-sm text-muted-foreground mb-6">Computed in {result.queryTime}ms</p>
+              <CopyButton data={JSON.stringify(result, null, 2)} text="Copy Full Report JSON" />
+            </Card>
           </div>
         </div>
       )}
