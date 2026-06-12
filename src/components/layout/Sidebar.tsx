@@ -60,7 +60,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           onClick={onNavigate}
           className={cn(
             "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
-            location.pathname === "/about/features" && "bg-muted font-medium text-foreground"
+            location.pathname === "/about/info" && "bg-muted font-medium text-foreground"
           )}
         >
           About
@@ -70,7 +70,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           onClick={onNavigate}
           className={cn(
             "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
-            location.pathname === "/" && "bg-muted font-medium text-foreground"
+            location.pathname === "/about/credits" && "bg-muted font-medium text-foreground"
           )}
         >
           Credits

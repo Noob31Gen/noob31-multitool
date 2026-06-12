@@ -20,7 +20,7 @@ const COMPONENTS = [
   { name: "Threat Intel Explorer", path: "/security/threat-intel", input: "google.com" },
 ];
 
-const PROXIES = ["auto", "none", "corsproxy", "allorigins", "codetabs"];
+const PROXIES = ["auto", "none", "corsproxy"];
 const DNS_SERVERS = ["google", "cloudflare", "alidns", "adguard"];
 
 interface LogMessage {

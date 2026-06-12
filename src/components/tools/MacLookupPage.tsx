@@ -87,7 +87,7 @@ export function MacLookupPage() {
       {status === 'error' && (
         <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
           <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            Please verify MAC address format or try switching CORS proxy in settings. CodeTabs should work.
+            Please verify MAC address format or try switching CORS proxy in settings. CORSProxy.io is recommended.
           </div>
         </ResultCard>
       )}

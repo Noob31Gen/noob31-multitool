@@ -6,7 +6,7 @@ import { ExternalLink } from "lucide-react"
 interface SourceItem {
   name: string;
   url: string;
-  badge: "DNS Query" | "Direct API" | "Proxy Fallback" | "External Redirect" | "Data Fetch";
+  badge: "DNS Query" | "Direct API" | "Proxy Fallback" | "Data Fetch";
   why: string;
   how: string;
 }
@@ -92,13 +92,6 @@ export function CreditsPage() {
           badge: "Direct API",
           why: "To fetch consolidated subdomains from a keyless indexer.",
           how: "Requests subdomain list directly using their keyless public search API."
-        },
-        {
-          name: "Censys Certificates",
-          url: "https://censys.io/",
-          badge: "External Redirect",
-          why: "To direct users to Censys' comprehensive certificate transparency interface.",
-          how: "Opens a structured query parameter link (search?q={domain}) in a new tab."
         }
       ]
     },
@@ -256,20 +249,6 @@ export function CreditsPage() {
           badge: "Direct API",
           why: "To check if domains match open-source community intelligence indicators.",
           how: "Fetches recent threat reports using OTX's general domain endpoint."
-        },
-        {
-          name: "Google Safe Browsing",
-          url: "https://safebrowsing.google.com/",
-          badge: "External Redirect",
-          why: "To enable quick manual checks of malicious site status in Google's database.",
-          how: "Opens the Safe Browsing Transparency Report page in a new window."
-        },
-        {
-          name: "VirusTotal",
-          url: "https://www.virustotal.com/",
-          badge: "External Redirect",
-          why: "To allow manual investigation of multi-vendor security scans.",
-          how: "Directs users to VirusTotal's official domain scanning report page."
         }
       ]
     },
@@ -332,34 +311,6 @@ export function CreditsPage() {
       description: "Intermediate proxy engines used to bypass browser Cross-Origin Resource Sharing restrictions.",
       sources: [
         {
-          name: "AllOrigins",
-          url: "https://allorigins.win/",
-          badge: "Proxy Fallback",
-          why: "To fetch JSON payloads from domains without CORS headers.",
-          how: "Wraps target requests in a proxy server callback."
-        },
-        {
-          name: "CodeTabs",
-          url: "https://codetabs.com/",
-          badge: "Proxy Fallback",
-          why: "To route XML or plaintext payloads bypass cross-origin restrictions.",
-          how: "Acts as a fast, alternative intermediate proxy resolver."
-        },
-        {
-          name: "ThingProxy",
-          url: "https://github.com/Rob--W/cors-anywhere",
-          badge: "Proxy Fallback",
-          why: "To resolve headers and resource queries during fallback cascades.",
-          how: "Proxies request headers to target API hosts."
-        },
-        {
-          name: "Cors-Anywhere",
-          url: "https://cors-anywhere.herokuapp.com/",
-          badge: "Proxy Fallback",
-          why: "To fetch headers during secondary fallback probes.",
-          how: "Proxies standard HTTP HEAD/GET calls to avoid client blockades."
-        },
-        {
           name: "Corsproxy.io",
           url: "https://corsproxy.io/",
           badge: "Proxy Fallback",
@@ -375,7 +326,6 @@ export function CreditsPage() {
       case "DNS Query": return "default";
       case "Direct API": return "secondary";
       case "Proxy Fallback": return "outline";
-      case "External Redirect": return "destructive";
       default: return "secondary";
     }
   };

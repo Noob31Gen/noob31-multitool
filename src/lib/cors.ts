@@ -1,20 +1,8 @@
-export type CorsProvider = 'auto' | 'none' | 'allorigins' | 'codetabs' | 'thingproxy' | 'corsanywhere' | 'corsproxy' | 'custom';
+export type CorsProvider = 'auto' | 'none' | 'corsproxy' | 'custom';
 export function getProxiedUrl(targetUrl: string, provider: CorsProvider, customProxyUrl: string = ''): string {
     if (provider === 'none' || provider === 'auto') return targetUrl;
     let proxyBase = '';
     switch (provider) {
-        case 'allorigins':
-            proxyBase = 'https://api.allorigins.win/raw?url=';
-            break;
-        case 'codetabs':
-            proxyBase = 'https://api.codetabs.com/v1/proxy?quest=';
-            break;
-        case 'thingproxy':
-            proxyBase = 'https://thingproxy.freeboard.io/fetch/';
-            break;
-        case 'corsanywhere':
-            proxyBase = 'https://cors-anywhere.herokuapp.com/';
-            break;
         case 'corsproxy':
             proxyBase = 'https://corsproxy.io/?';
             break;
@@ -58,27 +46,15 @@ export function extractTargetUrl(proxiedUrl: string, provider: CorsProvider, cus
 
     let target = proxiedUrl;
     try {
-        const urlObj = new URL(proxiedUrl);
+        new URL(proxiedUrl);
 
         switch (provider) {
-            case 'allorigins':
-                target = urlObj.searchParams.get('url') || proxiedUrl;
-                break;
-            case 'codetabs':
-                target = urlObj.searchParams.get('quest') || proxiedUrl;
-                break;
             case 'corsproxy':
                 if (proxiedUrl.includes('corsproxy.io/')) {
                     const parts = proxiedUrl.split('corsproxy.io/');
                     const potential = parts[parts.length - 1];
                     target = potential.startsWith('?') ? potential.substring(1) : potential;
                 }
-                break;
-            case 'thingproxy':
-                target = proxiedUrl.replace('https://thingproxy.freeboard.io/fetch/', '');
-                break;
-            case 'corsanywhere':
-                target = proxiedUrl.replace('https://cors-anywhere.herokuapp.com/', '');
                 break;
             case 'custom':
                 if (customProxyUrl) {
@@ -128,29 +104,10 @@ if (typeof window !== 'undefined') {
         const isExternal = urlStr.startsWith('http://') || urlStr.startsWith('https://');
         const isLocalhost = urlStr.includes('localhost') || urlStr.includes('127.0.0.1') || urlStr.includes('::1');
 
-        // Direct interception for explicitly chosen AllOrigins JSON-wrapped proxy
-        const isAllOriginsJson = urlStr.startsWith('https://api.allorigins.win/get?url=');
-        if (isAllOriginsJson) {
-            const res = await originalFetch(input, init);
-            if (res.ok) {
-                const data = await res.json();
-                return new Response(data.contents, {
-                    status: res.status,
-                    statusText: res.statusText,
-                    headers: res.headers
-                });
-            }
-            return res;
-        }
-
         if (corsProvider === 'auto' && isExternal && !isLocalhost) {
             const AUTO_PROXY_CYCLE: CorsProvider[] = [
                 'none',
-                'corsproxy',
-                'allorigins',
-                'thingproxy',
-                'corsanywhere',
-                'codetabs'
+                'corsproxy'
             ];
 
             let lastError: unknown = null;

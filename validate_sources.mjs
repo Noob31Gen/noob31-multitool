@@ -4,9 +4,7 @@ const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 
 // CORS Proxies defined in the application
 const PROXIES = [
-  { name: 'CodeTabs', getUrl: (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}` },
-  { name: 'CorsProxy', getUrl: (url) => `https://corsproxy.io/?${encodeURIComponent(url)}` },
-  { name: 'AllOrigins', getUrl: (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}` }
+  { name: 'CorsProxy', getUrl: (url) => `https://corsproxy.io/?${encodeURIComponent(url)}` }
 ];
 
 async function fetchWithTimeout(url, options = {}, timeout = 6000) {
@@ -137,11 +135,6 @@ async function run() {
     },
 
     // --- CORS Proxies check ---
-    {
-      name: 'CORS Proxy CodeTabs',
-      url: 'https://api.codetabs.com/v1/proxy?quest=https://example.com',
-      validator: (t) => t.toLowerCase().includes('<!doctype html>') || t.includes('Example Domain')
-    },
     {
       name: 'CORS Proxy CorsProxy',
       url: 'https://corsproxy.io/?https://example.com',
