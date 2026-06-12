@@ -102,8 +102,9 @@ export function SettingsSheet() {
                 <SelectValue placeholder="Select proxy" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="auto">Auto Fallback (Recommended)</SelectItem>
                 <SelectItem value="none">None (Direct Request)</SelectItem>
-                <SelectItem value="codetabs">CodeTabs (Recommended)</SelectItem>
+                <SelectItem value="codetabs">CodeTabs</SelectItem>
                 <SelectItem value="corsproxy">CORSProxy</SelectItem>
                 <SelectItem value="allorigins">AllOrigins</SelectItem>
                 <SelectItem value="thingproxy">ThingProxy</SelectItem>

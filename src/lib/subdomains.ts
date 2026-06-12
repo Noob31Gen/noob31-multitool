@@ -1,7 +1,5 @@
 import type { AppSettings } from "./settings"
-import type { CorsProvider } from "./cors"
 import { getProxiedUrl, authenticatedFetch } from "@/lib/cors"
-import { logger } from "./logger"
 
 export interface SubdomainResult {
   subdomain: string;
@@ -32,46 +30,33 @@ async function fetchWithProxyFallback(
   headers: HeadersInit = {},
   timeout = 4000
 ): Promise<Response> {
-  const providers: CorsProvider[] = [
-    settings.corsProvider,
-    'codetabs',
-    'corsproxy',
-    'none'
-  ];
+  const provider = settings.corsProvider;
+  const proxyUrl = getProxiedUrl(targetUrl, provider, settings.customCorsUrl);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
   
-  const uniqueProviders = Array.from(new Set(providers));
-  let lastError: Error | null = null;
-  
-  for (const provider of uniqueProviders) {
-    const proxyUrl = getProxiedUrl(targetUrl, provider, settings.customCorsUrl);
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
+  try {
+    const res = await authenticatedFetch(proxyUrl, {
+      headers,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
     
-    try {
-      const res = await authenticatedFetch(proxyUrl, {
-        headers,
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      
-      if (res.ok) {
-        const contentType = res.headers.get('content-type') || '';
-        if (contentType.includes('text/html') && !targetUrl.includes('crt.sh/?q=') && !targetUrl.includes('web.archive.org')) {
-          const text = await res.clone().text();
-          if (text.includes('Too Many Requests') || text.includes('Rate Limit') || text.includes('Block') || text.includes('Cloudflare')) {
-            throw new Error(`Proxy '${provider}' rate-limited or blocked.`);
-          }
+    if (res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('text/html') && !targetUrl.includes('crt.sh/?q=') && !targetUrl.includes('web.archive.org')) {
+        const text = await res.clone().text();
+        if (text.includes('Too Many Requests') || text.includes('Rate Limit') || text.includes('Block') || text.includes('Cloudflare')) {
+          throw new Error(`Proxy '${provider}' rate-limited or blocked.`);
         }
-        return res;
       }
-      throw new Error(`HTTP ${res.status}`);
-    } catch (err: unknown) {
-      clearTimeout(timeoutId);
-      lastError = err instanceof Error ? err : new Error(String(err));
-      logger.warn(`Fetch via proxy provider '${provider}' failed for '${targetUrl}':`, err);
+      return res;
     }
+    throw new Error(`HTTP ${res.status}`);
+  } catch (err: unknown) {
+    clearTimeout(timeoutId);
+    throw err instanceof Error ? err : new Error(String(err));
   }
-  throw lastError || new Error(`Failed to fetch '${targetUrl}' through all proxy fallbacks.`);
 }
 
 export async function querySubdomains(

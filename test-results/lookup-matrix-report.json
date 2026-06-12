@@ -1,0 +1,1649 @@
+{
+  "components": {
+    "DNS Lookup": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://data.iana.org/TLD/tlds-alpha-by-domain.txt (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "DNSSEC Lookup": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "Email Auth Lookup": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "WHOIS / Registration Lookup": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "URL Scanner": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "Subdomain Scanner": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "Reverse DNS": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "DNS Check": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "Domain Health": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "Email Deliverability": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "Cert Lookup": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "Blacklist Check": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "Domain Reputation": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "Threat Intel Explorer": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: GET https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2 (net::ERR_ABORTED)",
+        "url": "http://localhost:5173/"
+      }
+    ]
+  },
+  "proxies": {
+    "auto": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "none": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "corsproxy": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "codetabs": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'google.com (CNAME)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 6)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'google.com (SOA)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 4)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query '_dmarc.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 1)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'google.com (A)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 0)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query '_mta-sts.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'google.com (AAAA)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 1)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 5)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'default._bimi.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 2)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'mail._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 3)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'google.com (MX)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 2)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'google.com (DNSKEY)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query '_dmarc.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 1)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'google._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 0)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'google.com (CNAME)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 6)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'google.com (A)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 0)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query '_smtp._tls.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 4)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query '_mta-sts.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'mx._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 4)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'google.com (NS)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 0)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 5)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'google.com (AAAA)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 1)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'selector1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 5)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'default._bimi.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 2)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'k1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 2)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'default._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 1)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'mail._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 3)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'dkim._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 7)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'google.com (MX)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 2)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'key._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 8)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'google.com (DNSKEY)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'google' failed for query 'sig1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 6)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'google.com (SOA)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 4)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'google._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 0)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'google.com (A)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 0)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query '_smtp._tls.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 4)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query '_mta-sts.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'mx._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 4)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'google.com (NS)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query '_dmarc.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 1)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 5)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 0)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'google.com (AAAA)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 1)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'selector1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 5)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'k1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 2)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'google.com (CNAME)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 6)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'default._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 1)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'mail._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 3)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'dkim._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 7)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'google.com (MX)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 2)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'key._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 8)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'google.com (DNSKEY)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'cloudflare' failed for query 'sig1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 6)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'google.com (SOA)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 4)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'google._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 0)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'google.com (A)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 0)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query '_mta-sts.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'mx._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 4)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query '_dmarc.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 1)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 5)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 0)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'google.com (AAAA)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 1)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'selector1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 5)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'k1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 2)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'default._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 1)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'google.com (CNAME)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 6)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'google.com (NS)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'mail._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 3)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'dkim._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 7)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'google.com (MX)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 2)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'key._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 8)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'google.com (DNSKEY)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'sig1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 6)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'google._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 0)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query 'google.com (A)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 0)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'google.com (SOA)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 4)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query '_mta-sts.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'mx._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 4)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query '_dmarc.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 1)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query '_smtp._tls.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 4)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'adguard' failed for query 'default._bimi.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 2)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query 'google.com (AAAA)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 1)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'k1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 2)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'default._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 1)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'google.com (NS)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query 'mail._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 3)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'selector1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 5)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'key._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 8)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query 'google.com (DNSKEY)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'sig1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 6)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query 'google._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 0)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'opendns' failed for query 'google.com (A)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 0)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query 'google.com (SOA)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 4)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query 'dkim._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 7)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'alidns' failed for query '_smtp._tls.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 4)\n    at async Promise.all (index 1)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'opendns' failed for query 'google.com (AAAA)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 1)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query 'k1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 2)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query 'default._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 1)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query 'google.com (NS)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async Promise.all (index 0)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'opendns' failed for query 'mail._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 3)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query 'selector1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 5)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query 'key._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 8)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'opendns' failed for query 'google.com (DNSKEY)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async Promise.all (index 3)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 400 ()",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "warning",
+        "text": "DoH Provider 'quad9' failed for query 'sig1._domainkey.google.com (TXT)': Error: HTTP error! status: 400\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:156:10)\n    at async queryDNS (http://localhost:5173/src/lib/doh.ts:234:17)\n    at async http://localhost:5173/src/lib/emailValidator.ts:62:16\n    at async Promise.all (index 6)\n    at async discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:73:18)\n    at async Promise.all (index 2)\n    at async runDomainHealth (http://localhost:5173/src/lib/health.ts:106:67)\n    at async http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:16",
+        "url": "http://localhost:5173/health/domain"
+      }
+    ],
+    "allorigins": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2",
+        "url": "http://localhost:5173/"
+      }
+    ]
+  },
+  "dns": {
+    "google": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "cloudflare": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "alidns": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2",
+        "url": "http://localhost:5173/"
+      }
+    ],
+    "adguard": [
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6Mk.woff2",
+        "url": "http://localhost:5173/"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AAAEAAQ' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AAAEAAQ",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/health.ts:24:39\n    at Array.map (<anonymous>)\n    at runDnsCheck (http://localhost:5173/src/lib/health.ts:24:25)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:53:27)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AAA8AAQ' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AAA8AAQ",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/health.ts:24:39\n    at Array.map (<anonymous>)\n    at runDnsCheck (http://localhost:5173/src/lib/health.ts:24:25)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:53:27)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AABwAAQ' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AABwAAQ",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/health.ts:24:39\n    at Array.map (<anonymous>)\n    at runDnsCheck (http://localhost:5173/src/lib/health.ts:24:25)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:53:27)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AABAAAQ' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AABAAAQ",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/health.ts:24:39\n    at Array.map (<anonymous>)\n    at runDnsCheck (http://localhost:5173/src/lib/health.ts:24:25)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:53:27)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AAAUAAQ' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AAAUAAQ",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/health.ts:24:39\n    at Array.map (<anonymous>)\n    at runDnsCheck (http://localhost:5173/src/lib/health.ts:24:25)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:53:27)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AAAIAAQ' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AAAIAAQ",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/health.ts:24:39\n    at Array.map (<anonymous>)\n    at runDnsCheck (http://localhost:5173/src/lib/health.ts:24:25)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:53:27)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AADAAAQ' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AADAAAQ",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:105:24)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=e2499b45:12904:13)\n    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=e2499b45:851:66)\n    at commitHookEffectListMount (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=e2499b45:6617:153)",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAACF9tdGEtc3RzBmdvb2dsZQNjb20AABAAAQ' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAACF9tdGEtc3RzBmdvb2dsZQNjb20AABAAAQ",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/health.ts:63:10\n    at Array.map (<anonymous>)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:61:39)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=e2499b45:12904:13)",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAAB2RlZmF1bHQFX2JpbWkGZ29vZ2xlA2NvbQAAEAAB' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAAB2RlZmF1bHQFX2JpbWkGZ29vZ2xlA2NvbQAAEAAB",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/health.ts:63:10\n    at Array.map (<anonymous>)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:61:39)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=e2499b45:12904:13)",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABGRraW0KX2RvbWFpbmtleQZnb29nbGUDY29tAAAQAAE' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABGRraW0KX2RvbWFpbmtleQZnb29nbGUDY29tAAAQAAE",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/emailValidator.ts:62:22\n    at Array.map (<anonymous>)\n    at discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:59:35)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:97:8)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABV9zbXRwBF90bHMGZ29vZ2xlA2NvbQAAEAAB' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABV9zbXRwBF90bHMGZ29vZ2xlA2NvbQAAEAAB",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/health.ts:63:10\n    at Array.map (<anonymous>)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:61:39)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=e2499b45:12904:13)",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAAA2tleQpfZG9tYWlua2V5Bmdvb2dsZQNjb20AABAAAQ' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAAA2tleQpfZG9tYWlua2V5Bmdvb2dsZQNjb20AABAAAQ",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/emailValidator.ts:62:22\n    at Array.map (<anonymous>)\n    at discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:59:35)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:97:8)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAAB2RlZmF1bHQKX2RvbWFpbmtleQZnb29nbGUDY29tAAAQAAE' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAAB2RlZmF1bHQKX2RvbWFpbmtleQZnb29nbGUDY29tAAAQAAE",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/emailValidator.ts:62:22\n    at Array.map (<anonymous>)\n    at discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:59:35)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:97:8)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQpfZG9tYWlua2V5Bmdvb2dsZQNjb20AABAAAQ' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQpfZG9tYWlua2V5Bmdvb2dsZQNjb20AABAAAQ",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/emailValidator.ts:62:22\n    at Array.map (<anonymous>)\n    at discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:59:35)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:97:8)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAAAmsxCl9kb21haW5rZXkGZ29vZ2xlA2NvbQAAEAAB' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAAAmsxCl9kb21haW5rZXkGZ29vZ2xlA2NvbQAAEAAB",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/emailValidator.ts:62:22\n    at Array.map (<anonymous>)\n    at discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:59:35)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:97:8)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AAAYAAQ' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AAAYAAQ",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/health.ts:24:39\n    at Array.map (<anonymous>)\n    at runDnsCheck (http://localhost:5173/src/lib/health.ts:24:25)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:53:27)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAACXNlbGVjdG9yMQpfZG9tYWlua2V5Bmdvb2dsZQNjb20AABAAAQ' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAACXNlbGVjdG9yMQpfZG9tYWlua2V5Bmdvb2dsZQNjb20AABAAAQ",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/emailValidator.ts:62:22\n    at Array.map (<anonymous>)\n    at discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:59:35)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:97:8)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABl9kbWFyYwZnb29nbGUDY29tAAAQAAE' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABl9kbWFyYwZnb29nbGUDY29tAAAQAAE",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/health.ts:63:10\n    at Array.map (<anonymous>)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:61:39)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=e2499b45:12904:13)",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABG1haWwKX2RvbWFpbmtleQZnb29nbGUDY29tAAAQAAE' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABG1haWwKX2RvbWFpbmtleQZnb29nbGUDY29tAAAQAAE",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/emailValidator.ts:62:22\n    at Array.map (<anonymous>)\n    at discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:59:35)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:97:8)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABHNpZzEKX2RvbWFpbmtleQZnb29nbGUDY29tAAAQAAE' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABHNpZzEKX2RvbWFpbmtleQZnb29nbGUDY29tAAAQAAE",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/emailValidator.ts:62:22\n    at Array.map (<anonymous>)\n    at discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:59:35)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:97:8)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AABAAAQ' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAABmdvb2dsZQNjb20AABAAAQ",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/health.ts:63:10\n    at Array.map (<anonymous>)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:61:39)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=e2499b45:12904:13)",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Access to fetch at 'https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAAAm14Cl9kb21haW5rZXkGZ29vZ2xlA2NvbQAAEAAB' from origin 'http://localhost:5173' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "requestfailed",
+        "text": "Request failed: https://dns.adguard-dns.com/dns-query?dns=AAEBAAABAAAAAAAAAm14Cl9kb21haW5rZXkGZ29vZ2xlA2NvbQAAEAAB",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FAILED",
+        "url": "http://localhost:5173/health/domain"
+      },
+      {
+        "type": "error",
+        "text": "[DoH] Fetch Error for provider 'adguard': Error: Failed to fetch\n    at window.fetch (http://localhost:5173/src/lib/cors.ts:151:10)\n    at authenticatedFetch (http://localhost:5173/src/lib/cors.ts:47:9)\n    at executeSingleQuery (http://localhost:5173/src/lib/doh.ts:148:26)\n    at queryDNS (http://localhost:5173/src/lib/doh.ts:249:22)\n    at http://localhost:5173/src/lib/emailValidator.ts:62:22\n    at Array.map (<anonymous>)\n    at discoverDkim (http://localhost:5173/src/lib/emailValidator.ts:59:35)\n    at runDomainHealth (http://localhost:5173/src/lib/health.ts:97:8)\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:35:22\n    at http://localhost:5173/src/components/tools/DomainHealthPage.tsx:55:4",
+        "url": "http://localhost:5173/health/domain"
+      }
+    ]
+  }
+}
