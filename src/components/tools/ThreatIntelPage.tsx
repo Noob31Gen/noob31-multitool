@@ -221,10 +221,10 @@ export function ThreatIntelPage() {
         <form onSubmit={handleSearch} className="flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Domain, IP, URL, File Hash (MD5/SHA), or keyword..."
-                className="pl-10 py-6 bg-background border-border/60 text-base rounded-lg shadow-inner focus-visible:ring-primary/40"
+                className="pl-10 h-12 sm:h-14 bg-background border-border/60 text-sm sm:text-base rounded-lg shadow-inner focus-visible:ring-primary/40"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
@@ -232,7 +232,7 @@ export function ThreatIntelPage() {
             <Button
               type="submit"
               disabled={status === "loading" || !query.trim()}
-              className="py-6 px-8 text-base font-semibold shadow-md shrink-0"
+              className="h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base font-semibold shadow-md shrink-0 cursor-pointer"
             >
               {status === "loading" ? "Searching Feeds..." : "Search Threat Intel"}
             </Button>
@@ -346,23 +346,27 @@ export function ThreatIntelPage() {
         <div className="space-y-6">
           {/* Sleek Search-Engine Header Bar */}
           <div className="flex flex-col gap-4 border-b border-border/60 pb-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                  Target Indicator
-                </span>
-                <h2 className="text-lg sm:text-xl font-bold font-mono text-foreground break-all select-all">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-2 flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] sm:text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                    Target Indicator
+                  </span>
+                  <Badge variant="outline" className={`${getBadgeColor(result.detectedType)} font-mono text-[10px] sm:text-xs`}>
+                    {getDetectedTypeLabel(result.detectedType)}
+                  </Badge>
+                </div>
+                <h2 className="text-base sm:text-lg md:text-xl font-bold font-mono text-foreground break-all select-all leading-tight">
                   {result.query}
                 </h2>
-                <Badge variant="outline" className={`${getBadgeColor(result.detectedType)} font-mono`}>
-                  {getDetectedTypeLabel(result.detectedType)}
-                </Badge>
-                <Badge className={`font-semibold border ${severity.bg} ${severity.color}`}>
-                  {severity.label}
-                </Badge>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className={`font-semibold border text-[10px] sm:text-xs ${severity.bg} ${severity.color}`}>
+                    {severity.label}
+                  </Badge>
+                </div>
               </div>
 
-              <div className="flex items-center gap-3 self-start md:self-auto text-xs">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 self-start md:self-auto text-xs shrink-0">
                 <span className="text-muted-foreground font-mono bg-muted/60 px-2 py-1 rounded border">
                   Query Time: <strong className="font-semibold text-foreground">{result.queryTime} ms</strong>
                 </span>
@@ -384,7 +388,7 @@ export function ThreatIntelPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => window.open(link.url, "_blank", "noopener,noreferrer")}
-                  className="h-7 text-[11px] font-normal border-border/80 hover:bg-muted/50 text-muted-foreground hover:text-foreground px-3 py-0.5 rounded-full shrink-0 flex items-center gap-1"
+                  className="h-7 text-[11px] font-normal border-border/80 hover:bg-muted/50 text-muted-foreground hover:text-foreground px-3 py-0.5 rounded-full shrink-0 flex items-center gap-1 cursor-pointer"
                 >
                   <span className="truncate">{link.name}</span>
                   <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/60 shrink-0" />
@@ -413,24 +417,26 @@ export function ThreatIntelPage() {
               )}
 
               <Tabs defaultValue="otx" className="w-full">
-                <TabsList className="flex flex-wrap w-full justify-start h-auto bg-muted/50 p-1 rounded-lg gap-1 border">
-                  <TabsTrigger value="otx" className="px-3 py-1.5 text-xs sm:text-sm">
-                    AlienVault OTX ({result.otxPulses.length})
-                  </TabsTrigger>
-                  {result.detectedType !== "hash" && (
-                    <TabsTrigger value="phishstats" className="px-3 py-1.5 text-xs sm:text-sm">
-                      PhishStats ({result.sourceErrors?.['PhishStats'] ? '⚠' : result.phishStatsMatches.length})
+                <div className="w-full overflow-x-auto scrollbar-none pb-1">
+                  <TabsList className="flex w-max min-w-full justify-start h-auto bg-muted/50 p-1 rounded-lg gap-1 border whitespace-nowrap">
+                    <TabsTrigger value="otx" className="px-3 py-1.5 text-xs sm:text-sm shrink-0">
+                      AlienVault OTX ({result.otxPulses.length})
                     </TabsTrigger>
-                  )}
-                  <TabsTrigger value="urlscan" className="px-3 py-1.5 text-xs sm:text-sm">
-                    URLScan.io ({result.sourceErrors?.['URLScan.io'] ? '⚠' : result.urlScanHistory.length})
-                  </TabsTrigger>
-                  {result.detectedType === "hash" && (
-                    <TabsTrigger value="malwarebazaar" className="px-3 py-1.5 text-xs sm:text-sm">
-                      MalwareBazaar
+                    {result.detectedType !== "hash" && (
+                      <TabsTrigger value="phishstats" className="px-3 py-1.5 text-xs sm:text-sm shrink-0">
+                        PhishStats ({result.sourceErrors?.['PhishStats'] ? '⚠' : result.phishStatsMatches.length})
+                      </TabsTrigger>
+                    )}
+                    <TabsTrigger value="urlscan" className="px-3 py-1.5 text-xs sm:text-sm shrink-0">
+                      URLScan.io ({result.sourceErrors?.['URLScan.io'] ? '⚠' : result.urlScanHistory.length})
                     </TabsTrigger>
-                  )}
-                </TabsList>
+                    {result.detectedType === "hash" && (
+                      <TabsTrigger value="malwarebazaar" className="px-3 py-1.5 text-xs sm:text-sm shrink-0">
+                        MalwareBazaar
+                      </TabsTrigger>
+                    )}
+                  </TabsList>
+                </div>
 
                 {/* Tab content AlienVault OTX */}
                 <TabsContent value="otx" className="mt-4 focus-visible:ring-0">
@@ -529,7 +535,52 @@ export function ThreatIntelPage() {
                           <ShieldAlert className="w-4.5 h-4.5 shrink-0" />
                           <span>Matched verified phishing domains. Handle URL links with extreme caution.</span>
                         </div>
-                        <div className="max-h-[400px] overflow-y-auto border rounded-lg">
+                        
+                        {/* Mobile View Card List */}
+                        <div className="space-y-3 md:hidden">
+                          {result.phishStatsMatches.map((row) => (
+                            <div key={row.id} className="p-4 border border-border/60 rounded-lg bg-card space-y-3 text-sm">
+                              <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-1 min-w-0">
+                                  <span className="font-bold text-foreground text-xs block truncate" title={row.title}>
+                                    {row.title}
+                                  </span>
+                                  <span className="text-[10px] text-muted-foreground break-all block leading-tight font-mono select-all select-text">
+                                    {row.url}
+                                  </span>
+                                </div>
+                                <Badge
+                                  variant={row.score >= 7 ? "destructive" : "secondary"}
+                                  className="font-mono text-xs shrink-0"
+                                >
+                                  {row.score}/10
+                                </Badge>
+                              </div>
+                              
+                              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/40 text-xs">
+                                <div>
+                                  <span className="text-muted-foreground block text-[10px] uppercase font-semibold">Date Listed</span>
+                                  <span className="text-foreground font-medium">{row.date}</span>
+                                </div>
+                                <div>
+                                  <span className="text-muted-foreground block text-[10px] uppercase font-semibold">IP Address</span>
+                                  <button
+                                    onClick={() => handleQuickSearch(row.ip)}
+                                    className="text-primary hover:underline font-bold font-mono text-[11px] cursor-pointer"
+                                  >
+                                    {row.ip}
+                                  </button>
+                                  <span className="text-[10px] text-muted-foreground block truncate">
+                                    {row.country} ({row.asn})
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Desktop View Table */}
+                        <div className="hidden md:block max-h-[400px] overflow-y-auto border rounded-lg">
                           <Table>
                             <TableHeader className="bg-muted/40 sticky top-0 z-10">
                               <TableRow>
@@ -562,7 +613,7 @@ export function ThreatIntelPage() {
                                     <div className="space-y-0.5">
                                       <button
                                         onClick={() => handleQuickSearch(row.ip)}
-                                        className="text-primary hover:underline font-bold font-mono text-[11px]"
+                                        className="text-primary hover:underline font-bold font-mono text-[11px] cursor-pointer"
                                       >
                                         {row.ip}
                                       </button>
@@ -616,11 +667,11 @@ export function ThreatIntelPage() {
                           {result.urlScanHistory.map((scan, idx) => (
                             <div
                               key={idx}
-                              className="p-3 border border-border/60 rounded-lg bg-card hover:bg-muted/10 transition-colors flex gap-3.5"
+                              className="p-3 border border-border/60 rounded-lg bg-card hover:bg-muted/10 transition-colors flex flex-col sm:flex-row gap-3.5"
                             >
                               {scan.screenshot ? (
                                 <div
-                                  className="w-24 h-20 bg-muted rounded border overflow-hidden shrink-0 flex items-center justify-center cursor-pointer"
+                                  className="w-full sm:w-24 h-40 sm:h-20 bg-muted rounded border overflow-hidden shrink-0 flex items-center justify-center cursor-pointer"
                                   onClick={() => window.open(`https://urlscan.io/result/${scan.id}/`, "_blank")}
                                   title="View screenshot on urlscan.io"
                                 >
@@ -635,20 +686,20 @@ export function ThreatIntelPage() {
                                   />
                                 </div>
                               ) : (
-                                <div className="w-24 h-20 bg-muted/60 rounded border shrink-0 flex items-center justify-center text-muted-foreground/40 text-[9px] uppercase font-bold text-center">
+                                <div className="w-full sm:w-24 h-20 bg-muted/60 rounded border shrink-0 flex items-center justify-center text-muted-foreground/40 text-[9px] uppercase font-bold text-center">
                                   No Preview
                                 </div>
                               )}
                               <div className="space-y-1.5 min-w-0 flex-1 flex flex-col justify-between">
                                 <div className="space-y-0.5">
-                                  <span className="text-[10px] text-muted-foreground block truncate">
+                                  <span className="text-[10px] text-muted-foreground block">
                                     {scan.time}
                                   </span>
                                   <span className="text-xs font-bold text-foreground block truncate" title={scan.title}>
                                     {scan.title}
                                   </span>
                                   <span
-                                    className="text-[10px] text-primary truncate hover:underline block cursor-pointer font-mono font-semibold"
+                                    className="text-[10px] text-primary truncate hover:underline block cursor-pointer font-mono font-semibold break-all"
                                     onClick={() => window.open(`https://urlscan.io/result/${scan.id}/`, "_blank")}
                                   >
                                     {scan.domain || scan.url}
@@ -657,7 +708,7 @@ export function ThreatIntelPage() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-6 text-[10px] px-2 w-fit font-bold gap-1 mt-1 text-muted-foreground hover:text-foreground"
+                                  className="h-6 text-[10px] px-2 w-fit font-bold gap-1 mt-1 text-muted-foreground hover:text-foreground cursor-pointer"
                                   onClick={() => window.open(`https://urlscan.io/result/${scan.id}/`, "_blank")}
                                 >
                                   Open Report
