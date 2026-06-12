@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom"
 import { useSettings } from "@/lib/settings"
 import { logger } from "@/lib/logger"
 import { ResultCard } from "@/components/shared/ResultCard"
+import { ErrorDisplay } from "@/components/shared/ErrorDisplay"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { Button } from "@/components/ui/button"
@@ -86,8 +87,8 @@ export function UrlScannerPage() {
     }
   }, [location.state, performSearch, isVisitActive]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     performSearch(url, isVisitActive)
   }
   return (
@@ -142,11 +143,12 @@ export function UrlScannerPage() {
         </ResultCard>
       )}
       {status === 'error' && (
-        <ResultCard title="Scan Failed" status="error" description={errorMsg}>
-          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            Check URL formatting and CORS proxy settings if Live Visit is enabled.
-          </div>
-        </ResultCard>
+        <ErrorDisplay
+          title="Scan Failed"
+          error={errorMsg}
+          suggestion="Check URL formatting and CORS proxy settings if Live Visit is enabled."
+          onRetry={handleSearch}
+        />
       )}
       {status === 'success' && parsed && (
         <div className="space-y-6">

@@ -5,6 +5,7 @@ import { querySubdomains, type SubdomainResult } from "@/lib/subdomains"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
+import { ErrorDisplay } from "@/components/shared/ErrorDisplay"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { Button } from "@/components/ui/button"
@@ -97,11 +98,12 @@ export function SubdomainScannerPage() {
         </div>
       ) : null}
       {status === 'error' && (
-        <ResultCard title="Scan Failed" status="error" description={errorMsg}>
-          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            If you get this message, try changing your CORS Proxy in Settings. CORSProxy.io is recommended. Note that some sources like HackerTarget may rate limit based on the proxy's IP.
-          </div>
-        </ResultCard>
+        <ErrorDisplay
+          title="Scan Failed"
+          error={errorMsg}
+          suggestion="If you get this message, try changing your CORS Proxy in Settings. CORSProxy.io is recommended. Note that some sources like HackerTarget may rate limit based on the proxy's IP."
+          onRetry={handleSearch}
+        />
       )}
       {status === 'loading' && !result && (
         <ResultCard title={currentSource || "Scanning..."} status="loading">

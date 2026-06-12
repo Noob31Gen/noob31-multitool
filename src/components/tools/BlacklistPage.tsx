@@ -5,6 +5,7 @@ import { checkBlacklist } from "@/lib/blacklist"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
+import { ErrorDisplay } from "@/components/shared/ErrorDisplay"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { Button } from "@/components/ui/button"
@@ -99,11 +100,12 @@ export function BlacklistPage() {
         </ResultCard>
       )}
       {status === 'error' && (
-        <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
-          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            Please enter a valid IPv4 address.
-          </div>
-        </ResultCard>
+        <ErrorDisplay
+          title="Lookup Failed"
+          error={errorMsg}
+          suggestion="Please enter a valid IPv4 address."
+          onRetry={handleSearch}
+        />
       )}
       {status === 'success' && result && (
         <ResultCard

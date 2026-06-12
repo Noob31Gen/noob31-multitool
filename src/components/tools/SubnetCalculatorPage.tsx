@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { SEO } from "@/components/shared/SEO"
 import { calculateSubnet } from "@/lib/subnet"
+import { ErrorDisplay } from "@/components/shared/ErrorDisplay"
 import { CopyButton } from "@/components/shared/ActionButtons"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -68,9 +69,7 @@ export function SubnetCalculatorPage() {
         </form>
       </Card>
       {errorMsg && (
-        <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-          {errorMsg}
-        </div>
+        <ErrorDisplay error={errorMsg} cardWrap={false} />
       )}
       {result && (
         <Card className="overflow-hidden">

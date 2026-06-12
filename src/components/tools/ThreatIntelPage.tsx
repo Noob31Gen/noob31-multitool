@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useSettings } from "@/lib/settings";
 import { SEO } from "@/components/shared/SEO";
 import { ResultCard } from "@/components/shared/ResultCard";
+import { ErrorDisplay } from "@/components/shared/ErrorDisplay";
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { Button } from "@/components/ui/button";
@@ -86,8 +87,8 @@ export function ThreatIntelPage() {
     }
   }, [location, performSearch]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     performSearch(query);
   };
 
@@ -265,14 +266,12 @@ export function ThreatIntelPage() {
 
       {/* Error State */}
       {status === "error" && (
-        <ResultCard title="Search Failed" status="error" description={errorMsg}>
-          <div className="flex items-center gap-3 p-4 border border-destructive/20 rounded-md bg-destructive/10 text-destructive text-sm font-medium">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <div>
-              An error occurred while communicating with the threat feeds. Verify your Internet connection or check settings CORS configurations.
-            </div>
-          </div>
-        </ResultCard>
+        <ErrorDisplay
+          title="Search Failed"
+          error={errorMsg}
+          suggestion="An error occurred while communicating with the threat feeds. Verify your Internet connection or check settings CORS configurations."
+          onRetry={handleSearch}
+        />
       )}
 
       {/* Idle / Welcome State */}

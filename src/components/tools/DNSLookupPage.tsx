@@ -5,6 +5,7 @@ import { queryDNS, type DNSResponse } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
+import { ErrorDisplay } from "@/components/shared/ErrorDisplay"
 import { DNSResultTable } from "@/components/shared/DNSResultTable"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
@@ -87,7 +88,7 @@ export function DNSLookupPage() {
       performSearch(q);
     }
   }, [location, performSearch]);
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
   }
@@ -141,11 +142,12 @@ export function DNSLookupPage() {
         </ResultCard>
       )}
       {status === 'error' && (
-        <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
-          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            Please check the domain name and try again.
-          </div>
-        </ResultCard>
+        <ErrorDisplay
+          title="Lookup Failed"
+          error={errorMsg}
+          suggestion="Please check the domain name and try again."
+          onRetry={handleSearch}
+        />
       )}
       {status === 'success' && result && (
         <ResultCard

@@ -5,6 +5,7 @@ import { queryCert } from "@/lib/cert"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
+import { ErrorDisplay } from "@/components/shared/ErrorDisplay"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { Button } from "@/components/ui/button"
@@ -102,11 +103,12 @@ export function CertLookupPage() {
         </ResultCard>
       )}
       {status === 'error' && (
-        <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
-          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            Both crt.sh and the fallback API failed to resolve the query. Verify the domain exists and check your CORS proxy configuration.
-          </div>
-        </ResultCard>
+        <ErrorDisplay
+          title="Lookup Failed"
+          error={errorMsg}
+          suggestion="Both crt.sh and the fallback API failed to resolve the query. Verify the domain exists and check your CORS proxy configuration."
+          onRetry={handleSearch}
+        />
       )}
       {status === 'success' && result && (
         <ResultCard

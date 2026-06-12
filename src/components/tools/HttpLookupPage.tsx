@@ -5,6 +5,7 @@ import { fetchHeaders } from "@/lib/http"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
+import { ErrorDisplay } from "@/components/shared/ErrorDisplay"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { Button } from "@/components/ui/button"
@@ -76,7 +77,7 @@ export function HttpLookupPage() {
       performSearch(q);
     }
   }, [location.state, performSearch]);
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
   }
@@ -127,11 +128,12 @@ export function HttpLookupPage() {
         </ResultCard>
       )}
       {status === 'error' && (
-        <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
-          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            Ensure the domain is correct and the server is reachable. If you are getting a network error, check your CORS Proxy URL in Settings.
-          </div>
-        </ResultCard>
+        <ErrorDisplay
+          title="Lookup Failed"
+          error={errorMsg}
+          suggestion="Ensure the domain is correct and the server is reachable. If you are getting a network error, check your CORS Proxy URL in Settings."
+          onRetry={handleSearch}
+        />
       )}
       {status === 'success' && result && (
         <ResultCard

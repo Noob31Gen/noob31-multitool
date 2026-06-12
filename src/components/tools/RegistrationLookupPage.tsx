@@ -6,6 +6,7 @@ import { queryASN, type ASNResult } from "@/lib/asn"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
+import { ErrorDisplay } from "@/components/shared/ErrorDisplay"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { Button } from "@/components/ui/button"
@@ -254,7 +255,7 @@ export function RegistrationLookupPage() {
       performSearch(q);
     }
   }, [location.state, performSearch]);
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(query)
   }
@@ -301,13 +302,16 @@ export function RegistrationLookupPage() {
         </ResultCard>
       )}
       {status === 'error' && (
-        <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
-          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            {errorMsg.includes("fetching") || errorMsg.toLowerCase().includes("cors")
+        <ErrorDisplay
+          title="Lookup Failed"
+          error={errorMsg}
+          suggestion={
+            errorMsg.includes("fetching") || errorMsg.toLowerCase().includes("cors")
               ? "Network request failed. Note that RDAP/ASN servers frequently use strict CORS policies. If you are experiencing CORS errors, check your CORS Proxy URL in Settings."
-              : "Please verify your input. Public lookups require valid, publicly routable IP addresses, domains, or ASNs. Internal networks (e.g., 10.x.x.x, 192.168.x.x) are not registered in public databases."}
-          </div>
-        </ResultCard>
+              : "Please verify your input. Public lookups require valid, publicly routable IP addresses, domains, or ASNs. Internal networks (e.g., 10.x.x.x, 192.168.x.x) are not registered in public databases."
+          }
+          onRetry={handleSearch}
+        />
       )}
       {status === 'success' && result && (
         <ResultCard

@@ -6,6 +6,7 @@ import type { DNSRecord } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
+import { ErrorDisplay } from "@/components/shared/ErrorDisplay"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { Button } from "@/components/ui/button"
@@ -93,11 +94,12 @@ export function EmailDeliverabilityPage() {
         </ResultCard>
       )}
       {status === 'error' && (
-        <ResultCard title="Analysis Failed" status="error" description={errorMsg}>
-          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            Ensure the domain is correct.
-          </div>
-        </ResultCard>
+        <ErrorDisplay
+          title="Analysis Failed"
+          error={errorMsg}
+          suggestion="Ensure the domain is correct."
+          onRetry={handleSearch}
+        />
       )}
       {status === 'success' && result && (
         <div className="grid gap-6 md:grid-cols-[1fr_350px] items-start">

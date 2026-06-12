@@ -4,6 +4,7 @@ import { lookupReverseDns, type ReverseDnsResult } from "@/lib/reverseDns"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
+import { ErrorDisplay } from "@/components/shared/ErrorDisplay"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { Button } from "@/components/ui/button"
@@ -46,8 +47,8 @@ export function ReverseDnsPage() {
     }
   }, [location, performSearch])
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     performSearch(inputIp)
   }
 
@@ -89,11 +90,12 @@ export function ReverseDnsPage() {
       )}
 
       {status === 'error' && (
-        <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
-          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            Please verify the IP format and try again.
-          </div>
-        </ResultCard>
+        <ErrorDisplay
+          title="Lookup Failed"
+          error={errorMsg}
+          suggestion="Please verify the IP format and try again."
+          onRetry={handleSearch}
+        />
       )}
 
       {status === 'success' && result && (

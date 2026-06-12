@@ -3,6 +3,7 @@ import { queryASN, type ASNResult } from "@/lib/asn"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
 import { ResultCard } from "@/components/shared/ResultCard"
+import { ErrorDisplay } from "@/components/shared/ErrorDisplay"
 import { CopyButton, ExportButton } from "@/components/shared/ActionButtons"
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { MapPin, Network, Globe, ShieldAlert, Server, Activity } from "lucide-react"
@@ -65,13 +66,16 @@ export function MyIpPage() {
         </ResultCard>
       )}
       {status === 'error' && (
-        <ResultCard title="Lookup Failed" status="error" description={errorMsg}>
-          <div className="text-sm text-destructive font-medium p-4 border border-destructive/20 rounded-md bg-destructive/10">
-            {errorMsg.toLowerCase().includes("cors")
+        <ErrorDisplay
+          title="Lookup Failed"
+          error={errorMsg}
+          suggestion={
+            errorMsg.toLowerCase().includes("cors")
               ? "CORS policy blocked the request. Try setting a CORS Proxy in Settings."
-              : "Ensure you are connected to the internet. Adblockers may also interfere with network API requests."}
-          </div>
-        </ResultCard>
+              : "Ensure you are connected to the internet. Adblockers may also interfere with network API requests."
+          }
+          onRetry={() => fetchMyIp(true)}
+        />
       )}
       {status === 'success' && parsed && (
         <div className="grid gap-6">
