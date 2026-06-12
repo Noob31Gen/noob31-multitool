@@ -94,18 +94,26 @@ async function executeSingleQuery(
     url = `https://doh.opendns.com/dns-query?dns=${base64Url}`;
     headers = { 'Accept': 'application/dns-message' };
   } else if (provider === 'custom') {
-    const packet = dnsPacket.encode({
-      type: 'query',
-      id: 1,
-      flags: dnsPacket.RECURSION_DESIRED,
-      questions: [{ type: type as dnsPacket.RecordType, name: domain }]
-    });
-    const base64 = btoa(Array.from(packet).map(b => String.fromCharCode(b)).join(''));
-    const base64Url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    url = customUrl.includes('?')
-      ? `${customUrl}&dns=${base64Url}`
-      : `${customUrl}?dns=${base64Url}`;
-    headers = { 'Accept': 'application/dns-message' };
+    const isJson = customUrl.includes('/resolve');
+    if (isJson) {
+      url = customUrl.includes('?')
+        ? `${customUrl}&name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`
+        : `${customUrl}?name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`;
+      headers = { 'Accept': 'application/dns-json' };
+    } else {
+      const packet = dnsPacket.encode({
+        type: 'query',
+        id: 1,
+        flags: dnsPacket.RECURSION_DESIRED,
+        questions: [{ type: type as dnsPacket.RecordType, name: domain }]
+      });
+      const base64 = btoa(Array.from(packet).map(b => String.fromCharCode(b)).join(''));
+      const base64Url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      url = customUrl.includes('?')
+        ? `${customUrl}&dns=${base64Url}`
+        : `${customUrl}?dns=${base64Url}`;
+      headers = { 'Accept': 'application/dns-message' };
+    }
   }
 
   const proxiedUrl = getProxiedUrl(url, corsProvider, customCorsUrl);
@@ -179,6 +187,9 @@ export async function queryDNS(
   corsProvider: CorsProvider = 'none',
   customCorsUrl: string = ''
 ): Promise<DNSResponse> {
+  if (provider === 'custom' && !customUrl.trim()) {
+    throw new Error("Custom DNS URL is not configured in settings. Please open Settings and enter a valid URL.");
+  }
   const cacheKey = `${domain.toLowerCase()}_${type.toUpperCase()}_${provider}_${customUrl}_${corsProvider}`;
   const now = Date.now();
   const cached = dnsCache.get(cacheKey);
