@@ -159,7 +159,7 @@ async function fetchOtxPulses(
     const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 7000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     const res = await fetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
@@ -214,7 +214,7 @@ async function fetchThreatMiner(
   try {
     const cleanQuery = query.trim().replace(/^(https?:\/\/)?(www\.)?/, "");
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     if (type === "domain" || type === "ip") {
       const isHost = type === "ip";
@@ -327,7 +327,7 @@ async function fetchPhishStats(
     const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     const res = await fetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
@@ -390,7 +390,7 @@ async function fetchUrlScan(
     const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     const res = await fetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
@@ -434,7 +434,7 @@ async function fetchMalwareBazaar(
     bodyParams.append("hash", hash.trim());
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     const res = await fetch(proxyUrl, {
       method: "POST",
       headers: {

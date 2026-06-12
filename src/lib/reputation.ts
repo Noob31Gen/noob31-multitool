@@ -24,7 +24,7 @@ export interface OtxPulse {
 export interface DomainReputationResult {
   domain: string;
   score: number;
-  status: "Clean" | "Suspicious" | "Malicious";
+  status: "Clean" | "Suspicious" | "Malicious" | "Fail";
   blocklists: ReputationBlocklistItem[];
   quad9Blocked: boolean;
   otxPulses: OtxPulse[];
@@ -140,6 +140,7 @@ export async function checkDomainReputation(
             return {
               name: dbl.name,
               listed: false,
+              error: true,
               details: "Query Refused / Rate Limited by Spamhaus (public DoH resolver query block)"
             };
           }
@@ -147,6 +148,7 @@ export async function checkDomainReputation(
             return {
               name: dbl.name,
               listed: false,
+              error: true,
               details: `Query Refused / Rate Limited by ${dbl.name} (public DoH resolver query block)`
             };
           }
@@ -209,7 +211,7 @@ export async function checkDomainReputation(
       const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
       const res = await fetch(proxyUrl, { signal: controller.signal });
       clearTimeout(timeoutId);
       
@@ -291,7 +293,7 @@ export async function checkDomainReputation(
       const targetUrl = `https://api.threatminer.org/v2/domain.php?q=${cleanDomain}&rt=4`;
       const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
       const res = await fetch(proxyUrl, { signal: controller.signal });
       clearTimeout(timeoutId);
       if (!res.ok) return 0;
@@ -361,12 +363,18 @@ export async function checkDomainReputation(
   // Keep within bounds
   score = Math.max(0, Math.min(100, score));
 
-  // Determine status
+  // If any lookup fails, fail-close meaning 0 score and status Fail
   let status: DomainReputationResult["status"] = "Clean";
-  if (score < 60) {
-    status = "Malicious";
-  } else if (score < 85) {
-    status = "Suspicious";
+  if (blocklists.some(b => b.error)) {
+    score = 0;
+    status = "Fail";
+  } else {
+    // Determine status
+    if (score < 60) {
+      status = "Malicious";
+    } else if (score < 85) {
+      status = "Suspicious";
+    }
   }
 
   return {

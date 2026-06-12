@@ -177,7 +177,7 @@ async function executeSingleQuery(
 
   const proxiedUrl = getProxiedUrl(url, corsProvider, customCorsUrl);
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
     const response = await authenticatedFetch(proxiedUrl, { method, headers, body, signal: controller.signal });

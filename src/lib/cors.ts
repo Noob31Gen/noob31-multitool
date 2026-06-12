@@ -156,6 +156,19 @@ if (typeof window !== 'undefined') {
             let lastError: unknown = null;
 
             for (const provider of AUTO_PROXY_CYCLE) {
+                const attemptController = new AbortController();
+                const onAbort = () => attemptController.abort();
+
+                if (init?.signal) {
+                    if (init.signal.aborted) {
+                        throw new Error('Signal aborted');
+                    }
+                    init.signal.addEventListener('abort', onAbort);
+                }
+
+                // 3000ms timeout per proxy attempt
+                const attemptTimeoutId = setTimeout(() => attemptController.abort(), 3000);
+
                 try {
                     const customCorsUrl = settings?.customCorsUrl || '';
                     const proxiedUrl = getProxiedUrl(urlStr, provider, customCorsUrl);
@@ -165,7 +178,16 @@ if (typeof window !== 'undefined') {
                         requestToFetch = new Request(proxiedUrl, input);
                     }
 
-                    const res = await originalFetch(requestToFetch, init);
+                    const attemptInit: RequestInit = {
+                        ...(init || {}),
+                        signal: attemptController.signal
+                    };
+
+                    const res = await originalFetch(requestToFetch, attemptInit);
+                    clearTimeout(attemptTimeoutId);
+                    if (init?.signal) {
+                        init.signal.removeEventListener('abort', onAbort);
+                    }
 
                     if (res.ok) {
                         const contentType = res.headers.get('content-type') || '';
@@ -184,6 +206,10 @@ if (typeof window !== 'undefined') {
                     }
                     throw new Error(`HTTP ${res.status}`);
                 } catch (err) {
+                    clearTimeout(attemptTimeoutId);
+                    if (init?.signal) {
+                        init.signal.removeEventListener('abort', onAbort);
+                    }
                     lastError = err;
                 }
             }

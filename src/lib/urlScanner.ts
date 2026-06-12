@@ -298,7 +298,7 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
   while (loopCount < maxHops) {
     const proxyUrl = getProxiedUrl(currentUrl, settings.corsProvider, settings.customCorsUrl);
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
       const res = await authenticatedFetch(proxyUrl, {
@@ -335,7 +335,7 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
         // Fallback to GET for servers rejecting HEAD
         const proxyUrlGet = getProxiedUrl(currentUrl, settings.corsProvider, settings.customCorsUrl);
         const controllerGet = new AbortController();
-        const timeoutIdGet = setTimeout(() => controllerGet.abort(), 8000);
+        const timeoutIdGet = setTimeout(() => controllerGet.abort(), 15000);
         
         try {
           const resGet = await authenticatedFetch(proxyUrlGet, { method: 'GET', signal: controllerGet.signal });
@@ -370,7 +370,7 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
       clearTimeout(timeoutId);
       const proxyUrlGet = getProxiedUrl(currentUrl, settings.corsProvider, settings.customCorsUrl);
       const controllerGet = new AbortController();
-      const timeoutIdGet = setTimeout(() => controllerGet.abort(), 8000);
+      const timeoutIdGet = setTimeout(() => controllerGet.abort(), 15000);
       
       try {
         const resGet = await authenticatedFetch(proxyUrlGet, { method: 'GET', signal: controllerGet.signal });
