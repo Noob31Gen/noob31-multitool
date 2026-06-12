@@ -140,7 +140,6 @@ export async function checkDomainReputation(
             return {
               name: dbl.name,
               listed: false,
-              error: true,
               details: "Query Refused / Rate Limited by Spamhaus (public DoH resolver query block)"
             };
           }
@@ -148,7 +147,6 @@ export async function checkDomainReputation(
             return {
               name: dbl.name,
               listed: false,
-              error: true,
               details: `Query Refused / Rate Limited by ${dbl.name} (public DoH resolver query block)`
             };
           }
