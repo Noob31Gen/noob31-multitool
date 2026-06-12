@@ -61,6 +61,7 @@ const FEATURE_CATEGORIES = [
       { name: "HTTP Headers", path: "/network/http/http" },
       { name: "HTTPS Headers", path: "/network/http/https" },
       { name: "What Is My IP?", path: "/network/my-ip" },
+      { name: "Reverse DNS", path: "/network/reverse-dns" },
       { name: "MAC Address Lookup", path: "/network/mac-lookup" },
     ],
   },
@@ -73,6 +74,7 @@ const FEATURE_CATEGORIES = [
       { name: "Email Deliverability", path: "/health/deliverability" },
       { name: "Blacklist Check", path: "/security/blacklist" },
       { name: "CERT Lookup", path: "/security/cert" },
+      { name: "Domain Reputation", path: "/security/domain-reputation" },
     ],
   },
   {

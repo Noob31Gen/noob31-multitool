@@ -18,6 +18,7 @@ const TOOL_CATEGORIES = [
       { name: "Email Deliverability", path: "/health/deliverability" },
       { name: "Blacklist Check", path: "/security/blacklist" },
       { name: "CERT Lookup", path: "/security/cert" },
+      { name: "Domain Reputation", path: "/security/domain-reputation" },
     ],
   },
   {
@@ -27,6 +28,7 @@ const TOOL_CATEGORIES = [
       { name: "Subdomain Scanner", path: "/network/subdomains" },
       { name: "HTTP Headers", path: "/network/http/http" },
       { name: "What Is My IP?", path: "/network/my-ip" },
+      { name: "Reverse DNS Lookup", path: "/network/reverse-dns" },
       { name: "MAC Address Lookup", path: "/network/mac-lookup" },
       { name: "Email Header Analyzer", path: "/bonus/headers" },
       { name: "Subnet Calculator", path: "/bonus/subnet" },

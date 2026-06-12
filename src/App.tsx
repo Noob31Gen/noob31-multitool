@@ -25,6 +25,8 @@ import { NetworkVisualizer } from "@/components/tools/NetworkVisualizer"
 import { CreditsPage } from "@/components/tools/CreditsPage"
 import { AboutPage } from "@/components/tools/AboutPage"
 import { AllFeaturesPage } from "@/components/tools/AllFeaturesPage"
+import { ReverseDnsPage } from "@/components/tools/ReverseDnsPage"
+import { DomainReputationPage } from "@/components/tools/DomainReputationPage"
 import { SEO } from "@/components/shared/SEO"
 function App() {
   return (
@@ -75,6 +77,7 @@ function App() {
           <Route path="/registration/:tool" element={<RegistrationLookupPage />} />
           <Route path="/network/url-scanner" element={<UrlScannerPage />} />
           <Route path="/network/subdomains" element={<SubdomainScannerPage />} />
+          <Route path="/network/reverse-dns" element={<ReverseDnsPage />} />
           <Route path="/network/my-ip" element={<MyIpPage />} />
           <Route path="/network/mac-lookup" element={<MacLookupPage />} />
           <Route path="/network/http/:scheme" element={<HttpLookupPage />} />
@@ -83,6 +86,7 @@ function App() {
           <Route path="/health/deliverability" element={<EmailDeliverabilityPage />} />
           <Route path="/security/cert" element={<CertLookupPage />} />
           <Route path="/security/blacklist" element={<BlacklistPage />} />
+          <Route path="/security/domain-reputation" element={<DomainReputationPage />} />
           <Route path="/bonus/headers" element={<EmailHeaderAnalyzerPage />} />
           <Route path="/bonus/subnet" element={<SubnetCalculatorPage />} />
           <Route path="/bonus/spf-generator" element={<SpfGeneratorPage />} />
