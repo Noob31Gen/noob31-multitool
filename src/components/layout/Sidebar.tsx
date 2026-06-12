@@ -2,44 +2,44 @@ import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
 const TOOL_CATEGORIES = [
   {
-    title: "Core Lookups",
+    title: "DNS & Routing",
     tools: [
       { name: "DNS Lookup", path: "/dns/a" },
+      { name: "DNS Check", path: "/health/dns" },
       { name: "DNSSEC Lookup", path: "/dnssec/dnskey" },
-      { name: "Email Auth Lookup", path: "/email/spf" },
+      { name: "Reverse DNS Lookup", path: "/network/reverse-dns" },
+      { name: "What Is My IP?", path: "/network/my-ip" },
       { name: "IP and Registration Lookup", path: "/registration/whois" },
     ],
   },
   {
-    title: "Health & Security",
+    title: "Email Security",
     tools: [
-      { name: "DNS Check", path: "/health/dns" },
+      { name: "Email Auth Lookup", path: "/email/spf" },
       { name: "Domain Health", path: "/health/domain" },
       { name: "Email Deliverability", path: "/health/deliverability" },
-      { name: "Blacklist Check", path: "/security/blacklist" },
-      { name: "CERT Lookup", path: "/security/cert" },
-      { name: "Domain Reputation", path: "/security/domain-reputation" },
-    ],
-  },
-  {
-    title: "Network & Diagnostics",
-    tools: [
-      { name: "URL Scanner", path: "/network/url-scanner" },
-      { name: "Subdomain Scanner", path: "/network/subdomains" },
-      { name: "HTTP Headers", path: "/network/http/http" },
-      { name: "What Is My IP?", path: "/network/my-ip" },
-      { name: "Reverse DNS Lookup", path: "/network/reverse-dns" },
-      { name: "MAC Address Lookup", path: "/network/mac-lookup" },
       { name: "Email Header Analyzer", path: "/bonus/headers" },
-      { name: "Subnet Calculator", path: "/bonus/subnet" },
-      { name: "Network Visualizer", path: "/bonus/visualizer" },
-    ],
-  },
-  {
-    title: "Utilities",
-    tools: [
       { name: "SPF Generator", path: "/bonus/spf-generator" },
       { name: "DMARC Generator", path: "/bonus/dmarc-generator" },
+    ],
+  },
+  {
+    title: "Threat & Reputation",
+    tools: [
+      { name: "Domain Reputation", path: "/security/domain-reputation" },
+      { name: "URL Scanner", path: "/network/url-scanner" },
+      { name: "Subdomain Scanner", path: "/network/subdomains" },
+      { name: "CERT Lookup", path: "/security/cert" },
+      { name: "Blacklist Check", path: "/security/blacklist" },
+    ],
+  },
+  {
+    title: "Utilities & Infrastructure",
+    tools: [
+      { name: "HTTP Headers", path: "/network/http/http" },
+      { name: "MAC Address Lookup", path: "/network/mac-lookup" },
+      { name: "Subnet Calculator", path: "/bonus/subnet" },
+      { name: "Network Visualizer", path: "/bonus/visualizer" },
       { name: "QR & Barcode Generator", path: "/bonus/code-generator" },
       { name: "QR & Barcode Scanner", path: "/bonus/code-scanner" },
     ],

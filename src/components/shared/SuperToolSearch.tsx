@@ -52,12 +52,12 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
   }
   return (
     <form onSubmit={handleSearch} className={className}>
-      <div className="relative flex items-center w-full overflow-hidden rounded-md">
+      <div className="relative flex items-center w-full">
         <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground z-10" />
         <Input
           type="search"
           placeholder=""
-          className="w-full bg-background pl-8 pr-20 shadow-none h-10 relative z-0"
+          className="w-full bg-background pl-8 pr-20 h-10 relative z-0 rounded-xl"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
@@ -73,7 +73,7 @@ export function SuperToolSearch({ className = "relative w-full max-w-2xl", autoF
         )}
         <Button
           type="submit"
-          className="absolute right-1 h-8 px-3 text-xs font-medium bg-white text-black hover:bg-gray-100 border border-gray-200"
+          className="absolute right-1 h-8 px-3 text-xs font-semibold rounded-lg"
         >
           Lookup
         </Button>
