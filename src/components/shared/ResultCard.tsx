@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 interface ResultCardProps {
   title: React.ReactNode
   description?: string
-  status?: 'success' | 'error' | 'loading' | 'idle'
+  status?: 'success' | 'error' | 'loading' | 'idle' | 'warning'
   timeMs?: number
   children: React.ReactNode
   action?: React.ReactNode
@@ -14,12 +14,13 @@ export function ResultCard({ title, description, status, timeMs, children, actio
   return (
     <Card className={cn("w-full", className)}>
       <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-4">
-        <div className="space-y-1.5">
+         <div className="space-y-1.5">
           <CardTitle className="flex items-center gap-2">
             {title}
             {status === 'success' && <Badge variant="default" className="bg-green-500 hover:bg-green-600">Success</Badge>}
             {status === 'error' && <Badge variant="destructive">Error</Badge>}
             {status === 'loading' && <Badge variant="secondary">Running...</Badge>}
+            {status === 'warning' && <Badge variant="outline" className="bg-amber-500/10 border-amber-500/20 text-amber-500 font-semibold hover:bg-amber-500/20">Warning</Badge>}
           </CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </div>

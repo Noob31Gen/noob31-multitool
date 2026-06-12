@@ -28,12 +28,17 @@ export interface DomainReputationResult {
   status: "Clean" | "Suspicious" | "Malicious" | "Fail";
   blocklists: ReputationBlocklistItem[];
   quad9Blocked: boolean;
+  quad9Error?: boolean;
   otxPulses: OtxPulse[];
+  otxError?: boolean;
   domainAgeDays: number | null;
   registrationDate: string | null;
+  rdapError?: boolean;
   dnssecActive: boolean;
+  dnssecError?: boolean;
   queryTime: number;
   threatMinerMalwareCount: number;
+  threatMinerError?: boolean;
 }
 
 
@@ -153,7 +158,7 @@ export async function checkDomainReputation(
       
       const hasStdRecords = stdRes.records && stdRes.records.length > 0;
       if (!hasStdRecords) {
-        return false; // Domain doesn't resolve standard anyway
+        return { blocked: false, error: false }; // Domain doesn't resolve standard anyway
       }
 
       // Query Quad9 DNS
@@ -168,14 +173,16 @@ export async function checkDomainReputation(
 
       const hasQ9Records = q9Res.records && q9Res.records.length > 0;
       // If standard resolved but Quad9 returns empty or NXDOMAIN (status 3), it's blocked by Quad9
-      return !hasQ9Records || q9Res.status === 3;
-    } catch {
-      return false; // Ignore errors
+      const blocked = !hasQ9Records || q9Res.status === 3;
+      return { blocked, error: false };
+    } catch (err) {
+      logger.warn("Quad9 blocking check query failed:", err);
+      return { blocked: false, error: true };
     }
   })();
 
   // 3. AlienVault OTX pulses
-  const otxPromise = (async (): Promise<OtxPulse[]> => {
+  const otxPromise = (async () => {
     try {
       const targetUrl = `https://otx.alienvault.com/api/v1/indicators/domain/${cleanDomain}/general`;
       const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
@@ -188,7 +195,7 @@ export async function checkDomainReputation(
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data && data.pulse_info && Array.isArray(data.pulse_info.pulses)) {
-        return data.pulse_info.pulses.slice(0, 5).map((p: {
+        const pulses = data.pulse_info.pulses.slice(0, 5).map((p: {
           name?: string;
           description?: string;
           author_name?: string;
@@ -201,11 +208,12 @@ export async function checkDomainReputation(
           created: p.created ? new Date(p.created).toLocaleDateString() : "N/A",
           tags: Array.isArray(p.tags) ? p.tags.slice(0, 5) : []
         }));
+        return { pulses, error: false };
       }
-      return [];
+      return { pulses: [], error: false };
     } catch (err) {
       logger.warn("AlienVault OTX reputation check failed:", err);
-      return [];
+      return { pulses: [], error: true };
     }
   })();
 
@@ -230,13 +238,15 @@ export async function checkDomainReputation(
           const ageDays = Math.floor(ageDiff / (1000 * 60 * 60 * 24));
           return {
             date: createdDate.toLocaleDateString(),
-            days: ageDays
+            days: ageDays,
+            error: false
           };
         }
       }
-      return null;
-    } catch {
-      return null;
+      return { date: null, days: null, error: false };
+    } catch (err) {
+      logger.warn("RDAP query failed:", err);
+      return { date: null, days: null, error: true };
     }
   })();
 
@@ -251,14 +261,15 @@ export async function checkDomainReputation(
         settings.corsProvider,
         settings.customCorsUrl
       );
-      return res.records && res.records.length > 0;
-    } catch {
-      return false;
+      return { active: res.records && res.records.length > 0, error: false };
+    } catch (err) {
+      logger.warn("DNSSEC check query failed:", err);
+      return { active: false, error: true };
     }
   })();
 
   // 6. ThreatMiner Passive Malware check
-  const threatMinerPromise = (async (): Promise<number> => {
+  const threatMinerPromise = (async () => {
     try {
       const targetUrl = `https://api.threatminer.org/v2/domain.php?q=${cleanDomain}&rt=4`;
       const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
@@ -266,25 +277,25 @@ export async function checkDomainReputation(
       const timeoutId = setTimeout(() => controller.abort(), 15000);
       const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
       clearTimeout(timeoutId);
-      if (!res.ok) return 0;
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data && Array.isArray(data.results)) {
-        return data.results.length;
+        return { count: data.results.length, error: false };
       }
-      return 0;
+      return { count: 0, error: false };
     } catch (err) {
       logger.warn("ThreatMiner reputation check failed:", err);
-      return 0;
+      return { count: 0, error: true };
     }
   })();
 
   const [
     blocklists,
-    quad9Blocked,
-    otxPulses,
+    quad9Info,
+    otxInfo,
     rdapInfo,
-    dnssecActive,
-    threatMinerMalwareCount
+    dnssecInfo,
+    threatMinerInfo
   ] = await Promise.all([
     Promise.all(dblPromises),
     quad9Promise,
@@ -304,16 +315,16 @@ export async function checkDomainReputation(
     score -= listedBlocklists.length * 30;
   }
 
-  if (quad9Blocked) {
+  if (quad9Info.blocked) {
     score -= 40; // Heavy penalty if blocked by security DNS
   }
 
-  if (otxPulses.length > 0) {
+  if (otxInfo.pulses.length > 0) {
     // 10 points penalty if domain associated with pulses, max 20 points
-    score -= Math.min(20, otxPulses.length * 10);
+    score -= Math.min(20, otxInfo.pulses.length * 10);
   }
 
-  if (rdapInfo && rdapInfo.days !== null) {
+  if (rdapInfo.days !== null) {
     if (rdapInfo.days < 30) {
       score -= 25; // Newly registered domain penalty
     } else if (rdapInfo.days < 90) {
@@ -321,19 +332,36 @@ export async function checkDomainReputation(
     }
   }
 
-  if (threatMinerMalwareCount > 0) {
+  if (threatMinerInfo.count > 0) {
     score -= 30; // Deduct 30 points if malware associated
   }
 
   // DNSSEC Bonus points
-  if (dnssecActive) {
+  if (dnssecInfo.active) {
     score += 5;
+  }
+
+  // Apply penalties for unable to fetch / not enough data (failed lookups)
+  if (quad9Info.error) {
+    score -= 15;
+  }
+  if (otxInfo.error) {
+    score -= 10;
+  }
+  if (threatMinerInfo.error) {
+    score -= 10;
+  }
+  if (rdapInfo.error) {
+    score -= 15;
+  }
+  if (dnssecInfo.error) {
+    score -= 5;
   }
 
   // Keep within bounds
   score = Math.max(0, Math.min(100, score));
 
-  // If any lookup fails, fail-close meaning 0 score and status Fail
+  // If any blocklist lookup fails, fail-close meaning 0 score and status Fail
   let status: DomainReputationResult["status"] = "Clean";
   if (blocklists.some(b => b.error)) {
     score = 0;
@@ -352,12 +380,17 @@ export async function checkDomainReputation(
     score,
     status,
     blocklists,
-    quad9Blocked,
-    otxPulses,
-    domainAgeDays: rdapInfo ? rdapInfo.days : null,
-    registrationDate: rdapInfo ? rdapInfo.date : null,
-    dnssecActive,
+    quad9Blocked: quad9Info.blocked,
+    quad9Error: quad9Info.error,
+    otxPulses: otxInfo.pulses,
+    otxError: otxInfo.error,
+    domainAgeDays: rdapInfo.days,
+    registrationDate: rdapInfo.date,
+    rdapError: rdapInfo.error,
+    dnssecActive: dnssecInfo.active,
+    dnssecError: dnssecInfo.error,
     queryTime: Date.now() - startTime,
-    threatMinerMalwareCount
+    threatMinerMalwareCount: threatMinerInfo.count,
+    threatMinerError: threatMinerInfo.error
   };
 }
