@@ -122,16 +122,15 @@ export function DomainReputationPage() {
       {status === 'success' && result && (
         <div className="grid gap-6 md:grid-cols-[1fr_300px] items-start">
           <div className="order-2 md:order-1 space-y-6">
-            
+
             {/* Blocklist Card */}
             <ResultCard title="Domain Blocklists (DBLs)" status="success">
               <div className="space-y-4">
                 {result.blocklists.map((block, idx) => (
                   <div
                     key={idx}
-                    className={`flex items-start gap-3 p-3 rounded-md border bg-card ${
-                      block.listed ? 'border-destructive/30 bg-destructive/5' : 'border-border/50'
-                    }`}
+                    className={`flex items-start gap-3 p-3 rounded-md border bg-card ${block.listed ? 'border-destructive/30 bg-destructive/5' : 'border-border/50'
+                      }`}
                   >
                     {block.listed ? (
                       <XCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
@@ -164,7 +163,7 @@ export function DomainReputationPage() {
             {/* DNS & Registrar Security Checks */}
             <ResultCard title="DNS & Identity Security Checks" status="success">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                
+
                 {/* Quad9 Block Check */}
                 <Card className="p-4 flex flex-col justify-between">
                   <div className="flex justify-between items-start gap-2 mb-2">
@@ -182,15 +181,15 @@ export function DomainReputationPage() {
                       {result.quad9Error
                         ? "Unable to fetch / not enough data"
                         : result.quad9Blocked
-                        ? "Blocked / Sinkholed"
-                        : "Not Blocked"}
+                          ? "Blocked / Sinkholed"
+                          : "Not Blocked"}
                     </h4>
                     <p className="text-xs text-muted-foreground mt-1">
                       {result.quad9Error
                         ? "Failed to query Quad9 threat intelligence servers due to connection/proxy failure."
                         : result.quad9Blocked
-                        ? "Quad9 threat intelligence has blocked resolving this domain due to malware/phishing indicators."
-                        : "Domain resolves correctly on Quad9 DNS servers."}
+                          ? "Quad9 threat intelligence has blocked resolving this domain due to malware/phishing indicators."
+                          : "Domain resolves correctly on Quad9 DNS servers."}
                     </p>
                   </div>
                 </Card>
@@ -212,15 +211,15 @@ export function DomainReputationPage() {
                       {result.dnssecError
                         ? "Unable to fetch / not enough data"
                         : result.dnssecActive
-                        ? "Active & Configured"
-                        : "Inactive / No Keys"}
+                          ? "Active & Configured"
+                          : "Inactive / No Keys"}
                     </h4>
                     <p className="text-xs text-muted-foreground mt-1">
                       {result.dnssecError
                         ? "Failed to query DNSKEY records due to connection/resolver failure."
                         : result.dnssecActive
-                        ? "Domain records are cryptographically signed, protecting clients against cache poisoning/spoofing."
-                        : "DNSSEC is not active on this domain."}
+                          ? "Domain records are cryptographically signed, protecting clients against cache poisoning/spoofing."
+                          : "DNSSEC is not active on this domain."}
                     </p>
                   </div>
                 </Card>
@@ -235,8 +234,8 @@ export function DomainReputationPage() {
                         {result.rdapError
                           ? "Unable to fetch / not enough data"
                           : result.registrationDate
-                          ? `Registered on ${result.registrationDate}`
-                          : "Registration date not resolved via RDAP"}
+                            ? `Registered on ${result.registrationDate}`
+                            : "Registration date not resolved via RDAP"}
                       </h4>
                       {result.rdapError ? (
                         <p className="text-xs text-destructive/80 font-medium mt-1">
@@ -256,16 +255,16 @@ export function DomainReputationPage() {
                           result.domainAgeDays < 30
                             ? "destructive"
                             : result.domainAgeDays < 90
-                            ? "destructive"
-                            : "default"
+                              ? "destructive"
+                              : "default"
                         }
                         className="font-semibold"
                       >
                         {result.domainAgeDays < 30
                           ? "NEWLY REGISTERED (DANGER)"
                           : result.domainAgeDays < 90
-                          ? "YOUNG DOMAIN (WARNING)"
-                          : "MATURE DOMAIN"}
+                            ? "YOUNG DOMAIN (WARNING)"
+                            : "MATURE DOMAIN"}
                       </Badge>
                     ) : result.rdapError ? (
                       <Badge
@@ -324,32 +323,6 @@ export function DomainReputationPage() {
                   <CheckCircle className="w-5 h-5 shrink-0" />
                   <div className="text-sm font-medium">
                     No active threat pulses listed for this domain on AlienVault OTX.
-                  </div>
-                </div>
-              )}
-            </ResultCard>
-
-            {/* ThreatMiner Malware Samples */}
-            <ResultCard title="Malware Threat History (ThreatMiner)" status={result.threatMinerError ? "warning" : "success"}>
-              {result.threatMinerError ? (
-                <div className="flex items-center gap-3 p-4 rounded-md border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                  <ShieldAlert className="w-5 h-5 shrink-0" />
-                  <div className="text-sm font-medium">
-                    Unable to fetch malware samples / not enough data (Connection or proxy failure).
-                  </div>
-                </div>
-              ) : result.threatMinerMalwareCount > 0 ? (
-                <div className="flex items-center gap-3 p-4 rounded-md border border-destructive/20 bg-destructive/5 text-destructive">
-                  <ShieldAlert className="w-5 h-5 shrink-0" />
-                  <div className="text-sm font-medium">
-                    Found {result.threatMinerMalwareCount} malware samples associated with this domain in ThreatMiner's passive database.
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3 p-4 rounded-md border border-border bg-green-500/10 text-green-600 dark:text-green-400">
-                  <CheckCircle className="w-5 h-5 shrink-0" />
-                  <div className="text-sm font-medium">
-                    No associated malware samples found in ThreatMiner's passive database.
                   </div>
                 </div>
               )}

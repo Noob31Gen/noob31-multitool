@@ -37,8 +37,6 @@ export interface DomainReputationResult {
   dnssecActive: boolean;
   dnssecError?: boolean;
   queryTime: number;
-  threatMinerMalwareCount: number;
-  threatMinerError?: boolean;
 }
 
 
@@ -52,7 +50,7 @@ function classifySurbl(ip: string): string {
   if (lastOctet & 32) types.push("Abuse (ab)");
   if (lastOctet & 64) types.push("Junk Email Filter (jp)");
   if (lastOctet & 128) types.push("Malware (mw)");
-  
+
   return types.length > 0 ? `Listed: ${types.join(', ')}` : "Listed (SURBL)";
 }
 
@@ -155,7 +153,7 @@ export async function checkDomainReputation(
         settings.corsProvider,
         settings.customCorsUrl
       );
-      
+
       const hasStdRecords = stdRes.records && stdRes.records.length > 0;
       if (!hasStdRecords) {
         return { blocked: false, error: false }; // Domain doesn't resolve standard anyway
@@ -186,12 +184,12 @@ export async function checkDomainReputation(
     try {
       const targetUrl = `https://otx.alienvault.com/api/v1/indicators/domain/${cleanDomain}/general`;
       const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-      
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
       const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
       clearTimeout(timeoutId);
-      
+
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data && data.pulse_info && Array.isArray(data.pulse_info.pulses)) {
@@ -222,15 +220,15 @@ export async function checkDomainReputation(
     try {
       const rdapData = await queryRDAP(cleanDomain, settings);
       const parsed = parseRDAP(rdapData);
-      
+
       // Attempt to extract creation date
       let creationDateStr: string | undefined;
-      
+
       // Fallback searches inside events or direct field if any
       if (parsed.creationDate) {
         creationDateStr = parsed.creationDate;
       }
-      
+
       if (creationDateStr) {
         const createdDate = new Date(creationDateStr);
         if (!isNaN(createdDate.getTime())) {
@@ -268,46 +266,23 @@ export async function checkDomainReputation(
     }
   })();
 
-  // 6. ThreatMiner Passive Malware check
-  const threatMinerPromise = (async () => {
-    try {
-      const targetUrl = `https://api.threatminer.org/v2/domain.php?q=${cleanDomain}&rt=4`;
-      const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-      const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
-      clearTimeout(timeoutId);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (data && Array.isArray(data.results)) {
-        return { count: data.results.length, error: false };
-      }
-      return { count: 0, error: false };
-    } catch (err) {
-      logger.warn("ThreatMiner reputation check failed:", err);
-      return { count: 0, error: true };
-    }
-  })();
-
   const [
     blocklists,
     quad9Info,
     otxInfo,
     rdapInfo,
-    dnssecInfo,
-    threatMinerInfo
+    dnssecInfo
   ] = await Promise.all([
     Promise.all(dblPromises),
     quad9Promise,
     otxPromise,
     rdapPromise,
-    dnssecPromise,
-    threatMinerPromise
+    dnssecPromise
   ]);
 
   // Score computation
   let score = 100;
-  
+
   // Penalties
   const listedBlocklists = blocklists.filter(b => b.listed);
   if (listedBlocklists.length > 0) {
@@ -332,10 +307,6 @@ export async function checkDomainReputation(
     }
   }
 
-  if (threatMinerInfo.count > 0) {
-    score -= 30; // Deduct 30 points if malware associated
-  }
-
   // DNSSEC Bonus points
   if (dnssecInfo.active) {
     score += 5;
@@ -343,13 +314,10 @@ export async function checkDomainReputation(
 
   // Apply penalties for unable to fetch / not enough data (failed lookups)
   if (quad9Info.error) {
-    score -= 15;
+    score -= 20;
   }
   if (otxInfo.error) {
-    score -= 10;
-  }
-  if (threatMinerInfo.error) {
-    score -= 10;
+    score -= 15;
   }
   if (rdapInfo.error) {
     score -= 15;
@@ -390,7 +358,5 @@ export async function checkDomainReputation(
     dnssecActive: dnssecInfo.active,
     dnssecError: dnssecInfo.error,
     queryTime: Date.now() - startTime,
-    threatMinerMalwareCount: threatMinerInfo.count,
-    threatMinerError: threatMinerInfo.error
   };
 }
