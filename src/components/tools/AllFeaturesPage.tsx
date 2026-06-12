@@ -75,6 +75,7 @@ const FEATURE_CATEGORIES = [
       { name: "Blacklist Check", path: "/security/blacklist" },
       { name: "CERT Lookup", path: "/security/cert" },
       { name: "Domain Reputation", path: "/security/domain-reputation" },
+      { name: "Threat Intel Explorer", path: "/security/threat-intel" },
     ],
   },
   {

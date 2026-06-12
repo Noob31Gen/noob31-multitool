@@ -200,7 +200,7 @@ async function run() {
       validator: (t) => Array.isArray(JSON.parse(t))
     },
 
-    // --- Domain Reputation ---
+    // --- Domain Reputation & Threat Intel ---
     {
       name: 'AlienVault indicator info',
       url: 'https://otx.alienvault.com/api/v1/indicators/domain/google.com/general',
@@ -210,6 +210,26 @@ async function run() {
       name: 'ThreatMiner Malware (rt=4)',
       url: 'https://api.threatminer.org/v2/domain.php?q=google.com&rt=4',
       validator: (t) => JSON.parse(t).status_code === '200' && Array.isArray(JSON.parse(t).results)
+    },
+    {
+      name: 'ThreatMiner Sample (rt=1)',
+      url: 'https://api.threatminer.org/v2/sample.php?q=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&rt=1',
+      validator: (t) => JSON.parse(t).status_code === '200'
+    },
+    {
+      name: 'PhishStats Feed Query',
+      url: 'https://api.phishstats.info/api/phishing?_size=1',
+      validator: (t) => Array.isArray(JSON.parse(t))
+    },
+    {
+      name: 'MalwareBazaar Hash Query',
+      url: 'https://mb-api.abuse.ch/api/v1/',
+      options: {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'query=get_info&hash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+      },
+      validator: (t) => typeof JSON.parse(t).query_status === 'string'
     },
 
     // --- MAC Address Lookup ---

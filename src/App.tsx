@@ -27,6 +27,7 @@ import { AboutPage } from "@/components/tools/AboutPage"
 import { AllFeaturesPage } from "@/components/tools/AllFeaturesPage"
 import { ReverseDnsPage } from "@/components/tools/ReverseDnsPage"
 import { DomainReputationPage } from "@/components/tools/DomainReputationPage"
+import { ThreatIntelPage } from "@/components/tools/ThreatIntelPage"
 import { SEO } from "@/components/shared/SEO"
 import { Info, Globe, Cpu, ShieldCheck } from "lucide-react"
 function App() {
@@ -131,6 +132,7 @@ function App() {
           <Route path="/security/cert" element={<CertLookupPage />} />
           <Route path="/security/blacklist" element={<BlacklistPage />} />
           <Route path="/security/domain-reputation" element={<DomainReputationPage />} />
+          <Route path="/security/threat-intel" element={<ThreatIntelPage />} />
           <Route path="/bonus/headers" element={<EmailHeaderAnalyzerPage />} />
           <Route path="/bonus/subnet" element={<SubnetCalculatorPage />} />
           <Route path="/bonus/spf-generator" element={<SpfGeneratorPage />} />

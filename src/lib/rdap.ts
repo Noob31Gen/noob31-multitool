@@ -106,19 +106,61 @@ export async function queryRDAP(query: string, settings: AppSettings) {
   }
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-function mapWhoDatToRDAP(w: any): any {
-  const entities: any[] = [];
+interface WhoDatContact {
+  name?: string;
+  organization?: string;
+  email?: string;
+}
+
+interface WhoDatResponse {
+  registrar?: {
+    name?: string;
+    abuseEmail?: string;
+    abusePhone?: string;
+    ianaId?: string | number;
+  };
+  contacts?: {
+    registrant?: WhoDatContact;
+    admin?: WhoDatContact;
+    tech?: WhoDatContact;
+  };
+  dates?: {
+    created?: string;
+    updated?: string;
+    expires?: string;
+  };
+  domain?: string;
+  query?: string;
+  id?: string;
+  status?: string[];
+  nameservers?: { name: string }[];
+}
+
+type VCardProperty = [string, Record<string, unknown>, string, string];
+type VCard = ["vcard", VCardProperty[]];
+
+interface RDAPEntity {
+  roles: string[];
+  publicIds?: { type: string; identifier: string }[];
+  vcardArray: VCard;
+}
+
+interface RDAPEvent {
+  eventAction: string;
+  eventDate: string;
+}
+
+function mapWhoDatToRDAP(w: WhoDatResponse) {
+  const entities: RDAPEntity[] = [];
   
   if (w.registrar) {
-    const vcard = [
-      "vcard",
-      [
-        ["fn", {}, "text", w.registrar.name || ""],
-        ["email", {}, "text", w.registrar.abuseEmail || ""],
-        ["tel", {}, "text", w.registrar.abusePhone || ""]
-      ].filter((item: any) => item[3])
-    ];
+    const vcardProperties: VCardProperty[] = [
+      ["fn", {}, "text", w.registrar.name || ""],
+      ["email", {}, "text", w.registrar.abuseEmail || ""],
+      ["tel", {}, "text", w.registrar.abusePhone || ""]
+    ].filter((item): item is VCardProperty => !!item[3]);
+
+    const vcard: VCard = ["vcard", vcardProperties];
     
     entities.push({
       roles: ["registrar"],
@@ -134,13 +176,12 @@ function mapWhoDatToRDAP(w: any): any {
     const contact = w.contacts?.[role];
     if (contact && (contact.name || contact.organization || contact.email)) {
       const fn = contact.organization || contact.name || "";
-      const vcard = [
-        "vcard",
-        [
-          ["fn", {}, "text", fn],
-          ["email", {}, "text", contact.email || ""]
-        ].filter((item: any) => item[3])
-      ];
+      const vcardProperties: VCardProperty[] = [
+        ["fn", {}, "text", fn],
+        ["email", {}, "text", contact.email || ""]
+      ].filter((item): item is VCardProperty => !!item[3]);
+
+      const vcard: VCard = ["vcard", vcardProperties];
       entities.push({
         roles: [role],
         vcardArray: vcard
@@ -148,17 +189,17 @@ function mapWhoDatToRDAP(w: any): any {
     }
   }
 
-  const events: any[] = [];
+  const events: RDAPEvent[] = [];
   if (w.dates?.created) events.push({ eventAction: 'registration', eventDate: w.dates.created });
   if (w.dates?.updated) events.push({ eventAction: 'last changed', eventDate: w.dates.updated });
   if (w.dates?.expires) events.push({ eventAction: 'expiration', eventDate: w.dates.expires });
 
   return {
-    ldhName: w.domain || w.query,
+    ldhName: w.domain || w.query || "",
     handle: w.id || "",
     objectClassName: "domain",
     status: w.status || [],
-    nameservers: Array.isArray(w.nameservers) ? w.nameservers.map((ns: any) => ({ ldhName: ns.name })) : [],
+    nameservers: Array.isArray(w.nameservers) ? w.nameservers.map((ns) => ({ ldhName: ns.name })) : [],
     events,
     entities
   };

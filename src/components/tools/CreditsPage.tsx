@@ -302,6 +302,40 @@ export function CreditsPage() {
       ]
     },
     {
+      title: "Threat Intelligence Aggregation",
+      description: "Feeds and databases queried dynamically in the Threat Intelligence Explorer to trace Indicators of Compromise (IOCs).",
+      sources: [
+        {
+          name: "PhishStats",
+          url: "https://phishstats.info/",
+          badge: "Direct API",
+          why: "To search recent phishing logs for target indicators and track threat scores.",
+          how: "Queries the PhishStats API for URLs matching domains, IPs, or keywords via proxy."
+        },
+        {
+          name: "MalwareBazaar",
+          url: "https://malwarebazaar.abuse.ch/",
+          badge: "Direct API",
+          why: "To inspect file hash definitions, signatures, and vendor detection rate averages.",
+          how: "Sends POST requests to Abuse.ch MalwareBazaar's keyless file hash database."
+        },
+        {
+          name: "ThreatMiner (Passive Intel)",
+          url: "https://www.threatminer.org/",
+          badge: "Direct API",
+          why: "To extract historic host-to-IP passive DNS and malware hash connections.",
+          how: "Queries ThreatMiner's unauthenticated hosts and domain endpoints."
+        },
+        {
+          name: "urlscan.io (Scan Search)",
+          url: "https://urlscan.io/",
+          badge: "Direct API",
+          why: "To list recent public crawler runs, screenshots, and security classifications.",
+          how: "Queries urlscan.io search endpoint for matching scan IDs and assets."
+        }
+      ]
+    },
+    {
       title: "MAC Address Databases (OUI)",
       description: "Directories queried to parse network card manufacturers and OUI blocks.",
       sources: [

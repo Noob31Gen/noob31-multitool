@@ -6,6 +6,7 @@ const TOOL_CATEGORIES = [
     tools: [
       { name: "Domain Health", path: "/health/domain" },
       { name: "Domain Reputation", path: "/security/domain-reputation" },
+      { name: "Threat Intel Explorer", path: "/security/threat-intel" },
       { name: "Email Deliverability", path: "/health/deliverability" },
       { name: "Blacklist Check", path: "/security/blacklist" },
       { name: "DNS Check", path: "/health/dns" },
