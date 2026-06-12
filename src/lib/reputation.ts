@@ -1,7 +1,7 @@
 import { queryDNS } from "./doh";
 import { queryRDAP } from "./rdap";
 import { parseRDAP } from "./rdapParser";
-import { getProxiedUrl } from "./cors";
+import { getProxiedUrl, authenticatedFetch } from "./cors";
 import type { AppSettings } from "./settings";
 import { logger } from "./logger";
 
@@ -212,7 +212,7 @@ export async function checkDomainReputation(
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
-      const res = await fetch(proxyUrl, { signal: controller.signal });
+      const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
       clearTimeout(timeoutId);
       
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -294,7 +294,7 @@ export async function checkDomainReputation(
       const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
-      const res = await fetch(proxyUrl, { signal: controller.signal });
+      const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
       clearTimeout(timeoutId);
       if (!res.ok) return 0;
       const data = await res.json();

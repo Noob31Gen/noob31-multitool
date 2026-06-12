@@ -1,4 +1,4 @@
-import { getProxiedUrl } from "./cors";
+import { getProxiedUrl, authenticatedFetch } from "./cors";
 import type { AppSettings } from "./settings";
 import { logger } from "./logger";
 
@@ -160,7 +160,7 @@ async function fetchOtxPulses(
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(proxyUrl, { signal: controller.signal });
+    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -227,7 +227,7 @@ async function fetchThreatMiner(
       const dnsProxy = getProxiedUrl(dnsUrl, settings.corsProvider, settings.customCorsUrl);
 
       try {
-        const dnsRes = await fetch(dnsProxy, { signal: controller.signal });
+        const dnsRes = await authenticatedFetch(dnsProxy, { signal: controller.signal });
         if (dnsRes.ok) {
           const dnsData = await dnsRes.json();
           if (dnsData && dnsData.status_code === "200" && Array.isArray(dnsData.results)) {
@@ -257,7 +257,7 @@ async function fetchThreatMiner(
       const samplesProxy = getProxiedUrl(samplesUrl, settings.corsProvider, settings.customCorsUrl);
 
       try {
-        const samplesRes = await fetch(samplesProxy, { signal: controller.signal });
+        const samplesRes = await authenticatedFetch(samplesProxy, { signal: controller.signal });
         if (samplesRes.ok) {
           const samplesData = await samplesRes.json();
           if (samplesData && samplesData.status_code === "200" && Array.isArray(samplesData.results)) {
@@ -276,7 +276,7 @@ async function fetchThreatMiner(
       )}&rt=1`;
       const sampleProxy = getProxiedUrl(sampleUrl, settings.corsProvider, settings.customCorsUrl);
 
-      const sampleRes = await fetch(sampleProxy, { signal: controller.signal });
+      const sampleRes = await authenticatedFetch(sampleProxy, { signal: controller.signal });
       if (sampleRes.ok) {
         const sampleData = await sampleRes.json();
         if (sampleData && sampleData.status_code === "200" && Array.isArray(sampleData.results) && sampleData.results.length > 0) {
@@ -328,7 +328,7 @@ async function fetchPhishStats(
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(proxyUrl, { signal: controller.signal });
+    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -391,7 +391,7 @@ async function fetchUrlScan(
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(proxyUrl, { signal: controller.signal });
+    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -435,7 +435,7 @@ async function fetchMalwareBazaar(
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(proxyUrl, {
+    const res = await authenticatedFetch(proxyUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",

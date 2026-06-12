@@ -44,7 +44,7 @@ async function fetchCrtSh(domain: string, settings: AppSettings): Promise<Normal
   );
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
-  const res = await fetch(proxyUrl, { signal: controller.signal });
+  const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
   clearTimeout(timeoutId);
   if (!res.ok) {
     throw new Error(`HTTP ${res.status} - ${res.statusText}`);
