@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Settings, AlertCircle } from "lucide-react"
+import { Settings, AlertCircle, ExternalLink } from "lucide-react"
 import { useSettings, defaultSettings, type AppSettings } from "@/lib/settings"
 import { safeStorage } from "@/lib/storage"
 import {
@@ -108,6 +108,17 @@ export function SettingsSheet() {
                 <SelectItem value="custom">Custom CORS Proxy</SelectItem>
               </SelectContent>
             </Select>
+            <div className="flex items-center gap-1.5 mt-1.5 px-0.5">
+              <span className="text-[11px] text-muted-foreground">Want custom hosting?</span>
+              <a
+                href="https://github.com/Noob31Gen/WorkersProxy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5"
+              >
+                Setup your own proxy <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
           </div>
           <div className="space-y-3">
             <h3 className="text-sm font-medium">Custom CORS URL</h3>
