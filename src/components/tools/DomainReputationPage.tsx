@@ -291,6 +291,100 @@ export function DomainReputationPage() {
               )}
             </ResultCard>
 
+            {/* ThreatMiner Malware Samples */}
+            <ResultCard title="Malware Threat History (ThreatMiner)" status="success">
+              {result.threatMinerMalwareCount > 0 ? (
+                <div className="flex items-center gap-3 p-4 rounded-md border border-destructive/20 bg-destructive/5 text-destructive">
+                  <ShieldAlert className="w-5 h-5 shrink-0" />
+                  <div className="text-sm font-medium">
+                    Found {result.threatMinerMalwareCount} malware samples associated with this domain in ThreatMiner's passive database.
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 p-4 rounded-md border border-border bg-green-500/10 text-green-600 dark:text-green-400">
+                  <CheckCircle className="w-5 h-5 shrink-0" />
+                  <div className="text-sm font-medium">
+                    No associated malware samples found in ThreatMiner's passive database.
+                  </div>
+                </div>
+              )}
+            </ResultCard>
+
+            {/* Premium Intelligence Scans */}
+            <ResultCard title="Premium Security Scans" status="success">
+              <div className="space-y-4">
+                {/* Google Safe Browsing */}
+                {result.googleSafeBrowsing ? (
+                  <div
+                    className={`flex items-start gap-3 p-3 rounded-md border bg-card ${
+                      result.googleSafeBrowsing.listed ? 'border-destructive/30 bg-destructive/5' : 'border-border/50'
+                    }`}
+                  >
+                    {result.googleSafeBrowsing.listed ? (
+                      <XCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                    ) : (
+                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="font-semibold text-sm">Google Safe Browsing</span>
+                        <Badge variant={result.googleSafeBrowsing.listed ? "destructive" : "secondary"}>
+                          {result.googleSafeBrowsing.listed ? "FLAGGED" : "CLEAN"}
+                        </Badge>
+                      </div>
+                      {result.googleSafeBrowsing.details && (
+                        <p className="text-xs text-muted-foreground mt-1 font-mono">
+                          {result.googleSafeBrowsing.details}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground p-3 border border-dashed rounded-md bg-muted/10">
+                    Google Safe Browsing API key not configured.
+                  </div>
+                )}
+
+                {/* VirusTotal */}
+                {result.virusTotal ? (
+                  <div
+                    className={`flex items-start gap-3 p-3 rounded-md border bg-card ${
+                      result.virusTotal.maliciousCount > 0 ? 'border-destructive/30 bg-destructive/5' : 'border-border/50'
+                    }`}
+                  >
+                    {result.virusTotal.maliciousCount > 0 ? (
+                      <XCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                    ) : (
+                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="font-semibold text-sm">VirusTotal Domain Scan</span>
+                        <Badge variant={result.virusTotal.maliciousCount > 0 ? "destructive" : "secondary"}>
+                          {result.virusTotal.maliciousCount > 0 ? `${result.virusTotal.maliciousCount} ALERTS` : "CLEAN"}
+                        </Badge>
+                      </div>
+                      {result.virusTotal.details && (
+                        <p className="text-xs text-muted-foreground mt-1 font-mono">
+                          {result.virusTotal.details}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground p-3 border border-dashed rounded-md bg-muted/10">
+                    VirusTotal API key not configured.
+                  </div>
+                )}
+
+                {(!settings.googleSafeBrowsingApiKey || !settings.virusTotalApiKey) && (
+                  <div className="text-xs text-muted-foreground bg-muted/20 p-3 rounded-lg leading-relaxed">
+                    💡 <strong>Tip:</strong> You can configure free API keys for <strong>Google Safe Browsing</strong> and <strong>VirusTotal</strong> in the settings panel (gear icon in header) to unlock premium reputation database scans.
+                  </div>
+                )}
+              </div>
+            </ResultCard>
+
           </div>
 
           {/* Right score card */}

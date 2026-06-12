@@ -10,6 +10,10 @@ export interface AppSettings {
   customCorsUrl: string;
   theme: 'light' | 'dark' | 'system';
   persistenceEnabled: boolean;
+  censysApiId: string;
+  censysApiSecret: string;
+  googleSafeBrowsingApiKey: string;
+  virusTotalApiKey: string;
 }
 export const defaultSettings: AppSettings = {
   dohProvider: 'auto',
@@ -18,6 +22,10 @@ export const defaultSettings: AppSettings = {
   customCorsUrl: '',
   theme: 'system',
   persistenceEnabled: safeStorage.isEnabled(),
+  censysApiId: '',
+  censysApiSecret: '',
+  googleSafeBrowsingApiKey: '',
+  virusTotalApiKey: '',
 };
 interface SettingsContextType {
   settings: AppSettings;

@@ -14,12 +14,13 @@ export function CreditsPage() {
       </div>
       <Card className="p-6 bg-muted/40 space-y-6">
         <div>
-          <h2 className="text-lg font-semibold mb-3">Subdomain Enumeration</h2>
+          <h2 className="text-lg font-semibold mb-3">Subdomain Enumeration & Certificates</h2>
           <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
             <li><a href="https://api.hackertarget.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">HackerTarget</a></li>
             <li><a href="https://urlscan.io/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">urlscan.io</a></li>
             <li><a href="https://crt.sh/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">crt.sh</a></li>
             <li><a href="https://api.certspotter.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">CertSpotter</a></li>
+            <li><a href="https://censys.io/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Censys Certificates Search</a></li>
             <li><a href="https://jldc.me/anubis/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Anubis by jldc.me</a></li>
             <li><a href="https://api.mnemonic.no/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Mnemonic PassiveDNS</a></li>
             <li><a href="https://tls.bufferover.run/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">BufferOver.run</a></li>
@@ -30,9 +31,10 @@ export function CreditsPage() {
           </ul>
         </div>
         <div>
-          <h2 className="text-lg font-semibold mb-3">RDAP & DNS</h2>
+          <h2 className="text-lg font-semibold mb-3">RDAP, WHOIS & DNS</h2>
           <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
             <li><a href="https://rdap.org/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">RDAP.org</a></li>
+            <li><a href="https://github.com/lissy93/who-dat" target="_blank" rel="noreferrer" className="underline hover:text-foreground">who-dat WHOIS/RDAP Fallback API</a></li>
             <li><a href="https://dns.google/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Google DNS (DoH JSON & Wire Format)</a></li>
             <li><a href="https://cloudflare-dns.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Cloudflare DNS</a></li>
             <li><a href="https://dns.alidns.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">AliDNS</a></li>
@@ -60,6 +62,9 @@ export function CreditsPage() {
             <li><a href="https://www.surbl.org/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">SURBL</a></li>
             <li><a href="https://www.uribl.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">URIBL</a></li>
             <li><a href="https://otx.alienvault.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">AlienVault OTX Threat Pulses</a></li>
+            <li><a href="https://www.threatminer.org/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">ThreatMiner Passive Malware Database</a></li>
+            <li><a href="https://safebrowsing.google.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">Google Safe Browsing</a></li>
+            <li><a href="https://www.virustotal.com/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">VirusTotal v3 API</a></li>
           </ul>
         </div>
         <div>
