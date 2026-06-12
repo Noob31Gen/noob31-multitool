@@ -30,7 +30,7 @@ export function Header() {
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0 !inset-y-2 !left-2 !h-[calc(100dvh-1rem)] rounded-2xl border border-border shadow-2xl overflow-hidden">
+          <SheetContent side="left" className="w-72 p-0 !inset-y-2 !left-2 !h-[calc(100dvh-1rem)] rounded-2xl border border-border shadow-2xl overflow-hidden transition-transform will-change-transform">
             <SheetHeader className="sr-only">
               <SheetTitle>Navigation Menu</SheetTitle>
               <SheetDescription>Access all tools and utilities.</SheetDescription>

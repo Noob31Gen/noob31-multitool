@@ -67,6 +67,14 @@ export function DomainHealthPage() {
       </div>
       <Card className="p-4 bg-muted/40">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+          <div className="w-full sm:w-[220px]">
+            <Input
+              placeholder="DKIM Selector (optional)"
+              className="bg-background"
+              value={selector}
+              onChange={(e) => setSelector(e.target.value)}
+            />
+          </div>
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -74,14 +82,6 @@ export function DomainHealthPage() {
               className="pl-9 bg-background"
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
-            />
-          </div>
-          <div className="w-full sm:w-[220px]">
-            <Input
-              placeholder="DKIM Selector (optional)"
-              className="bg-background"
-              value={selector}
-              onChange={(e) => setSelector(e.target.value)}
             />
           </div>
           <Button type="submit" disabled={status === 'loading'} className="w-full sm:w-auto">

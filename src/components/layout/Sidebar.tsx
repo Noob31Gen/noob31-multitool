@@ -2,43 +2,38 @@ import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
 const TOOL_CATEGORIES = [
   {
-    title: "DNS & Routing",
+    title: "Domain & Security Auditing",
+    tools: [
+      { name: "Domain Health", path: "/health/domain" },
+      { name: "Domain Reputation", path: "/security/domain-reputation" },
+      { name: "Email Deliverability", path: "/health/deliverability" },
+      { name: "Blacklist Check", path: "/security/blacklist" },
+      { name: "DNS Check", path: "/health/dns" },
+      { name: "IP and Registration Lookup", path: "/registration/whois" },
+      { name: "Email Auth Lookup", path: "/email/spf" },
+      { name: "Email Header Analyzer", path: "/bonus/headers" },
+    ],
+  },
+  {
+    title: "DNS & Network Testing",
     tools: [
       { name: "DNS Lookup", path: "/dns/a" },
-      { name: "DNS Check", path: "/health/dns" },
       { name: "DNSSEC Lookup", path: "/dnssec/dnskey" },
       { name: "Reverse DNS Lookup", path: "/network/reverse-dns" },
-      { name: "What Is My IP?", path: "/network/my-ip" },
-      { name: "IP and Registration Lookup", path: "/registration/whois" },
-    ],
-  },
-  {
-    title: "Email Security",
-    tools: [
-      { name: "Email Auth Lookup", path: "/email/spf" },
-      { name: "Domain Health", path: "/health/domain" },
-      { name: "Email Deliverability", path: "/health/deliverability" },
-      { name: "Email Header Analyzer", path: "/bonus/headers" },
-      { name: "SPF Generator", path: "/bonus/spf-generator" },
-      { name: "DMARC Generator", path: "/bonus/dmarc-generator" },
-    ],
-  },
-  {
-    title: "Threat & Reputation",
-    tools: [
-      { name: "Domain Reputation", path: "/security/domain-reputation" },
       { name: "URL Scanner", path: "/network/url-scanner" },
       { name: "Subdomain Scanner", path: "/network/subdomains" },
       { name: "CERT Lookup", path: "/security/cert" },
-      { name: "Blacklist Check", path: "/security/blacklist" },
+      { name: "HTTP Headers", path: "/network/http/http" },
+      { name: "What Is My IP?", path: "/network/my-ip" },
     ],
   },
   {
-    title: "Utilities & Infrastructure",
+    title: "Utilities & Generators",
     tools: [
-      { name: "HTTP Headers", path: "/network/http/http" },
-      { name: "MAC Address Lookup", path: "/network/mac-lookup" },
+      { name: "SPF Generator", path: "/bonus/spf-generator" },
+      { name: "DMARC Generator", path: "/bonus/dmarc-generator" },
       { name: "Subnet Calculator", path: "/bonus/subnet" },
+      { name: "MAC Address Lookup", path: "/network/mac-lookup" },
       { name: "Network Visualizer", path: "/bonus/visualizer" },
       { name: "QR & Barcode Generator", path: "/bonus/code-generator" },
       { name: "QR & Barcode Scanner", path: "/bonus/code-scanner" },
