@@ -13,20 +13,7 @@ export interface ThreatPulse {
   tags: string[];
 }
 
-export interface ThreatMinerPassiveDns {
-  ip: string;
-  domain: string;
-  firstSeen: string;
-  lastSeen: string;
-  source: string;
-}
 
-export interface ThreatMinerSample {
-  hash: string;
-  fileType?: string;
-  fileSize?: number;
-  added?: string;
-}
 
 export interface PhishStatsRecord {
   id: number;
@@ -72,18 +59,12 @@ export interface AggregatedThreatIntel {
     sections?: string[];
   };
   otxUnauthKeywordSearch?: boolean;
-  threatMinerPassiveDns: ThreatMinerPassiveDns[];
-  threatMinerSamples: ThreatMinerSample[];
-  threatMinerDetails?: {
-    fileSize?: string;
-    fileType?: string;
-    ssdeep?: string;
-    sha256?: string;
-  };
   phishStatsMatches: PhishStatsRecord[];
   urlScanHistory: UrlScanRecord[];
   malwareBazaar?: MalwareBazaarRecord;
   queryTime: number;
+  /** Map of source name → error message when a source failed to fetch */
+  sourceErrors: Record<string, string>;
 }
 
 // Helpers for input detection
@@ -130,7 +111,7 @@ async function fetchOtxPulses(
   query: string,
   type: ThreatInputType,
   settings: AppSettings
-): Promise<{ pulses: ThreatPulse[]; metadata?: { reputation?: number }; keywordUnauth?: boolean }> {
+): Promise<{ pulses: ThreatPulse[]; metadata?: { reputation?: number }; keywordUnauth?: boolean; error?: string }> {
   try {
     let otxType = "domain";
     if (type === "ip") {
@@ -191,113 +172,11 @@ async function fetchOtxPulses(
     };
   } catch (err) {
     logger.warn("Threat Intel: OTX fetch failed", err);
-    return { pulses: [] };
+    return { pulses: [], error: err instanceof Error ? err.message : "Unknown error" };
   }
 }
 
-async function fetchThreatMiner(
-  query: string,
-  type: ThreatInputType,
-  settings: AppSettings
-): Promise<{
-  dns: ThreatMinerPassiveDns[];
-  samples: ThreatMinerSample[];
-  details?: { fileSize?: string; fileType?: string; ssdeep?: string; sha256?: string };
-}> {
-  const result: {
-    dns: ThreatMinerPassiveDns[];
-    samples: ThreatMinerSample[];
-    details?: { fileSize?: string; fileType?: string; ssdeep?: string; sha256?: string };
-  } = { dns: [], samples: [] };
-  if (type === "url" || type === "keyword") return result;
 
-  try {
-    const cleanQuery = query.trim().replace(/^(https?:\/\/)?(www\.)?/, "");
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-    if (type === "domain" || type === "ip") {
-      const isHost = type === "ip";
-      const apiFile = isHost ? "host.php" : "domain.php";
-
-      // 1. Passive DNS (rt=2)
-      const dnsUrl = `https://api.threatminer.org/v2/${apiFile}?q=${encodeURIComponent(
-        cleanQuery
-      )}&rt=2`;
-      const dnsProxy = getProxiedUrl(dnsUrl, settings.corsProvider, settings.customCorsUrl);
-
-      try {
-        const dnsRes = await authenticatedFetch(dnsProxy, { signal: controller.signal });
-        if (dnsRes.ok) {
-          const dnsData = await dnsRes.json();
-          if (dnsData && dnsData.status_code === "200" && Array.isArray(dnsData.results)) {
-            result.dns = dnsData.results.slice(0, 15).map((r: {
-              ip?: string;
-              domain?: string;
-              first_seen?: string;
-              last_seen?: string;
-              source?: string;
-            }) => ({
-              ip: r.ip || "",
-              domain: r.domain || "",
-              firstSeen: r.first_seen || "N/A",
-              lastSeen: r.last_seen || "N/A",
-              source: r.source || "ThreatMiner",
-            }));
-          }
-        }
-      } catch (err) {
-        logger.warn("Threat Intel: ThreatMiner dns failed", err);
-      }
-
-      // 2. Malware Samples (rt=4)
-      const samplesUrl = `https://api.threatminer.org/v2/${apiFile}?q=${encodeURIComponent(
-        cleanQuery
-      )}&rt=4`;
-      const samplesProxy = getProxiedUrl(samplesUrl, settings.corsProvider, settings.customCorsUrl);
-
-      try {
-        const samplesRes = await authenticatedFetch(samplesProxy, { signal: controller.signal });
-        if (samplesRes.ok) {
-          const samplesData = await samplesRes.json();
-          if (samplesData && samplesData.status_code === "200" && Array.isArray(samplesData.results)) {
-            result.samples = samplesData.results.slice(0, 15).map((hash: string) => ({
-              hash,
-            }));
-          }
-        }
-      } catch (err) {
-        logger.warn("Threat Intel: ThreatMiner samples failed", err);
-      }
-    } else if (type === "hash") {
-      // Sample metadata lookup (rt=1)
-      const sampleUrl = `https://api.threatminer.org/v2/sample.php?q=${encodeURIComponent(
-        cleanQuery
-      )}&rt=1`;
-      const sampleProxy = getProxiedUrl(sampleUrl, settings.corsProvider, settings.customCorsUrl);
-
-      const sampleRes = await authenticatedFetch(sampleProxy, { signal: controller.signal });
-      if (sampleRes.ok) {
-        const sampleData = await sampleRes.json();
-        if (sampleData && sampleData.status_code === "200" && Array.isArray(sampleData.results) && sampleData.results.length > 0) {
-          const mainResult = sampleData.results[0];
-          result.details = {
-            fileSize: mainResult.file_size ? `${(mainResult.file_size / 1024).toFixed(2)} KB` : undefined,
-            fileType: mainResult.file_type || undefined,
-            ssdeep: mainResult.ssdeep || undefined,
-            sha256: mainResult.sha256 || undefined,
-          };
-        }
-      }
-    }
-
-    clearTimeout(timeoutId);
-  } catch (err) {
-    logger.warn("Threat Intel: ThreatMiner main query failed", err);
-  }
-
-  return result;
-}
 
 async function fetchPhishStats(
   query: string,
@@ -327,7 +206,7 @@ async function fetchPhishStats(
     const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
     const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
@@ -358,7 +237,11 @@ async function fetchPhishStats(
     return [];
   } catch (err) {
     logger.warn("Threat Intel: PhishStats fetch failed", err);
-    return [];
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    // Return a marker object so the orchestrator knows it failed vs. returned empty
+    const errorResult: PhishStatsRecord[] = [];
+    (errorResult as unknown as { __error: string }).__error = msg;
+    return errorResult;
   }
 }
 
@@ -415,7 +298,9 @@ async function fetchUrlScan(
     return [];
   } catch (err) {
     logger.warn("Threat Intel: URLScan.io fetch failed", err);
-    return [];
+    const errorResult: UrlScanRecord[] = [];
+    (errorResult as unknown as { __error: string }).__error = err instanceof Error ? err.message : "Unknown error";
+    return errorResult;
   }
 }
 
@@ -486,19 +371,31 @@ export async function searchThreatIntel(
 
   // Run fetches in parallel
   const otxPromise = fetchOtxPulses(clean, detectedType, settings);
-  const tmPromise = fetchThreatMiner(clean, detectedType, settings);
   const psPromise = fetchPhishStats(clean, detectedType, settings);
   const usPromise = fetchUrlScan(clean, detectedType, settings);
   const mbPromise =
     detectedType === "hash" ? fetchMalwareBazaar(clean, settings) : Promise.resolve(undefined);
 
-  const [otxRes, tmRes, psRes, usRes, mbRes] = await Promise.all([
+  const [otxRes, psRes, usRes, mbRes] = await Promise.all([
     otxPromise,
-    tmPromise,
     psPromise,
     usPromise,
     mbPromise,
   ]);
+
+  // Collect source errors
+  const sourceErrors: Record<string, string> = {};
+  if (otxRes.error) sourceErrors["AlienVault OTX"] = otxRes.error;
+  if ((psRes as unknown as { __error?: string }).__error) {
+    sourceErrors["PhishStats"] = (psRes as unknown as { __error: string }).__error;
+  }
+  if ((usRes as unknown as { __error?: string }).__error) {
+    sourceErrors["URLScan.io"] = (usRes as unknown as { __error: string }).__error;
+  }
+  if (detectedType === "hash" && mbRes === undefined) {
+    // MalwareBazaar returning undefined could be "not found" which is normal
+    // We only add error if the fetch function flagged an error
+  }
 
   return {
     query: clean,
@@ -506,12 +403,10 @@ export async function searchThreatIntel(
     otxPulses: otxRes.pulses,
     otxMetadata: otxRes.metadata,
     otxUnauthKeywordSearch: otxRes.keywordUnauth,
-    threatMinerPassiveDns: tmRes.dns,
-    threatMinerSamples: tmRes.samples,
-    threatMinerDetails: tmRes.details,
     phishStatsMatches: psRes,
     urlScanHistory: usRes,
     malwareBazaar: mbRes,
     queryTime: Date.now() - startTime,
+    sourceErrors,
   };
 }

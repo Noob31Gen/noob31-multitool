@@ -30,7 +30,6 @@ import {
   Tag,
   Link2,
   AlertCircle,
-  Copy,
 } from "lucide-react";
 import {
   searchThreatIntel,
@@ -184,8 +183,13 @@ export function ThreatIntelPage() {
     if (totalPhish > 0 || hasMb || totalOtx > 3) {
       return { label: "MALICIOUS / HIGH RISK", color: "text-destructive font-bold", bg: "bg-destructive/10 border-destructive/20" };
     }
-    if (totalOtx > 0 || result.threatMinerSamples.length > 0) {
+    if (totalOtx > 0) {
       return { label: "SUSPICIOUS / WARNING", color: "text-amber-500 font-bold", bg: "bg-amber-500/10 border-amber-500/20" };
+    }
+    // If all sources errored out, mark as inconclusive
+    const errorCount = result.sourceErrors ? Object.keys(result.sourceErrors).length : 0;
+    if (errorCount > 0 && totalOtx === 0 && totalPhish === 0 && !hasMb) {
+      return { label: "INCONCLUSIVE / SOURCES FAILED", color: "text-amber-500 font-bold", bg: "bg-amber-500/10 border-amber-500/20" };
     }
     return { label: "CLEAN / NO IMMEDIATE MATCHES", color: "text-green-500 font-bold", bg: "bg-green-500/10 border-green-500/20" };
   };
@@ -252,7 +256,7 @@ export function ThreatIntelPage() {
           <div className="py-6 space-y-4">
             <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
               <Activity className="w-4 h-4 animate-spin text-primary" />
-              <span>Querying OTX Pulses, ThreatMiner, PhishStats, URLScan, and MalwareBazaar...</span>
+              <span>Querying OTX Pulses, PhishStats, URLScan, and MalwareBazaar...</span>
             </div>
             <LoadingSkeleton />
           </div>
@@ -293,8 +297,8 @@ export function ThreatIntelPage() {
                   <p className="text-muted-foreground/80">Scan recent phishing logs for target records and track threat scores.</p>
                 </div>
                 <div className="p-3 rounded-lg border border-border/40 bg-muted/10 space-y-1">
-                  <span className="font-semibold text-primary">ThreatMiner API</span>
-                  <p className="text-muted-foreground/80">Query passive DNS mapping databases and associated malware samples.</p>
+                  <span className="font-semibold text-primary">URLScan.io</span>
+                  <p className="text-muted-foreground/80">Historic public scan results and screenshots of web pages.</p>
                 </div>
                 <div className="p-3 rounded-lg border border-border/40 bg-muted/10 space-y-1">
                   <span className="font-semibold text-primary">MalwareBazaar</span>
@@ -392,23 +396,35 @@ export function ThreatIntelPage() {
 
           {/* Results Feeds Tabs - Full Width */}
           <div className="space-y-6">
+              {/* Source Error Banner */}
+              {result.sourceErrors && Object.keys(result.sourceErrors).length > 0 && (
+                <div className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-bold">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>Some threat intelligence sources failed to respond</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(result.sourceErrors).map(([source, errMsg]) => (
+                      <Badge key={source} variant="outline" className="text-[10px] border-amber-500/30 text-amber-600 dark:text-amber-400 font-mono">
+                        {source}: {errMsg.length > 50 ? errMsg.substring(0, 50) + '…' : errMsg}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <Tabs defaultValue="otx" className="w-full">
                 <TabsList className="flex flex-wrap w-full justify-start h-auto bg-muted/50 p-1 rounded-lg gap-1 border">
                   <TabsTrigger value="otx" className="px-3 py-1.5 text-xs sm:text-sm">
                     AlienVault OTX ({result.otxPulses.length})
                   </TabsTrigger>
-                  {(result.detectedType === "domain" || result.detectedType === "ip" || result.detectedType === "hash") && (
-                    <TabsTrigger value="threatminer" className="px-3 py-1.5 text-xs sm:text-sm">
-                      ThreatMiner ({result.threatMinerPassiveDns.length + result.threatMinerSamples.length})
-                    </TabsTrigger>
-                  )}
                   {result.detectedType !== "hash" && (
                     <TabsTrigger value="phishstats" className="px-3 py-1.5 text-xs sm:text-sm">
-                      PhishStats ({result.phishStatsMatches.length})
+                      PhishStats ({result.sourceErrors?.['PhishStats'] ? '⚠' : result.phishStatsMatches.length})
                     </TabsTrigger>
                   )}
                   <TabsTrigger value="urlscan" className="px-3 py-1.5 text-xs sm:text-sm">
-                    URLScan.io ({result.urlScanHistory.length})
+                    URLScan.io ({result.sourceErrors?.['URLScan.io'] ? '⚠' : result.urlScanHistory.length})
                   </TabsTrigger>
                   {result.detectedType === "hash" && (
                     <TabsTrigger value="malwarebazaar" className="px-3 py-1.5 text-xs sm:text-sm">
@@ -492,143 +508,7 @@ export function ThreatIntelPage() {
                   </ResultCard>
                 </TabsContent>
 
-                {/* Tab content ThreatMiner */}
-                <TabsContent value="threatminer" className="mt-4 focus-visible:ring-0">
-                  <div className="space-y-6">
-                    {/* Hash details if hash */}
-                    {result.detectedType === "hash" && result.threatMinerDetails && (
-                      <ResultCard title="ThreatMiner Hash Definition" description="File definition details.">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                          {result.threatMinerDetails.fileSize && (
-                            <div className="p-3 border rounded-lg bg-card">
-                              <span className="text-muted-foreground block">File Size</span>
-                              <span className="font-mono font-bold text-foreground text-sm">
-                                {result.threatMinerDetails.fileSize}
-                              </span>
-                            </div>
-                          )}
-                          {result.threatMinerDetails.fileType && (
-                            <div className="p-3 border rounded-lg bg-card">
-                              <span className="text-muted-foreground block">File Type</span>
-                              <span className="font-bold text-foreground text-sm">
-                                {result.threatMinerDetails.fileType}
-                              </span>
-                            </div>
-                          )}
-                          {result.threatMinerDetails.ssdeep && (
-                            <div className="p-3 border rounded-lg bg-card sm:col-span-2">
-                              <span className="text-muted-foreground block">SSDEEP Fuzzy Hash</span>
-                              <span className="font-mono text-foreground break-all select-all font-semibold">
-                                {result.threatMinerDetails.ssdeep}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </ResultCard>
-                    )}
 
-                    {/* Passive DNS details */}
-                    {(result.detectedType === "domain" || result.detectedType === "ip") && (
-                      <ResultCard
-                        title="Passive DNS Mapping (ThreatMiner)"
-                        description="Historical resolution mappings reported for this indicator."
-                      >
-                        {result.threatMinerPassiveDns.length > 0 ? (
-                          <div className="max-h-[300px] overflow-y-auto border rounded-lg">
-                            <Table>
-                              <TableHeader className="bg-muted/40 sticky top-0 z-10">
-                                <TableRow>
-                                  <TableHead className="font-bold">
-                                    {result.detectedType === "domain" ? "IP Address" : "Domain"}
-                                  </TableHead>
-                                  <TableHead className="font-bold">First Seen</TableHead>
-                                  <TableHead className="font-bold">Last Seen</TableHead>
-                                  <TableHead className="font-bold">Source</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {result.threatMinerPassiveDns.map((row, idx) => (
-                                  <TableRow key={idx} className="hover:bg-muted/20">
-                                    <TableCell className="font-mono text-xs">
-                                      <button
-                                        onClick={() =>
-                                          handleQuickSearch(
-                                            result.detectedType === "domain" ? row.ip : row.domain
-                                          )
-                                        }
-                                        className="text-primary hover:underline font-bold text-left break-all"
-                                      >
-                                        {result.detectedType === "domain" ? row.ip : row.domain}
-                                      </button>
-                                    </TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">{row.firstSeen}</TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">{row.lastSeen}</TableCell>
-                                    <TableCell className="text-xs font-semibold">{row.source}</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </div>
-                        ) : (
-                          <div className="p-4 text-center text-xs text-muted-foreground bg-muted/10 rounded-lg">
-                            No passive DNS records found in ThreatMiner index.
-                          </div>
-                        )}
-                      </ResultCard>
-                    )}
-
-                    {/* ThreatMiner Malware Samples */}
-                    {(result.detectedType === "domain" || result.detectedType === "ip") && (
-                      <ResultCard
-                        title="Associated Malware Samples"
-                        description="Identified file hash associations connected to this network location."
-                      >
-                        {result.threatMinerSamples.length > 0 ? (
-                          <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                            <p className="text-xs text-muted-foreground mb-2">
-                              Clicking a hash queries details inside this Threat Intel page immediately:
-                            </p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                              {result.threatMinerSamples.map((sample, idx) => (
-                                <div
-                                  key={idx}
-                                  className="flex items-center justify-between p-2.5 border rounded-md bg-card/50 text-xs hover:border-primary/50 transition-colors"
-                                >
-                                  <span className="font-mono text-muted-foreground truncate mr-2">
-                                    {sample.hash}
-                                  </span>
-                                  <div className="flex gap-1.5 shrink-0">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-7 w-7"
-                                      onClick={() => navigator.clipboard.writeText(sample.hash)}
-                                      title="Copy Hash"
-                                    >
-                                      <Copy className="w-3.5 h-3.5" />
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-7 px-2 font-semibold text-[10px]"
-                                      onClick={() => handleQuickSearch(sample.hash)}
-                                    >
-                                      Analyze
-                                    </Button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="p-4 text-center text-xs text-muted-foreground bg-muted/10 rounded-lg">
-                            No related malware samples indexed for this host.
-                          </div>
-                        )}
-                      </ResultCard>
-                    )}
-                  </div>
-                </TabsContent>
 
                 {/* Tab content PhishStats */}
                 <TabsContent value="phishstats" className="mt-4 focus-visible:ring-0">
@@ -636,7 +516,15 @@ export function ThreatIntelPage() {
                     title="PhishStats Phishing Incidents"
                     description="Real-time listing of active and historic phishing targets."
                   >
-                    {result.phishStatsMatches.length > 0 ? (
+                    {result.sourceErrors?.['PhishStats'] ? (
+                      <div className="flex items-center gap-3 p-4 rounded-md border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                        <AlertCircle className="w-5 h-5 shrink-0" />
+                        <div className="text-sm">
+                          <span className="font-bold block">PhishStats feed failed to respond</span>
+                          <span className="text-xs opacity-80">{result.sourceErrors['PhishStats']}</span>
+                        </div>
+                      </div>
+                    ) : result.phishStatsMatches.length > 0 ? (
                       <div className="space-y-4">
                         <div className="flex items-center gap-2 p-3 rounded-md border border-destructive/20 bg-destructive/10 text-destructive text-xs font-medium">
                           <ShieldAlert className="w-4.5 h-4.5 shrink-0" />
@@ -715,7 +603,15 @@ export function ThreatIntelPage() {
                     title="URLScan.io History Search"
                     description="Historic public scans of targets conducted on URLScan.io."
                   >
-                    {result.urlScanHistory.length > 0 ? (
+                    {result.sourceErrors?.['URLScan.io'] ? (
+                      <div className="flex items-center gap-3 p-4 rounded-md border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                        <AlertCircle className="w-5 h-5 shrink-0" />
+                        <div className="text-sm">
+                          <span className="font-bold block">URLScan.io feed failed to respond</span>
+                          <span className="text-xs opacity-80">{result.sourceErrors['URLScan.io']}</span>
+                        </div>
+                      </div>
+                    ) : result.urlScanHistory.length > 0 ? (
                       <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-1">
                           {result.urlScanHistory.map((scan, idx) => (
