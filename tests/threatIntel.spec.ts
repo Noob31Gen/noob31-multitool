@@ -29,16 +29,16 @@ test.describe("Threat Intelligence Explorer End-to-End Tests", () => {
     // 8. Assert details card matches query
     await expect(page.locator("h2.font-mono")).toContainText("148.228.16.3");
 
-    // 9. Assert tabs exist and can be toggled
-    const otxTab = page.locator("button[role='tab'][value='otx']");
+    // 9. Assert tabs exist and can be toggled using standard accessible locator names
+    const otxTab = page.getByRole("tab", { name: /AlienVault OTX/i });
     await expect(otxTab).toBeVisible();
 
-    const phishstatsTab = page.locator("button[role='tab'][value='phishstats']");
+    const phishstatsTab = page.getByRole("tab", { name: /PhishStats/i });
     await expect(phishstatsTab).toBeVisible();
 
-    // 10. Click PhishStats tab and verify results table or empty notice is present
+    // 10. Click PhishStats tab and verify results card is visible
     await phishstatsTab.click();
-    const phishstatsContent = page.locator("[data-slot='tabs-content'][value='phishstats']");
+    const phishstatsContent = page.locator("text=PhishStats Phishing Incidents");
     await expect(phishstatsContent).toBeVisible();
   });
 
@@ -60,7 +60,7 @@ test.describe("Threat Intelligence Explorer End-to-End Tests", () => {
     await expect(resultsContainer).toBeVisible({ timeout: 15000 });
 
     // Verify MalwareBazaar tab is present
-    const mbTab = page.locator("button[role='tab'][value='malwarebazaar']");
+    const mbTab = page.getByRole("tab", { name: /MalwareBazaar/i });
     await expect(mbTab).toBeVisible();
   });
 
