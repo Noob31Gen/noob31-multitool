@@ -74,6 +74,7 @@ export function SettingsSheet() {
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="auto">Auto (Fallback Pool)</SelectItem>
                 <SelectItem value="google">Google Public DNS</SelectItem>
                 <SelectItem value="cloudflare">Cloudflare DNS</SelectItem>
                 <SelectItem value="alidns">AliDNS</SelectItem>

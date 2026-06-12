@@ -81,6 +81,7 @@ export interface VisitResult {
   responseTime: number;
   contentType: string;
   server: string;
+  redirectChain?: string[];
 }
 const DEFAULT_PORTS: Record<string, string> = {
   'http:': '80',
@@ -181,12 +182,15 @@ export function parseUrl(input: string): ParsedUrl {
     });
   });
 
+  const redirectParams = ['url', 'u', 'target', 'dest', 'destination', 'link', 'to', 'r', 'out', 'go', 'next', 'forward', 'click', 'href', 'site', 'view', 'redirect', 'redir', 'return'];
+
   const passiveRedirects: { key: string; url: string; host: string }[] = [];
   params.forEach(p => {
     const val = p.decoded.trim();
     const isFullUrl = val.startsWith('http://') || val.startsWith('https://');
+    const isRedirectKey = redirectParams.includes(p.key.toLowerCase());
 
-    if (isFullUrl || looksLikeDomain(val)) {
+    if (isFullUrl || looksLikeDomain(val) || isRedirectKey) {
       try {
         const urlToParse = isFullUrl ? val : 'https://' + val;
         const u = new URL(urlToParse);
@@ -277,53 +281,104 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
   if (!targetUrl.match(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//)) {
     targetUrl = 'https://' + targetUrl;
   }
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  let currentUrl = targetUrl;
+  const redirectChain: string[] = [currentUrl];
+  let redirected = false;
+  let status = 200;
+  let statusText = 'OK';
+  let headersList: { key: string; value: string }[] = [];
+  let contentType = '';
+  let server = '';
+  let loopCount = 0;
+  const maxHops = 5;
+
   const startTime = performance.now();
-  try {
-    let res = await authenticatedFetch(proxyUrl, { method: 'HEAD', signal: controller.signal });
 
-    if (res.status >= 400 && res.status !== 404) {
-      res = await authenticatedFetch(proxyUrl, { method: 'GET', signal: controller.signal });
-    }
-    clearTimeout(timeoutId);
-    const responseTime = Math.round(performance.now() - startTime);
-    const headers: { key: string; value: string }[] = [];
-    res.headers.forEach((value, key) => {
-      headers.push({ key, value });
-    });
-
-    const extractedFinal = extractTargetUrl(res.url, settings.corsProvider, settings.customCorsUrl);
-
-    let finalUrl = extractedFinal;
-    let redirected = false;
+  while (loopCount < maxHops) {
+    const proxyUrl = getProxiedUrl(currentUrl, settings.corsProvider, settings.customCorsUrl);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
     try {
-      const targetNorm = new URL(targetUrl).href;
-      const finalNorm = new URL(extractedFinal).href;
-      if (targetNorm !== finalNorm) {
-        redirected = true;
-        finalUrl = finalNorm;
-      }
-    } catch {
-      if (extractedFinal !== targetUrl) {
-        redirected = true;
-      }
-    }
+      const res = await authenticatedFetch(proxyUrl, {
+        method: 'HEAD',
+        headers: { 'Accept': '*/*' },
+        redirect: 'manual',
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
 
-    return {
-      status: res.status,
-      statusText: res.statusText,
-      headers,
-      redirected,
-      finalUrl,
-      responseTime,
-      contentType: res.headers.get('content-type') || '',
-      server: res.headers.get('server') || '',
-    };
-  } catch (err: unknown) {
-    clearTimeout(timeoutId);
-    throw err;
+      status = res.status;
+      statusText = res.statusText;
+
+      headersList = [];
+      res.headers.forEach((value, key) => {
+        headersList.push({ key, value });
+      });
+
+      contentType = res.headers.get('content-type') || contentType;
+      server = res.headers.get('server') || server;
+
+      const location = res.headers.get('location');
+      if (res.status >= 300 && res.status < 400 && location) {
+        redirected = true;
+        let nextUrl = location;
+        try {
+          nextUrl = new URL(location, currentUrl).href;
+        } catch { /* ignore */ }
+
+        redirectChain.push(nextUrl);
+        currentUrl = nextUrl;
+        loopCount++;
+      } else {
+        break;
+      }
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (loopCount === 0) {
+        const proxyUrlGet = getProxiedUrl(currentUrl, settings.corsProvider, settings.customCorsUrl);
+        const controllerGet = new AbortController();
+        const timeoutIdGet = setTimeout(() => controllerGet.abort(), 8000);
+        
+        const resGet = await authenticatedFetch(proxyUrlGet, { method: 'GET', signal: controllerGet.signal });
+        clearTimeout(timeoutIdGet);
+
+        status = resGet.status;
+        statusText = resGet.statusText;
+
+        headersList = [];
+        resGet.headers.forEach((value, key) => {
+          headersList.push({ key, value });
+        });
+
+        contentType = resGet.headers.get('content-type') || contentType;
+        server = resGet.headers.get('server') || server;
+
+        const extractedFinal = extractTargetUrl(resGet.url, settings.corsProvider, settings.customCorsUrl);
+        if (extractedFinal !== targetUrl) {
+          redirected = true;
+          redirectChain.push(extractedFinal);
+          currentUrl = extractedFinal;
+        }
+      } else {
+        logger.warn(`Redirect hop failed:`, err);
+      }
+      break;
+    }
   }
+
+  const responseTime = Math.round(performance.now() - startTime);
+
+  return {
+    status,
+    statusText,
+    headers: headersList,
+    redirected,
+    finalUrl: currentUrl,
+    responseTime,
+    contentType,
+    server,
+    redirectChain
+  };
 }

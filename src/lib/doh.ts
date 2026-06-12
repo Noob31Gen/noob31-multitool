@@ -3,6 +3,7 @@ import { logger } from './logger';
 import { Buffer } from 'buffer';
 import type { CorsProvider } from './cors';
 import { getProxiedUrl, authenticatedFetch } from './cors';
+
 export interface DNSRecord {
   name: string;
   type: number;
@@ -10,34 +11,58 @@ export interface DNSRecord {
   TTL: number;
   data: string;
 }
+
 export interface DNSResponse {
   status: number;
   records: DNSRecord[];
   authority?: DNSRecord[];
   queryTime: number;
-  provider: 'google' | 'cloudflare' | 'alidns' | 'adguard' | 'custom';
+  provider: 'auto' | 'google' | 'cloudflare' | 'alidns' | 'adguard' | 'quad9' | 'opendns' | 'custom' | string;
 }
+
 const TYPE_MAP: Record<number, string> = {
   1: 'A', 2: 'NS', 5: 'CNAME', 6: 'SOA', 12: 'PTR', 15: 'MX', 16: 'TXT',
   28: 'AAAA', 29: 'LOC', 33: 'SRV', 43: 'DS', 45: 'IPSECKEY', 46: 'RRSIG',
   47: 'NSEC', 48: 'DNSKEY', 50: 'NSEC3', 51: 'NSEC3PARAM', 255: 'ANY'
 };
+
 export function getTypeName(typeCode: number): string {
   return TYPE_MAP[typeCode] || `TYPE${typeCode}`;
 }
-export async function queryDNS(
+
+interface CacheEntry {
+  response: DNSResponse;
+  expiry: number;
+}
+
+const dnsCache = new Map<string, CacheEntry>();
+
+function getMinTtl(response: DNSResponse): number {
+  let minTtl = 60; // Minimum default TTL (60 seconds)
+  const allRecords = [...response.records, ...(response.authority || [])];
+  if (allRecords.length > 0) {
+    const ttls = allRecords.map(r => r.TTL).filter(t => typeof t === 'number' && t > 0);
+    if (ttls.length > 0) {
+      minTtl = Math.max(10, Math.min(...ttls)); // Clamp between 10s and minimum TTL
+    }
+  }
+  return Math.min(minTtl, 600); // Cap cache duration at 10 minutes to prevent overly stale results
+}
+
+async function executeSingleQuery(
   domain: string,
   type: string,
-  provider: 'google' | 'cloudflare' | 'alidns' | 'adguard' | 'custom' = 'google',
+  provider: 'google' | 'cloudflare' | 'alidns' | 'adguard' | 'quad9' | 'opendns' | 'custom',
   customUrl: string = '',
   corsProvider: CorsProvider = 'none',
-  customCorsUrl: string = ''
+  customCorsUrl: string = '',
+  startTime: number = performance.now()
 ): Promise<DNSResponse> {
-  const startTime = performance.now();
   let url = '';
   let headers: HeadersInit = { 'Accept': 'application/dns-json' };
   const body: BodyInit | null = null;
   const method = 'GET';
+
   if (provider === 'google') {
     url = `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`;
   } else if (provider === 'cloudflare') {
@@ -46,6 +71,28 @@ export async function queryDNS(
     url = `https://dns.alidns.com/resolve?name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`;
   } else if (provider === 'adguard') {
     url = `https://dns.adguard-dns.com/resolve?name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`;
+  } else if (provider === 'quad9') {
+    const packet = dnsPacket.encode({
+      type: 'query',
+      id: 1,
+      flags: dnsPacket.RECURSION_DESIRED,
+      questions: [{ type: type as dnsPacket.RecordType, name: domain }]
+    });
+    const base64 = btoa(Array.from(packet).map(b => String.fromCharCode(b)).join(''));
+    const base64Url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    url = `https://dns.quad9.net/dns-query?dns=${base64Url}`;
+    headers = { 'Accept': 'application/dns-message' };
+  } else if (provider === 'opendns') {
+    const packet = dnsPacket.encode({
+      type: 'query',
+      id: 1,
+      flags: dnsPacket.RECURSION_DESIRED,
+      questions: [{ type: type as dnsPacket.RecordType, name: domain }]
+    });
+    const base64 = btoa(Array.from(packet).map(b => String.fromCharCode(b)).join(''));
+    const base64Url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    url = `https://doh.opendns.com/dns-query?dns=${base64Url}`;
+    headers = { 'Accept': 'application/dns-message' };
   } else if (provider === 'custom') {
     const packet = dnsPacket.encode({
       type: 'query',
@@ -60,9 +107,11 @@ export async function queryDNS(
       : `${customUrl}?dns=${base64Url}`;
     headers = { 'Accept': 'application/dns-message' };
   }
+
   const proxiedUrl = getProxiedUrl(url, corsProvider, customCorsUrl);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
+
   try {
     const response = await authenticatedFetch(proxiedUrl, { method, headers, body, signal: controller.signal });
     clearTimeout(timeoutId);
@@ -97,6 +146,7 @@ export async function queryDNS(
         })),
       };
     }
+
     const queryTime = Math.round(performance.now() - startTime);
     const mapRecords = (records: { name: string; type: number; TTL: number; data: unknown }[] = []): DNSRecord[] => {
       return records.map((r: { name: string; type: number; TTL: number; data: unknown }) => ({
@@ -107,6 +157,7 @@ export async function queryDNS(
         data: typeof r.data === 'string' ? r.data : JSON.stringify(r.data),
       }));
     };
+
     return {
       status: data.Status ?? -1,
       records: mapRecords(data.Answer as DNSRecord[]),
@@ -116,7 +167,65 @@ export async function queryDNS(
     };
   } catch (error) {
     clearTimeout(timeoutId);
-    logger.error(`[DoH] Fetch Error:`, error);
     throw error;
+  }
+}
+
+export async function queryDNS(
+  domain: string,
+  type: string,
+  provider: 'auto' | 'google' | 'cloudflare' | 'alidns' | 'adguard' | 'quad9' | 'opendns' | 'custom' = 'auto',
+  customUrl: string = '',
+  corsProvider: CorsProvider = 'none',
+  customCorsUrl: string = ''
+): Promise<DNSResponse> {
+  const cacheKey = `${domain.toLowerCase()}_${type.toUpperCase()}_${provider}_${customUrl}_${corsProvider}`;
+  const now = Date.now();
+  const cached = dnsCache.get(cacheKey);
+  
+  if (cached && cached.expiry > now) {
+    return cached.response;
+  }
+
+  const startTime = performance.now();
+
+  if (provider === 'auto') {
+    const fallbackPool: ('google' | 'cloudflare' | 'adguard' | 'alidns' | 'quad9' | 'opendns')[] = [
+      'google',
+      'cloudflare',
+      'adguard',
+      'alidns',
+      'quad9',
+      'opendns'
+    ];
+    let lastError: Error | null = null;
+    for (const p of fallbackPool) {
+      try {
+        const res = await executeSingleQuery(domain, type, p, '', corsProvider, customCorsUrl, startTime);
+        const minTtl = getMinTtl(res);
+        dnsCache.set(cacheKey, {
+          response: res,
+          expiry: now + minTtl * 1000
+        });
+        return res;
+      } catch (err: unknown) {
+        lastError = err instanceof Error ? err : new Error(String(err));
+        logger.warn(`DoH Provider '${p}' failed for query '${domain} (${type})':`, err);
+      }
+    }
+    throw lastError || new Error(`All DoH providers failed in Auto fallback pool.`);
+  } else {
+    try {
+      const res = await executeSingleQuery(domain, type, provider, customUrl, corsProvider, customCorsUrl, startTime);
+      const minTtl = getMinTtl(res);
+      dnsCache.set(cacheKey, {
+        response: res,
+        expiry: now + minTtl * 1000
+      });
+      return res;
+    } catch (err: unknown) {
+      logger.error(`[DoH] Fetch Error for provider '${provider}':`, err);
+      throw err;
+    }
   }
 }

@@ -1,9 +1,13 @@
 import type { AppSettings } from "./settings"
+import type { CorsProvider } from "./cors"
 import { getProxiedUrl, authenticatedFetch } from "@/lib/cors"
+import { logger } from "./logger"
+
 export interface SubdomainResult {
   subdomain: string;
   sources: string[];
 }
+
 function extractValidSubdomain(sub: string, domain: string): string | null {
   if (!sub) return null;
   let cleanSub = sub.trim().toLowerCase();
@@ -20,12 +24,67 @@ function extractValidSubdomain(sub: string, domain: string): string | null {
   }
   return null;
 }
+
+// Robust fallback fetching mechanism that automatically cycles through alternative CORS proxies if one fails or rate-limits
+async function fetchWithProxyFallback(
+  targetUrl: string,
+  settings: AppSettings,
+  headers: HeadersInit = {},
+  timeout = 12000
+): Promise<Response> {
+  const providers: CorsProvider[] = [
+    settings.corsProvider,
+    'codetabs',
+    'corsproxy',
+    'allorigins',
+    'thingproxy',
+    'corsanywhere',
+    'none'
+  ];
+  
+  const uniqueProviders = Array.from(new Set(providers));
+  let lastError: Error | null = null;
+  
+  for (const provider of uniqueProviders) {
+    const proxyUrl = getProxiedUrl(targetUrl, provider, settings.customCorsUrl);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+      const res = await authenticatedFetch(proxyUrl, {
+        headers,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
+      if (res.ok) {
+        const contentType = res.headers.get('content-type') || '';
+        // If query returned HTML and it isn't expected (like crt.sh/wayback returning JSON/text), it is likely a proxy rate limit page
+        if (contentType.includes('text/html') && !targetUrl.includes('crt.sh/?q=') && !targetUrl.includes('web.archive.org')) {
+          const text = await res.clone().text();
+          if (text.includes('Too Many Requests') || text.includes('Rate Limit') || text.includes('Block') || text.includes('Cloudflare')) {
+            throw new Error(`Proxy '${provider}' rate-limited or blocked.`);
+          }
+        }
+        return res;
+      }
+      throw new Error(`HTTP ${res.status}`);
+    } catch (err: unknown) {
+      clearTimeout(timeoutId);
+      lastError = err instanceof Error ? err : new Error(String(err));
+      logger.warn(`Fetch via proxy provider '${provider}' failed for '${targetUrl}':`, err);
+    }
+  }
+  throw lastError || new Error(`Failed to fetch '${targetUrl}' through all proxy fallbacks.`);
+}
+
 export async function querySubdomains(
   domain: string,
   settings: AppSettings,
   onProgress: (results: SubdomainResult[], errors: string[], sourceName: string) => void
 ): Promise<void> {
   domain = domain.trim().toLowerCase();
+  
   const sources = [
     { name: 'HackerTarget', fn: fetchHackerTarget },
     { name: 'URLScan.io', fn: fetchUrlScan },
@@ -34,45 +93,52 @@ export async function querySubdomains(
     { name: 'Anubis', fn: fetchAnubis },
     { name: 'Mnemonic', fn: fetchMnemonic },
     { name: 'BufferOver', fn: fetchBufferOver },
-    { name: 'Wayback Machine', fn: fetchWaybackMachine }
+    { name: 'Wayback Machine', fn: fetchWaybackMachine },
+    { name: 'AlienVault OTX', fn: fetchAlienVaultOTX },
+    { name: 'ThreatMiner', fn: fetchThreatMiner },
+    { name: 'Subdomain Center', fn: fetchSubdomainCenter }
   ];
+  
   const subdomainMap = new Map<string, Set<string>>();
-  let allFailed = true;
+  let successCount = 0;
   const errors: string[] = [];
-  for (const source of sources) {
+
+  const runQuery = async (source: typeof sources[0]) => {
     try {
-      const data: { subdomain: string; source: string }[] = await source.fn(domain, settings);
-      allFailed = false;
-      data.forEach(({ subdomain, source }: { subdomain: string; source: string }) => {
+      const data = await source.fn(domain, settings);
+      successCount++;
+      data.forEach(({ subdomain, source: srcName }) => {
         if (!subdomainMap.has(subdomain)) {
           subdomainMap.set(subdomain, new Set());
         }
-        subdomainMap.get(subdomain)!.add(source);
+        subdomainMap.get(subdomain)!.add(srcName);
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       errors.push(`${source.name}: ${message}`);
     }
+    
+    // Output progress update as queries complete
     const currentResults: SubdomainResult[] = Array.from(subdomainMap.entries()).map(([subdomain, sourcesSet]) => ({
       subdomain,
       sources: Array.from(sourcesSet).sort()
     }));
     currentResults.sort((a, b) => a.subdomain.localeCompare(b.subdomain));
     onProgress(currentResults, errors, source.name);
-  }
-  if (allFailed) {
+  };
+
+  // Run all lookups concurrently
+  await Promise.all(sources.map(s => runQuery(s)));
+
+  if (successCount === 0) {
     throw new Error(`All subdomain sources failed. Details: ${errors.join(" | ")}`);
   }
 }
+
 async function fetchHackerTarget(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://api.hackertarget.com/hostsearch/?q=${domain}`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
   try {
-    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const res = await fetchWithProxyFallback(targetUrl, settings);
     const text = await res.text();
     if (text.includes("error") || text.includes("API count exceeded")) {
       throw new Error(`HackerTarget API Error: ${text.trim()}`);
@@ -90,26 +156,18 @@ async function fetchHackerTarget(domain: string, settings: AppSettings): Promise
     }
     return results;
   } catch (error: unknown) {
-    clearTimeout(timeoutId);
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`${message}`);
   }
 }
+
 async function fetchUrlScan(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://urlscan.io/api/v1/search/?q=domain:${domain}&size=10000`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
   try {
-    const res = await authenticatedFetch(proxyUrl, {
-      signal: controller.signal,
-      headers: { 'Accept': 'application/json' }
-    });
-    clearTimeout(timeoutId);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const res = await fetchWithProxyFallback(targetUrl, settings, { 'Accept': 'application/json' });
     const text = await res.text();
     if (!text || text.trim().startsWith('<')) {
-      throw new Error('API returned an HTML error page. The proxy or endpoint is likely blocked.');
+      throw new Error('API returned an HTML error page. The endpoint is likely blocked.');
     }
     const data = JSON.parse(text);
     const results: { subdomain: string, source: string }[] = [];
@@ -125,23 +183,18 @@ async function fetchUrlScan(domain: string, settings: AppSettings): Promise<{ su
     }
     return results;
   } catch (error: unknown) {
-    clearTimeout(timeoutId);
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Source Error: ${message}`);
+    throw new Error(`${message}`);
   }
 }
+
 async function fetchCrtSh(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://crt.sh/?q=%.${domain}&output=json`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
   try {
-    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const res = await fetchWithProxyFallback(targetUrl, settings);
     const text = await res.text();
     if (!text || text.trim().startsWith('<')) {
-      throw new Error('API returned an HTML error page. The proxy or endpoint is likely blocked.');
+      throw new Error('API returned HTML output. The crt.sh server might be overloaded.');
     }
     const data = JSON.parse(text);
     const results: { subdomain: string, source: string }[] = [];
@@ -169,29 +222,18 @@ async function fetchCrtSh(domain: string, settings: AppSettings): Promise<{ subd
     }
     return results;
   } catch (error: unknown) {
-    clearTimeout(timeoutId);
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`crt.sh: ${message}`);
+    throw new Error(`${message}`);
   }
 }
+
 async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://api.certspotter.com/v1/issuances?domain=${domain}&include_subdomains=true&expand=dns_names`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
   try {
-    const res = await authenticatedFetch(proxyUrl, {
-      signal: controller.signal,
-      headers: { 'Accept': 'application/json' }
-    });
-    clearTimeout(timeoutId);
-    if (!res.ok) {
-      if (res.status === 404) return [];
-      throw new Error(`HTTP ${res.status}`);
-    }
+    const res = await fetchWithProxyFallback(targetUrl, settings, { 'Accept': 'application/json' });
     const text = await res.text();
     if (!text || text.trim().startsWith('<')) {
-      throw new Error('API returned an HTML error page. The proxy or endpoint is likely blocked.');
+      throw new Error('API returned HTML output. The endpoint may be rate-limited.');
     }
     const data = JSON.parse(text);
     const results: { subdomain: string, source: string }[] = [];
@@ -209,20 +251,15 @@ async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<
     }
     return results;
   } catch (error: unknown) {
-    clearTimeout(timeoutId);
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`CertSpotter: ${message}`);
+    throw new Error(`${message}`);
   }
 }
+
 async function fetchAnubis(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://jldc.me/anubis/subdomains/${domain}`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
   try {
-    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const res = await fetchWithProxyFallback(targetUrl, settings);
     const text = await res.text();
     if (!text || text.trim().startsWith('<')) {
       throw new Error('API returned HTML instead of JSON');
@@ -239,20 +276,15 @@ async function fetchAnubis(domain: string, settings: AppSettings): Promise<{ sub
     }
     return results;
   } catch (error: unknown) {
-    clearTimeout(timeoutId);
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Anubis: ${message}`);
+    throw new Error(`${message}`);
   }
 }
+
 async function fetchMnemonic(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://api.mnemonic.no/pdns/v3/${domain}`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
   try {
-    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const res = await fetchWithProxyFallback(targetUrl, settings);
     const text = await res.text();
     if (!text || text.trim().startsWith('<')) {
       throw new Error('API returned HTML instead of JSON');
@@ -269,20 +301,15 @@ async function fetchMnemonic(domain: string, settings: AppSettings): Promise<{ s
     }
     return results;
   } catch (error: unknown) {
-    clearTimeout(timeoutId);
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Mnemonic: ${message}`);
+    throw new Error(`${message}`);
   }
 }
+
 async function fetchWaybackMachine(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `http://web.archive.org/cdx/search/cdx?url=*.${domain}/*&output=json&collapse=urlkey&fl=original`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
   try {
-    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const res = await fetchWithProxyFallback(targetUrl, settings);
     const text = await res.text();
     if (!text || text.trim().startsWith('<')) {
       throw new Error('API returned HTML instead of JSON');
@@ -309,20 +336,15 @@ async function fetchWaybackMachine(domain: string, settings: AppSettings): Promi
     }
     return results;
   } catch (error: unknown) {
-    clearTimeout(timeoutId);
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Wayback Machine: ${message}`);
+    throw new Error(`${message}`);
   }
 }
+
 async function fetchBufferOver(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://tls.bufferover.run/dns?q=.${domain}`;
-  const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
   try {
-    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const res = await fetchWithProxyFallback(targetUrl, settings);
     const text = await res.text();
     if (!text || text.trim().startsWith('<')) throw new Error('API returned HTML instead of JSON');
     const data = JSON.parse(text);
@@ -340,8 +362,76 @@ async function fetchBufferOver(domain: string, settings: AppSettings): Promise<{
     }
     return results;
   } catch (error: unknown) {
-    clearTimeout(timeoutId);
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`BufferOver: ${message}`);
+    throw new Error(`${message}`);
+  }
+}
+
+async function fetchAlienVaultOTX(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
+  const targetUrl = `https://otx.alienvault.com/api/v1/indicators/domain/${domain}/passive_dns`;
+  try {
+    const res = await fetchWithProxyFallback(targetUrl, settings);
+    const data = await res.json();
+    const results: { subdomain: string, source: string }[] = [];
+    if (data && Array.isArray(data.passive_dns)) {
+      for (const record of data.passive_dns) {
+        if (record && record.hostname) {
+          const validSub = extractValidSubdomain(record.hostname, domain);
+          if (validSub) {
+            results.push({ subdomain: validSub, source: 'AlienVault OTX' });
+          }
+        }
+      }
+    }
+    return results;
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`${message}`);
+  }
+}
+
+async function fetchThreatMiner(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
+  const targetUrl = `https://api.threatminer.org/v2/domain.php?q=${domain}&rt=5`;
+  try {
+    const res = await fetchWithProxyFallback(targetUrl, settings);
+    const data = await res.json();
+    const results: { subdomain: string, source: string }[] = [];
+    if (data && Array.isArray(data.results)) {
+      for (const sub of data.results) {
+        if (typeof sub === 'string') {
+          const validSub = extractValidSubdomain(sub, domain);
+          if (validSub) {
+            results.push({ subdomain: validSub, source: 'ThreatMiner' });
+          }
+        }
+      }
+    }
+    return results;
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`${message}`);
+  }
+}
+
+async function fetchSubdomainCenter(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
+  const targetUrl = `https://api.subdomain.center/api4?domain=${domain}`;
+  try {
+    const res = await fetchWithProxyFallback(targetUrl, settings);
+    const data = await res.json();
+    const results: { subdomain: string, source: string }[] = [];
+    if (Array.isArray(data)) {
+      for (const sub of data) {
+        if (typeof sub === 'string') {
+          const validSub = extractValidSubdomain(sub, domain);
+          if (validSub) {
+            results.push({ subdomain: validSub, source: 'Subdomain Center' });
+          }
+        }
+      }
+    }
+    return results;
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`${message}`);
   }
 }

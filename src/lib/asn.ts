@@ -156,14 +156,91 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
     query: query,
     isAsn: isAsn
   };
+  
+  // 1. Try primary ipapi.is lookup
   try {
     const targetUrl = `https://api.ipapi.is/?q=${query}`;
     const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-    const res = await authenticatedFetch(proxyUrl);
+    const res = await fetchWithTimeout(proxyUrl, 8000);
     if (res.ok) {
       resultData.ipapi = await res.json();
     }
   } catch { logger.warn("IPAPI fetch failed."); }
+
+  // 2. IP Queries fallback cascade: ipwhois.app -> ip-api.com
+  if (!isAsn && (!resultData.ipapi || resultData.ipapi.is_bogon === undefined)) {
+    // Try ipwhois.app
+    try {
+      const targetUrl = `https://ipwhois.app/json/${query}`;
+      const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+      const res = await fetchWithTimeout(proxyUrl, 8000);
+      if (res.ok) {
+        const ipw = await res.json();
+        if (ipw && ipw.success !== false) {
+          const cleanAsnNum = ipw.asn ? parseInt(ipw.asn.replace(/as/i, ''), 10) : undefined;
+          resultData.ipapi = {
+            asn: cleanAsnNum ? {
+              asn: cleanAsnNum,
+              org: ipw.org || ipw.isp,
+              descr: ipw.org || ipw.isp,
+              country: ipw.country_code
+            } : undefined,
+            org: ipw.org || ipw.isp,
+            descr: ipw.org || ipw.isp,
+            country: ipw.country,
+            location: {
+              country: ipw.country,
+              country_code: ipw.country_code,
+              city: ipw.city,
+              state: ipw.region,
+              continent: ipw.continent,
+              latitude: ipw.latitude,
+              longitude: ipw.longitude,
+              timezone: ipw.timezone
+            }
+          };
+        }
+      }
+    } catch { logger.warn("ipwhois.app fetch failed."); }
+
+    // Try ip-api.com if ipwhois failed or returned no data
+    if (!resultData.ipapi) {
+      try {
+        const targetUrl = `http://ip-api.com/json/${query}`;
+        const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+        const res = await fetchWithTimeout(proxyUrl, 8000);
+        if (res.ok) {
+          const ipa = await res.json();
+          if (ipa && ipa.status === 'success') {
+            const cleanAsnNum = ipa.as ? parseInt(ipa.as.split(' ')[0].replace(/as/i, ''), 10) : undefined;
+            resultData.ipapi = {
+              asn: cleanAsnNum ? {
+                asn: cleanAsnNum,
+                org: ipa.org || ipa.isp,
+                descr: ipa.as || ipa.org || ipa.isp,
+                country: ipa.countryCode
+              } : undefined,
+              org: ipa.org || ipa.isp,
+              descr: ipa.as || ipa.org || ipa.isp,
+              country: ipa.country,
+              location: {
+                country: ipa.country,
+                country_code: ipa.countryCode,
+                city: ipa.city,
+                state: ipa.regionName,
+                latitude: ipa.lat,
+                longitude: ipa.lon,
+                timezone: ipa.timezone,
+                zip: ipa.zip
+              }
+            };
+          }
+        }
+      } catch { logger.warn("ip-api.com fetch failed."); }
+    }
+  }
+
+  // 3. ASN queries ripeoverview fetch
   if (isAsn && !resultData.ipapi) {
     try {
       const targetUrl = `https://stat.ripe.net/data/as-overview/data.json?resource=${query}`;
@@ -174,6 +251,8 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
       }
     } catch { logger.warn("RIPEstat fetch failed."); }
   }
+
+  // 4. ASN queries peeringdb fetch
   if (isAsn) {
     try {
       const cleanAsn = query.replace(/AS/i, '');
@@ -182,15 +261,45 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
       const res = await fetchWithTimeout(proxyUrl, 10000);
       if (res.ok) {
         const pdb = await res.json();
-        if (pdb.data?.length > 0) {
+        if (pdb.data && pdb.data.length > 0) {
           resultData.peeringdb = pdb.data[0];
         }
       }
     } catch { logger.warn("PeeringDB fetch failed."); }
   }
-  if (!resultData.ipapi && !resultData.ripe && !resultData.peeringdb) {
-    throw new Error("Could not retrieve data from any provider.");
+
+  // 5. ASN queries bgpview fallback fetch
+  let bgpviewData: {
+    asn?: number;
+    name?: string;
+    description_short?: string;
+    description_full?: string[];
+    website?: string;
+    abuse_contact?: string;
+    owner_address?: string[];
+    traffic_ratio?: string;
+    irr_as_set?: string;
+    country_code?: string;
+  } | null = null;
+  if (isAsn) {
+    try {
+      const cleanAsn = query.replace(/AS/i, '');
+      const targetUrl = `https://api.bgpview.io/asn/${cleanAsn}`;
+      const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+      const res = await fetchWithTimeout(proxyUrl, 10000);
+      if (res.ok) {
+        const bgpv = await res.json();
+        if (bgpv && bgpv.status === 'ok') {
+          bgpviewData = bgpv.data;
+        }
+      }
+    } catch { logger.warn("BGPView fetch failed."); }
   }
+
+  if (!resultData.ipapi && !resultData.ripe && !resultData.peeringdb && !bgpviewData) {
+    throw new Error("Could not retrieve data from any IP/ASN provider.");
+  }
+
   const ipapi: IPAPIResponse = resultData.ipapi || {};
   const isDirectAsn = typeof ipapi.asn === 'number';
   const ipapiAsn = typeof ipapi.asn === 'object' ? ipapi.asn : null;
@@ -198,10 +307,10 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
   const ripe = resultData.ripe?.data || {};
   
   resultData.parsed = {
-    asn: isDirectAsn ? `AS${ipapi.asn}` : (ipapiAsn?.asn ? `AS${ipapiAsn.asn}` : (pdb.asn ? `AS${pdb.asn}` : query)),
-    org: isDirectAsn ? (ipapi.org || ipapi.descr) : (ipapi.company?.name || ipapiAsn?.org || ipapiAsn?.descr || pdb.name || ripe.holder),
-    description: isDirectAsn ? ipapi.descr : (ipapiAsn?.descr || pdb.aka),
-    domain: isDirectAsn ? ipapi.domain : (ipapi.company?.domain || ipapiAsn?.domain || pdb.website),
+    asn: isDirectAsn ? `AS${ipapi.asn}` : (ipapiAsn?.asn ? `AS${ipapiAsn.asn}` : (pdb.asn ? `AS${pdb.asn}` : (bgpviewData?.asn ? `AS${bgpviewData.asn}` : query))),
+    org: isDirectAsn ? (ipapi.org || ipapi.descr) : (ipapi.company?.name || ipapiAsn?.org || ipapiAsn?.descr || pdb.name || ripe.holder || bgpviewData?.name || bgpviewData?.description_short),
+    description: isDirectAsn ? ipapi.descr : (ipapiAsn?.descr || pdb.aka || bgpviewData?.description_full?.[0] || bgpviewData?.description_short),
+    domain: isDirectAsn ? ipapi.domain : (ipapi.company?.domain || ipapiAsn?.domain || pdb.website || bgpviewData?.website),
     type: isDirectAsn ? ipapi.type : (ipapi.company?.type || ipapiAsn?.type || pdb.info_type),
     rir: isDirectAsn ? ipapi.rir : (ipapi.rir || ipapiAsn?.rir || ripe.block?.desc),
     route: !isDirectAsn ? ipapiAsn?.route : undefined,
@@ -219,12 +328,12 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
     is_abuser: ipapi.is_abuser || false,
     dc_name: ipapi.datacenter?.datacenter,
     dc_network: ipapi.datacenter?.network,
-    abuse_email: isDirectAsn ? (typeof ipapi.asn === 'object' ? ipapi.asn?.abuse : undefined) : (ipapi.abuse?.email || ipapiAsn?.abuse),
+    abuse_email: isDirectAsn ? (typeof ipapi.asn === 'object' ? ipapi.asn?.abuse : undefined) : (ipapi.abuse?.email || ipapiAsn?.abuse || bgpviewData?.abuse_contact),
     abuse_name: !isDirectAsn ? ipapi.abuse?.name : undefined,
     abuse_phone: !isDirectAsn ? ipapi.abuse?.phone : undefined,
-    abuse_address: !isDirectAsn ? ipapi.abuse?.address : undefined,
-    country: isDirectAsn ? ipapi.country : (ipapi.location?.country || ipapiAsn?.country),
-    country_code: !isDirectAsn ? ipapi.location?.country_code : (isDirectAsn ? ipapi.country : undefined),
+    abuse_address: !isDirectAsn ? ipapi.abuse?.address || (bgpviewData?.owner_address ? bgpviewData.owner_address.join(', ') : undefined) : undefined,
+    country: isDirectAsn ? ipapi.country : (ipapi.location?.country || ipapiAsn?.country || bgpviewData?.country_code),
+    country_code: !isDirectAsn ? ipapi.location?.country_code || bgpviewData?.country_code : (isDirectAsn ? ipapi.country : undefined),
     city: !isDirectAsn ? ipapi.location?.city : undefined,
     state: !isDirectAsn ? ipapi.location?.state : undefined,
     continent: !isDirectAsn ? ipapi.location?.continent : undefined,
@@ -233,9 +342,9 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
     timezone: !isDirectAsn ? ipapi.location?.timezone : undefined,
     zip: !isDirectAsn ? ipapi.location?.zip : undefined,
     local_time: !isDirectAsn ? ipapi.location?.local_time : undefined,
-    website: pdb.website,
-    irr_as_set: pdb.irr_as_set,
-    traffic_ratio: pdb.info_ratio,
+    website: pdb.website || bgpviewData?.website,
+    irr_as_set: pdb.irr_as_set || bgpviewData?.irr_as_set,
+    traffic_ratio: pdb.info_ratio || bgpviewData?.traffic_ratio,
     scope: pdb.info_scope,
     ix_count: pdb.ix_count,
     fac_count: pdb.fac_count,

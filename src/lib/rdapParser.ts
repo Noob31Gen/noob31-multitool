@@ -75,6 +75,17 @@ function processEntities(entities: RDAPData[], parsed: ParsedRDAP) {
   }
 }
 
+function toLocalTime(isoString?: string): string | undefined {
+  if (!isoString) return undefined;
+  try {
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return isoString;
+    return date.toLocaleString();
+  } catch {
+    return isoString;
+  }
+}
+
 export function parseRDAP(data: RDAPData): ParsedRDAP {
   const parsed: ParsedRDAP = {
     name: data.ldhName || data.name || '',
@@ -94,9 +105,9 @@ export function parseRDAP(data: RDAPData): ParsedRDAP {
   }
   if (data.events && Array.isArray(data.events)) {
     for (const event of data.events) {
-      if (event.eventAction === 'registration') parsed.creationDate = event.eventDate;
-      if (event.eventAction === 'expiration') parsed.expirationDate = event.eventDate;
-      if (event.eventAction === 'last changed') parsed.updatedDate = event.eventDate;
+      if (event.eventAction === 'registration') parsed.creationDate = toLocalTime(event.eventDate);
+      if (event.eventAction === 'expiration') parsed.expirationDate = toLocalTime(event.eventDate);
+      if (event.eventAction === 'last changed') parsed.updatedDate = toLocalTime(event.eventDate);
     }
   }
   if (data.entities) {

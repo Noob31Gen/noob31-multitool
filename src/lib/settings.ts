@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { logger } from './logger';
 import type { CorsProvider } from './cors';
 import { safeStorage } from './storage';
-export type DoHProvider = 'google' | 'cloudflare' | 'alidns' | 'adguard' | 'custom';
+export type DoHProvider = 'auto' | 'google' | 'cloudflare' | 'alidns' | 'adguard' | 'custom';
 export interface AppSettings {
   dohProvider: DoHProvider;
   customDnsUrl: string;
@@ -12,7 +12,7 @@ export interface AppSettings {
   persistenceEnabled: boolean;
 }
 export const defaultSettings: AppSettings = {
-  dohProvider: 'google',
+  dohProvider: 'auto',
   customDnsUrl: '',
   corsProvider: 'none',
   customCorsUrl: '',
