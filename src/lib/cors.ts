@@ -128,14 +128,29 @@ if (typeof window !== 'undefined') {
         const isExternal = urlStr.startsWith('http://') || urlStr.startsWith('https://');
         const isLocalhost = urlStr.includes('localhost') || urlStr.includes('127.0.0.1') || urlStr.includes('::1');
 
+        // Direct interception for explicitly chosen AllOrigins JSON-wrapped proxy
+        const isAllOriginsJson = urlStr.startsWith('https://api.allorigins.win/get?url=');
+        if (isAllOriginsJson) {
+            const res = await originalFetch(input, init);
+            if (res.ok) {
+                const data = await res.json();
+                return new Response(data.contents, {
+                    status: res.status,
+                    statusText: res.statusText,
+                    headers: res.headers
+                });
+            }
+            return res;
+        }
+
         if (corsProvider === 'auto' && isExternal && !isLocalhost) {
             const AUTO_PROXY_CYCLE: CorsProvider[] = [
                 'none',
                 'corsproxy',
                 'allorigins',
-                'codetabs',
                 'thingproxy',
-                'corsanywhere'
+                'corsanywhere',
+                'codetabs'
             ];
 
             let lastError: unknown = null;
