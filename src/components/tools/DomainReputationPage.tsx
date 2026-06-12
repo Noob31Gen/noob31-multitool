@@ -422,10 +422,9 @@ export function DomainReputationPage() {
                 <li>DNSSEC active: +5 pts bonus</li>
                 <li className="pt-1 font-semibold text-foreground list-none">Lookup Failure Penalties:</li>
                 <ul className="list-disc list-inside pl-4 space-y-0.5">
-                  <li>Quad9 unable to fetch: -15 pts</li>
+                  <li>Quad9 unable to fetch: -20 pts</li>
                   <li>RDAP age unable to fetch: -15 pts</li>
-                  <li>OTX unable to fetch: -10 pts</li>
-                  <li>ThreatMiner unable to fetch: -10 pts</li>
+                  <li>OTX unable to fetch: -15 pts</li>
                   <li>DNSSEC unable to fetch: -5 pts</li>
                 </ul>
               </ul>
