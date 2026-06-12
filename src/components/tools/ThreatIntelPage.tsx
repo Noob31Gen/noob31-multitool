@@ -341,74 +341,57 @@ export function ThreatIntelPage() {
       {/* Success State Results */}
       {status === "success" && result && (
         <div className="space-y-6">
-          {/* Quick Info Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="md:col-span-3 border-border/80 flex flex-col justify-center">
-              <CardContent className="py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                      Target Indicator
-                    </span>
-                    <Badge variant="outline" className={`${getBadgeColor(result.detectedType)} font-mono`}>
-                      {getDetectedTypeLabel(result.detectedType)}
-                    </Badge>
-                  </div>
-                  <h2 className="text-xl font-bold font-mono text-foreground break-all">{result.query}</h2>
-                </div>
-                <div className={`p-3.5 border rounded-lg text-center ${severity.bg}`}>
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">
-                    Aggregated Risk Assessment
-                  </span>
-                  <span className={`text-sm ${severity.color}`}>{severity.label}</span>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Sleek Search-Engine Header Bar */}
+          <div className="flex flex-col gap-4 border-b border-border/60 pb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                  Target Indicator
+                </span>
+                <h2 className="text-lg sm:text-xl font-bold font-mono text-foreground break-all select-all">
+                  {result.query}
+                </h2>
+                <Badge variant="outline" className={`${getBadgeColor(result.detectedType)} font-mono`}>
+                  {getDetectedTypeLabel(result.detectedType)}
+                </Badge>
+                <Badge className={`font-semibold border ${severity.bg} ${severity.color}`}>
+                  {severity.label}
+                </Badge>
+              </div>
 
-            <Card className="border-border/80 bg-muted/10 flex flex-col justify-between h-full">
-              <CardContent className="py-6 text-center flex flex-col justify-between h-full">
-                <div className="space-y-1">
-                  <span className="text-xs uppercase tracking-wider text-muted-foreground block">Query Time</span>
-                  <span className="text-2xl font-black text-primary font-mono">{result.queryTime} ms</span>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 justify-center mt-3">
-                  <CopyButton data={JSON.stringify(result, null, 2)} text="Copy Results" />
+              <div className="flex items-center gap-3 self-start md:self-auto text-xs">
+                <span className="text-muted-foreground font-mono bg-muted/60 px-2 py-1 rounded border">
+                  Query Time: <strong className="font-semibold text-foreground">{result.queryTime} ms</strong>
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <CopyButton data={JSON.stringify(result, null, 2)} text="Copy" />
                   <ExportButton data={result} filename={`threat-intel-${result.query}.json`} />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+
+            {/* Horizontal External Threat Portals */}
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="text-muted-foreground font-medium flex items-center gap-1 mr-1">
+                <Link2 className="w-3.5 h-3.5 text-primary shrink-0" /> Portals:
+              </span>
+              {currentExternalLinks.map((link, idx) => (
+                <Button
+                  key={idx}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(link.url, "_blank", "noopener,noreferrer")}
+                  className="h-7 text-[11px] font-normal border-border/80 hover:bg-muted/50 text-muted-foreground hover:text-foreground px-3 py-0.5 rounded-full shrink-0 flex items-center gap-1"
+                >
+                  <span className="truncate">{link.name}</span>
+                  <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/60 shrink-0" />
+                </Button>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-            {/* Sidebar Redirect Dashboard */}
-            <Card className="lg:col-span-1 border-border/80 self-start">
-              <CardContent className="pt-6 space-y-4">
-                <h3 className="text-xs uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
-                  <Link2 className="w-4 h-4 text-primary" />
-                  External Threat Portals
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  Deep link search redirects to professional assessment suites:
-                </p>
-                <div className="flex flex-col gap-2">
-                  {currentExternalLinks.map((link, idx) => (
-                    <Button
-                      key={idx}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(link.url, "_blank", "noopener,noreferrer")}
-                      className="justify-between text-xs w-full group"
-                    >
-                      <span className="truncate">{link.name}</span>
-                      <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Results Feeds Tabs */}
-            <div className="lg:col-span-3 space-y-6">
+          {/* Results Feeds Tabs - Full Width */}
+          <div className="space-y-6">
               <Tabs defaultValue="otx" className="w-full">
                 <TabsList className="flex flex-wrap w-full justify-start h-auto bg-muted/50 p-1 rounded-lg gap-1 border">
                   <TabsTrigger value="otx" className="px-3 py-1.5 text-xs sm:text-sm">
@@ -440,7 +423,14 @@ export function ThreatIntelPage() {
                     title="OTX Security Pulses"
                     description="Active threat advisory reports associated with this indicator in AlienVault OTX."
                   >
-                    {result.otxPulses.length > 0 ? (
+                    {result.otxUnauthKeywordSearch ? (
+                      <div className="flex items-center gap-3 p-4 rounded-md border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                        <ShieldAlert className="w-5 h-5 shrink-0" />
+                        <div className="text-sm font-medium">
+                          General keyword searches are not allowed by AlienVault OTX without an API key (unauthenticated queries are blocked). Please query an IP, Domain, URL, or Hash.
+                        </div>
+                      </div>
+                    ) : result.otxPulses.length > 0 ? (
                       <div className="space-y-4">
                         <div className="flex items-center gap-2 p-3 rounded-md border border-destructive/20 bg-destructive/10 text-destructive text-xs font-medium">
                           <ShieldAlert className="w-4.5 h-4.5 shrink-0" />
@@ -913,8 +903,7 @@ export function ThreatIntelPage() {
               </Tabs>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        )}
+      </div>
+    );
 }

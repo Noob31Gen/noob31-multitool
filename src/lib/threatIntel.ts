@@ -71,6 +71,7 @@ export interface AggregatedThreatIntel {
     reputation?: number;
     sections?: string[];
   };
+  otxUnauthKeywordSearch?: boolean;
   threatMinerPassiveDns: ThreatMinerPassiveDns[];
   threatMinerSamples: ThreatMinerSample[];
   threatMinerDetails?: {
@@ -129,7 +130,7 @@ async function fetchOtxPulses(
   query: string,
   type: ThreatInputType,
   settings: AppSettings
-): Promise<{ pulses: ThreatPulse[]; metadata?: { reputation?: number } }> {
+): Promise<{ pulses: ThreatPulse[]; metadata?: { reputation?: number }; keywordUnauth?: boolean }> {
   try {
     let otxType = "domain";
     if (type === "ip") {
@@ -140,8 +141,7 @@ async function fetchOtxPulses(
       otxType = "url";
     } else if (type === "keyword") {
       // General OTX keyword search is not allowed keylessly (returns 401/403).
-      // Return empty array to fallback to browser search
-      return { pulses: [] };
+      return { pulses: [], keywordUnauth: true };
     }
 
     // Clean query slightly if url
@@ -505,6 +505,7 @@ export async function searchThreatIntel(
     detectedType,
     otxPulses: otxRes.pulses,
     otxMetadata: otxRes.metadata,
+    otxUnauthKeywordSearch: otxRes.keywordUnauth,
     threatMinerPassiveDns: tmRes.dns,
     threatMinerSamples: tmRes.samples,
     threatMinerDetails: tmRes.details,
