@@ -53,7 +53,7 @@ export function formatMac(mac: string): string {
 
 export function isValidMac(mac: string): boolean {
   const clean = formatMac(mac);
-  return clean.length === 6 || clean.length === 12;
+  return clean.length === 6 || clean.length === 12 || clean.length === 16;
 }
 
 export async function lookupMac(

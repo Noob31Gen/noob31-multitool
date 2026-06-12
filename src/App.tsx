@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { DNSLookupPage } from "@/components/tools/DNSLookupPage"
 import { DNSSECLookupPage } from "@/components/tools/DNSSECLookupPage"
@@ -62,7 +62,7 @@ function App() {
               </p>
               <br></br>
               <p className="text-lg text-muted-foreground mb-10 max-w-2xl">
-                <a className="underline" href="/about/info">About</a> |&nbsp;
+                <Link className="underline" to="/about/info">About</Link> |&nbsp;
                 <a className="underline" href="https://noob31.com/" target="_blank" rel="noreferrer">My Website</a> |&nbsp;
                 <a className="underline" href="https://github.com/Noob31Gen/noob31-multitool" target="_blank" rel="noreferrer">GitHub</a>
               </p>

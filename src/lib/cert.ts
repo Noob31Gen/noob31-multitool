@@ -8,40 +8,32 @@ export interface NormalizedCert {
 }
 export async function queryCert(domain: string, settings: AppSettings): Promise<NormalizedCert[]> {
   domain = domain.trim().toLowerCase();
-  return new Promise((resolve, reject) => {
-    const errors: string[] = [];
-    let completed = 0;
-    let emptyResults = 0;
-    const checkDone = () => {
-      if (completed === 2) {
-        if (emptyResults === 2) {
-          resolve([]);
-        } else {
-          reject(new Error(`All sources failed. Details: ${errors.join(" | ")}`));
-        }
-      }
-    };
-    const handleResult = (data: NormalizedCert[]) => {
-      if (data.length > 0) {
-        resolve(deduplicateCerts(data));
-      } else {
-        emptyResults++;
-        completed++;
-        checkDone();
-      }
-    };
-    const handleError = (source: string, err: Error) => {
-      errors.push(`${source}: ${err.message}`);
-      completed++;
-      checkDone();
-    };
-    fetchCrtSh(domain, settings)
-      .then(handleResult)
-      .catch(err => handleError("crt.sh", err));
+  const results = await Promise.allSettled([
+    fetchCrtSh(domain, settings),
     fetchCertSpotter(domain, settings)
-      .then(handleResult)
-      .catch(err => handleError("CertSpotter", err));
+  ]);
+
+  const allCerts: NormalizedCert[] = [];
+  const errors: string[] = [];
+  let successCount = 0;
+
+  results.forEach((result, idx) => {
+    const sourceName = idx === 0 ? "crt.sh" : "CertSpotter";
+    if (result.status === 'fulfilled') {
+      successCount++;
+      if (result.value) {
+        allCerts.push(...result.value);
+      }
+    } else {
+      errors.push(`${sourceName}: ${result.reason?.message || result.reason}`);
+    }
   });
+
+  if (successCount === 0) {
+    throw new Error(`All sources failed. Details: ${errors.join(" | ")}`);
+  }
+
+  return deduplicateCerts(allCerts);
 }
 async function fetchCrtSh(domain: string, settings: AppSettings): Promise<NormalizedCert[]> {
   const targetUrl = `https://crt.sh/?q=${domain}&output=json`;

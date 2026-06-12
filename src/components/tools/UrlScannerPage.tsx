@@ -530,6 +530,14 @@ export function UrlScannerPage() {
                         </div>
                       )}
                     </div>
+                    {settings.corsProvider !== 'none' && (
+                      <div className="mt-3 flex items-start gap-2 p-3 rounded-lg border border-amber-500/20 bg-amber-500/5 text-amber-600 dark:text-amber-400 text-xs leading-relaxed">
+                        <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                        <p>
+                          <strong>Header Accuracy Notice:</strong> Live visit requests are routed through the <strong>{settings.corsProvider}</strong> CORS proxy. Standard security headers (such as <code>Content-Security-Policy</code>, <code>Strict-Transport-Security</code>, <code>X-Frame-Options</code>, etc.) or server metadata may be modified, stripped, or added by the proxy, and may not fully reflect the target server's native configurations.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>

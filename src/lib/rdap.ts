@@ -1,5 +1,6 @@
 import type { AppSettings } from "./settings"
 import { getProxiedUrl, authenticatedFetch } from "./cors"
+import { safeStorage } from "./storage"
 
 export async function queryRDAP(query: string, settings: AppSettings) {
   query = query.trim();
@@ -7,17 +8,17 @@ export async function queryRDAP(query: string, settings: AppSettings) {
   const basePath = isIP ? `ip/${query}` : `domain/${query}`;
   const url = `https://rdap.org/${basePath}`;
   
-  // 1. Consult localStorage cache first (1-hour cache TTL)
+  // 1. Consult safeStorage cache first (1-hour cache TTL)
   const cacheKey = `rdap_${query.toLowerCase()}`;
   try {
-    const cached = localStorage.getItem(cacheKey);
+    const cached = safeStorage.getItem(cacheKey);
     if (cached) {
       const parsed = JSON.parse(cached);
       if (Date.now() - parsed.timestamp < 3600000) { 
         return parsed.data;
       }
     }
-  } catch { /* ignore localStorage issues */ }
+  } catch { /* ignore safeStorage issues */ }
 
   const fetchWithProxy = async (targetUrl: string) => {
     const controller = new AbortController();
@@ -62,7 +63,7 @@ export async function queryRDAP(query: string, settings: AppSettings) {
   try {
     const data = await tryQuery(url);
     try {
-      localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data }));
+      safeStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data }));
     } catch { /* ignore */ }
     return data;
   } catch (err: unknown) {
@@ -79,7 +80,7 @@ export async function queryRDAP(query: string, settings: AppSettings) {
         try {
           const data = await tryQuery(endpoint);
           try {
-            localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data }));
+            safeStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data }));
           } catch { /* ignore */ }
           return data;
         } catch { /* ignore and try next */ }

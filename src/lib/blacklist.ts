@@ -1,5 +1,7 @@
 import { queryDNS } from "./doh"
 import type { AppSettings } from "./settings"
+import { isValidIP, expandIPv6 } from "./reverseDns"
+
 export const DNSBL_ZONES = [
   "bl.spamcop.net",
   "b.barracudacentral.org",
@@ -13,22 +15,54 @@ export const DNSBL_ZONES = [
   "ips.backscatterer.org",
   "ix.dnsbl.manitu.net",
   "psbl.surriel.com",
-  "ubl.unsubscore.com",
-  "list.dnswl.org"
+  "ubl.unsubscore.com"
 ];
+
+function getDnsblTarget(ip: string, zone: string): string {
+  const { valid, isIPv6 } = isValidIP(ip);
+  if (!valid) throw new Error("Invalid IP address");
+
+  if (!isIPv6) {
+    const reversedIp = ip.split('.').reverse().join('.');
+    return `${reversedIp}.${zone}`;
+  } else {
+    const expanded = expandIPv6(ip);
+    const hexDigits = expanded.replace(/:/g, '').split('');
+    const reversedNibbles = hexDigits.reverse().join('.');
+    return `${reversedNibbles}.${zone}`;
+  }
+}
+
 export async function checkBlacklist(ip: string, settings: AppSettings) {
   ip = ip.trim();
-  const isIPv4 = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip);
-  if (!isIPv4) throw new Error("Blacklist check currently requires a valid IPv4 address.");
-  const reversedIp = ip.split('.').reverse().join('.');
+  const { valid } = isValidIP(ip);
+  if (!valid) throw new Error("Blacklist check requires a valid IPv4 or IPv6 address.");
+
   const promises = DNSBL_ZONES.map(async (zone) => {
-    const target = `${reversedIp}.${zone}`;
     try {
+      const target = getDnsblTarget(ip, zone);
       const resA = await queryDNS(target, 'A', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
       if (resA.status === 3 || resA.records.length === 0) {
         return { zone, listed: false, records: [], details: null, classification: null, error: false };
       }
       const returnIps = resA.records.map((r: { data: string }) => r.data);
+      
+      const isRefused = returnIps.some(ipAddr => 
+        ipAddr.startsWith("127.255.255.") || 
+        (ipAddr === "127.0.0.1" && (zone.includes("barracudacentral") || zone.includes("sorbs") || zone.includes("spamcop")))
+      );
+
+      if (isRefused) {
+        return {
+          zone,
+          listed: false,
+          records: [],
+          details: "Query Refused / Rate Limited by DNSBL (public resolver query block)",
+          classification: null,
+          error: false
+        };
+      }
+
       const classification = returnIps.join(', ');
       let txtDetails = null;
       try {

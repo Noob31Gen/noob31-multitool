@@ -75,18 +75,21 @@ export function getRegistrableDomain(domain: string): string {
   if (parts.length <= 2) return domain;
 
   // List of common double TLD suffixes
+  // List of common double TLD suffixes and dynamic hosting provider root domains
   const doubleTlds = new Set([
-    "co.uk", "org.uk", "me.uk", "ltd.uk", "plc.uk", "sch.uk",
+    "co.uk", "org.uk", "me.uk", "ltd.uk", "plc.uk", "sch.uk", "gov.uk", "nhs.uk",
     "com.au", "net.au", "org.au", "edu.au", "gov.au",
-    "co.in", "net.in", "org.in", "firm.in", "gen.in", "ind.in",
-    "com.br", "net.br", "org.br",
-    "co.jp", "org.jp", "ad.jp", "ne.jp", "gr.jp",
-    "com.sg", "net.sg", "org.sg",
-    "com.my", "net.my", "org.my",
-    "co.nz", "net.nz", "org.nz",
-    "co.za", "net.za", "org.za",
-    "com.tw", "net.tw", "org.tw",
-    "com.cn", "net.cn", "org.cn", "gov.cn"
+    "co.in", "net.in", "org.in", "firm.in", "gen.in", "ind.in", "nic.in", "ac.in", "edu.in", "res.in", "gov.in",
+    "com.br", "net.br", "org.br", "gov.br", "edu.br", "inf.br", "eti.br", "srv.br",
+    "co.jp", "org.jp", "ad.jp", "ne.jp", "gr.jp", "ac.jp", "ed.jp", "go.jp",
+    "com.sg", "net.sg", "org.sg", "gov.sg", "edu.sg",
+    "com.my", "net.my", "org.my", "gov.my", "edu.my",
+    "co.nz", "net.nz", "org.nz", "govt.nz", "school.nz", "ac.nz", "geek.nz",
+    "co.za", "net.za", "org.za", "web.za", "ac.za", "gov.za",
+    "com.tw", "net.tw", "org.tw", "gov.tw", "edu.tw",
+    "com.cn", "net.cn", "org.cn", "gov.cn", "edu.cn",
+    "github.io", "pages.dev", "blogspot.com", "herokuapp.com", "weebly.com",
+    "wixsite.com", "web.app", "firebaseapp.com", "vercel.app", "netlify.app"
   ]);
 
   const lastTwo = parts.slice(-2).join('.');

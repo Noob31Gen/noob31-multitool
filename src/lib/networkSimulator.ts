@@ -71,7 +71,7 @@ export const isIpInSubnet = (ip: string, subnetCidr: string): boolean => {
   const maskBits = parseInt(mask, 10);
   const ipNum = ipToNum(ip);
   const subnetNum = ipToNum(subnet);
-  const maskNum = (0xffffffff << (32 - maskBits)) >>> 0;
+  const maskNum = maskBits === 0 ? 0 : (0xffffffff << (32 - maskBits)) >>> 0;
   return (ipNum & maskNum) === (subnetNum & maskNum);
 };
 

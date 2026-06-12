@@ -1,6 +1,7 @@
-import { queryDNS, type DNSRecord } from "./doh";
+import { queryDNS } from "./doh";
 import { formatEmailAuthQuery, filterEmailAuthRecords } from "./emailAuthParsers";
 import type { AppSettings } from "./settings";
+import { discoverDkim, validateDmarcSyntax, analyzeSpfRecursively } from "./emailValidator";
 
 function isValidFQDN(domain: string): boolean {
   const fqdnRegex = /^(?=.{1,253}$)(?:(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,63}$/;
@@ -12,109 +13,6 @@ const extractTxt = (record: { data?: string; value?: string } | string | null | 
   if (typeof record === 'string') return record.toLowerCase();
   return String(record.data || record.value || "").toLowerCase();
 };
-
-async function discoverDkim(domain: string, settings: AppSettings): Promise<{ records: DNSRecord[]; selector: string }> {
-  const commonSelectors = ['google', 'default', 'k1', 'mail', 'mx', 'selector1', 'sig1', 'dkim', 'key'];
-  const promises = commonSelectors.map(async (sel) => {
-    try {
-      const target = `${sel}._domainkey.${domain}`;
-      const res = await queryDNS(target, 'TXT', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
-      const filtered = filterEmailAuthRecords(res.records, 'DKIM');
-      if (filtered && filtered.length > 0) {
-        return { records: filtered, selector: sel };
-      }
-    } catch { /* ignore */ }
-    return null;
-  });
-  
-  const results = await Promise.all(promises);
-  const found = results.find(r => r !== null);
-  return found || { records: [], selector: 'default' };
-}
-
-function validateDmarcSyntax(dmarcRecord: string): { valid: boolean; errors: string[] } {
-  const errors: string[] = [];
-  const tags = dmarcRecord.split(';').map(t => t.trim()).filter(Boolean);
-  
-  const dmarcTags: Record<string, string> = {};
-  for (const t of tags) {
-    const parts = t.split('=');
-    if (parts.length === 2) {
-      dmarcTags[parts[0].trim().toLowerCase()] = parts[1].trim();
-    }
-  }
-
-  if (dmarcTags['v'] && dmarcTags['v'].toUpperCase() !== 'DMARC1') {
-    errors.push("v= tag value must be DMARC1.");
-  }
-  
-  const p = dmarcTags['p'];
-  if (!p) {
-    errors.push("Missing policy (p=) tag.");
-  } else if (!['none', 'quarantine', 'reject'].includes(p.toLowerCase())) {
-    errors.push(`Invalid policy value: p=${p}. Must be 'none', 'quarantine', or 'reject'.`);
-  }
-
-  const pct = dmarcTags['pct'];
-  if (pct) {
-    const pctVal = parseInt(pct, 10);
-    if (isNaN(pctVal) || pctVal < 0 || pctVal > 100) {
-      errors.push(`Invalid percentage: pct=${pct}. Must be an integer between 0 and 100.`);
-    }
-  }
-
-  const rua = dmarcTags['rua'];
-  if (rua) {
-    const uris = rua.split(',');
-    for (const uri of uris) {
-      if (!uri.trim().toLowerCase().startsWith('mailto:')) {
-        errors.push(`Reporting URI in rua tag must start with mailto: (${uri.trim()})`);
-      }
-    }
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors
-  };
-}
-
-async function validateSpfIncludes(spfRecord: string, settings: AppSettings): Promise<{ valid: boolean; errors: string[] }> {
-  const errors: string[] = [];
-  const parts = spfRecord.split(/\s+/);
-  const includeDomains: string[] = [];
-  let redirectDomain = '';
-
-  for (const part of parts) {
-    if (part.toLowerCase().startsWith('include:')) {
-      includeDomains.push(part.substring(8));
-    } else if (part.toLowerCase().startsWith('redirect=')) {
-      redirectDomain = part.substring(9);
-    }
-  }
-
-  const domainsToCheck = [...includeDomains];
-  if (redirectDomain) domainsToCheck.push(redirectDomain);
-
-  const lookups = domainsToCheck.map(async (dom) => {
-    try {
-      const res = await queryDNS(dom, 'TXT', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
-      const spfText = res.records.find(r => r.data.toLowerCase().includes('v=spf1'));
-      if (!spfText) {
-        errors.push(`Domain '${dom}' in SPF record has no valid SPF (TXT) record.`);
-      }
-    } catch {
-      errors.push(`Failed to resolve external SPF domain '${dom}'.`);
-    }
-  });
-
-  await Promise.all(lookups);
-
-  return {
-    valid: errors.length === 0,
-    errors
-  };
-}
 
 export async function runDeliverabilityCheck(domain: string, selector: string, settings: AppSettings) {
   domain = domain.trim();
@@ -195,17 +93,31 @@ export async function runDeliverabilityCheck(domain: string, selector: string, s
       recommendations.push({ level: 'good', msg: "SPF record is present and well-formed." });
     }
 
-    // SPF include validation
-    const spfValidation = await validateSpfIncludes(spfData, settings);
-    if (!spfValidation.valid) {
+    // SPF recursive validation & lookup count check
+    const spfAnalysis = await analyzeSpfRecursively(domain, settings);
+    if (spfAnalysis.lookupsCount > 10) {
+      score -= 20;
+      recommendations.push({
+        level: 'critical',
+        msg: `SPF record triggers ${spfAnalysis.lookupsCount} recursive DNS lookups, exceeding the RFC-mandated limit of 10. This causes a PermError and blocks delivery.`
+      });
+    } else {
+      recommendations.push({
+        level: 'good',
+        msg: `SPF record is within DNS lookup limit (triggers ${spfAnalysis.lookupsCount} out of 10 lookups).`
+      });
+    }
+
+    if (spfAnalysis.errors.length > 0) {
       score -= 10;
-      spfValidation.errors.forEach(err => {
-        recommendations.push({ level: 'high', msg: `SPF include verification: ${err}` });
+      spfAnalysis.errors.forEach(err => {
+        recommendations.push({ level: 'high', msg: `SPF validation issue: ${err}` });
       });
     }
   }
 
   const dmarc = results.find(r => r.type === 'DMARC')?.records || [];
+  let isDmarcEnforced = false;
   if (dmarc.length === 0) {
     score -= 20;
     recommendations.push({ level: 'high', msg: "Missing DMARC record. Phishers can easily spoof your domain." });
@@ -218,6 +130,7 @@ export async function runDeliverabilityCheck(domain: string, selector: string, s
       score -= 5;
       recommendations.push({ level: 'medium', msg: "DMARC is set to p=none (Monitoring). Consider enforcing quarantine or reject." });
     } else {
+      isDmarcEnforced = true;
       recommendations.push({ level: 'good', msg: "DMARC enforcement policy is active." });
     }
 
@@ -243,7 +156,15 @@ export async function runDeliverabilityCheck(domain: string, selector: string, s
   if (bimi.length === 0) {
     recommendations.push({ level: 'low', msg: "No BIMI record found. Add BIMI to show your brand logo in supported email clients." });
   } else {
-    recommendations.push({ level: 'good', msg: "BIMI record is configured." });
+    if (!isDmarcEnforced) {
+      score -= 10;
+      recommendations.push({
+        level: 'critical',
+        msg: "BIMI is configured, but DMARC policy is not enforced (is set to p=none or missing). BIMI requires an enforced DMARC policy (quarantine or reject) to show your logo."
+      });
+    } else {
+      recommendations.push({ level: 'good', msg: "BIMI record is configured and supported by enforced DMARC policy." });
+    }
   }
 
   const mtasts = results.find(r => r.type === 'MTA-STS')?.records || [];

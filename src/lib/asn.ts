@@ -203,40 +203,47 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
       }
     } catch { logger.warn("ipwhois.app fetch failed."); }
 
-    // Try ip-api.com if ipwhois failed or returned no data
+    // Try ip-api.com (if proxied) or ipapi.co (if direct HTTPS) if ipwhois failed
     if (!resultData.ipapi) {
       try {
-        const targetUrl = `http://ip-api.com/json/${query}`;
+        const useProxy = settings.corsProvider !== 'none';
+        const targetUrl = useProxy 
+          ? `http://ip-api.com/json/${query}` 
+          : `https://ipapi.co/${query}/json`;
         const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
         const res = await fetchWithTimeout(proxyUrl, 8000);
         if (res.ok) {
           const ipa = await res.json();
-          if (ipa && ipa.status === 'success') {
-            const cleanAsnNum = ipa.as ? parseInt(ipa.as.split(' ')[0].replace(/as/i, ''), 10) : undefined;
+          const isIpApiCo = !useProxy;
+          const statusSuccess = isIpApiCo ? (ipa && !ipa.error) : (ipa && ipa.status === 'success');
+          if (statusSuccess) {
+            const org = isIpApiCo ? ipa.org : (ipa.org || ipa.isp);
+            const asnStr = isIpApiCo ? ipa.asn : (ipa.as ? ipa.as.split(' ')[0] : undefined);
+            const cleanAsnNum = asnStr ? parseInt(String(asnStr).replace(/as/i, ''), 10) : undefined;
             resultData.ipapi = {
               asn: cleanAsnNum ? {
                 asn: cleanAsnNum,
-                org: ipa.org || ipa.isp,
-                descr: ipa.as || ipa.org || ipa.isp,
-                country: ipa.countryCode
+                org: org,
+                descr: isIpApiCo ? ipa.org : (ipa.as || org),
+                country: isIpApiCo ? ipa.country_code : ipa.countryCode
               } : undefined,
-              org: ipa.org || ipa.isp,
-              descr: ipa.as || ipa.org || ipa.isp,
-              country: ipa.country,
+              org: org,
+              descr: isIpApiCo ? ipa.org : (ipa.as || org),
+              country: isIpApiCo ? ipa.country_name : ipa.country,
               location: {
-                country: ipa.country,
-                country_code: ipa.countryCode,
+                country: isIpApiCo ? ipa.country_name : ipa.country,
+                country_code: isIpApiCo ? ipa.country_code : ipa.countryCode,
                 city: ipa.city,
-                state: ipa.regionName,
-                latitude: ipa.lat,
-                longitude: ipa.lon,
+                state: isIpApiCo ? ipa.region : ipa.regionName,
+                latitude: isIpApiCo ? ipa.latitude : ipa.lat,
+                longitude: isIpApiCo ? ipa.longitude : ipa.lon,
                 timezone: ipa.timezone,
-                zip: ipa.zip
+                zip: isIpApiCo ? ipa.postal || ipa.zip : ipa.zip
               }
             };
           }
         }
-      } catch { logger.warn("ip-api.com fetch failed."); }
+      } catch { logger.warn("Fallback Geo-IP fetch failed."); }
     }
   }
 

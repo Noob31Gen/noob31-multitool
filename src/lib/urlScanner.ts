@@ -331,16 +331,48 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
         redirectChain.push(nextUrl);
         currentUrl = nextUrl;
         loopCount++;
-      } else {
-        break;
-      }
-    } catch (err) {
-      clearTimeout(timeoutId);
-      if (loopCount === 0) {
+      } else if (res.status === 403 || res.status === 405) {
+        // Fallback to GET for servers rejecting HEAD
         const proxyUrlGet = getProxiedUrl(currentUrl, settings.corsProvider, settings.customCorsUrl);
         const controllerGet = new AbortController();
         const timeoutIdGet = setTimeout(() => controllerGet.abort(), 8000);
         
+        try {
+          const resGet = await authenticatedFetch(proxyUrlGet, { method: 'GET', signal: controllerGet.signal });
+          clearTimeout(timeoutIdGet);
+
+          status = resGet.status;
+          statusText = resGet.statusText;
+
+          headersList = [];
+          resGet.headers.forEach((value, key) => {
+            headersList.push({ key, value });
+          });
+
+          contentType = resGet.headers.get('content-type') || contentType;
+          server = resGet.headers.get('server') || server;
+
+          const extractedFinal = extractTargetUrl(resGet.url, settings.corsProvider, settings.customCorsUrl);
+          if (extractedFinal !== currentUrl) {
+            redirected = true;
+            redirectChain.push(extractedFinal);
+            currentUrl = extractedFinal;
+          }
+        } catch (getErr) {
+          clearTimeout(timeoutIdGet);
+          logger.warn(`Fallback GET failed:`, getErr);
+        }
+        break;
+      } else {
+        break;
+      }
+    } catch {
+      clearTimeout(timeoutId);
+      const proxyUrlGet = getProxiedUrl(currentUrl, settings.corsProvider, settings.customCorsUrl);
+      const controllerGet = new AbortController();
+      const timeoutIdGet = setTimeout(() => controllerGet.abort(), 8000);
+      
+      try {
         const resGet = await authenticatedFetch(proxyUrlGet, { method: 'GET', signal: controllerGet.signal });
         clearTimeout(timeoutIdGet);
 
@@ -356,13 +388,14 @@ export async function visitUrl(url: string, settings: AppSettings): Promise<Visi
         server = resGet.headers.get('server') || server;
 
         const extractedFinal = extractTargetUrl(resGet.url, settings.corsProvider, settings.customCorsUrl);
-        if (extractedFinal !== targetUrl) {
+        if (extractedFinal !== currentUrl) {
           redirected = true;
           redirectChain.push(extractedFinal);
           currentUrl = extractedFinal;
         }
-      } else {
-        logger.warn(`Redirect hop failed:`, err);
+      } catch (getErr) {
+        clearTimeout(timeoutIdGet);
+        logger.warn(`Redirect hop fallback GET failed:`, getErr);
       }
       break;
     }

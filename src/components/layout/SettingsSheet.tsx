@@ -32,12 +32,12 @@ export function SettingsSheet() {
   const handleApply = () => {
     setSettings(localSettings);
     safeStorage.setItem('url-scanner-settings', JSON.stringify(localSettings));
-    window.location.reload();
+    setIsOpen(false);
   };
   const handleReset = () => {
     setSettings(defaultSettings);
     safeStorage.setItem('url-scanner-settings', JSON.stringify(defaultSettings));
-    window.location.reload();
+    setIsOpen(false);
   };
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>

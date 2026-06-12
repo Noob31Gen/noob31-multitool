@@ -30,15 +30,12 @@ async function fetchWithProxyFallback(
   targetUrl: string,
   settings: AppSettings,
   headers: HeadersInit = {},
-  timeout = 12000
+  timeout = 4000
 ): Promise<Response> {
   const providers: CorsProvider[] = [
     settings.corsProvider,
     'codetabs',
     'corsproxy',
-    'allorigins',
-    'thingproxy',
-    'corsanywhere',
     'none'
   ];
   
@@ -59,7 +56,6 @@ async function fetchWithProxyFallback(
       
       if (res.ok) {
         const contentType = res.headers.get('content-type') || '';
-        // If query returned HTML and it isn't expected (like crt.sh/wayback returning JSON/text), it is likely a proxy rate limit page
         if (contentType.includes('text/html') && !targetUrl.includes('crt.sh/?q=') && !targetUrl.includes('web.archive.org')) {
           const text = await res.clone().text();
           if (text.includes('Too Many Requests') || text.includes('Rate Limit') || text.includes('Block') || text.includes('Cloudflare')) {
@@ -307,7 +303,7 @@ async function fetchMnemonic(domain: string, settings: AppSettings): Promise<{ s
 }
 
 async function fetchWaybackMachine(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
-  const targetUrl = `http://web.archive.org/cdx/search/cdx?url=*.${domain}/*&output=json&collapse=urlkey&fl=original`;
+  const targetUrl = `http://web.archive.org/cdx/search/cdx?url=*.${domain}/*&output=json&collapse=urlkey&fl=original&limit=10000`;
   try {
     const res = await fetchWithProxyFallback(targetUrl, settings);
     const text = await res.text();
@@ -317,20 +313,26 @@ async function fetchWaybackMachine(domain: string, settings: AppSettings): Promi
     const data = JSON.parse(text);
     const results: { subdomain: string, source: string }[] = [];
     if (Array.isArray(data) && data.length > 1) {
-      for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        if (Array.isArray(row) && row.length > 0) {
-          try {
-            let hostname = "";
-            if (row[0].startsWith('http')) {
-              const url = new URL(row[0]);
-              hostname = url.hostname;
-            } else {
-              hostname = row[0];
-            }
-            const validSub = extractValidSubdomain(hostname, domain);
-            if (validSub) results.push({ subdomain: validSub, source: 'Wayback Machine' });
-          } catch { /* ignore */ }
+      const chunkSize = 1000;
+      for (let i = 1; i < data.length; i += chunkSize) {
+        const chunk = data.slice(i, i + chunkSize);
+        for (const row of chunk) {
+          if (Array.isArray(row) && row.length > 0) {
+            try {
+              let hostname = "";
+              if (row[0].startsWith('http')) {
+                const url = new URL(row[0]);
+                hostname = url.hostname;
+              } else {
+                hostname = row[0];
+              }
+              const validSub = extractValidSubdomain(hostname, domain);
+              if (validSub) results.push({ subdomain: validSub, source: 'Wayback Machine' });
+            } catch { /* ignore */ }
+          }
+        }
+        if (i + chunkSize < data.length) {
+          await new Promise(resolve => setTimeout(resolve, 0));
         }
       }
     }

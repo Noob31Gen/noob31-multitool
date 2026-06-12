@@ -1,6 +1,7 @@
-import { queryDNS, type DNSRecord } from "./doh";
+import { queryDNS } from "./doh";
 import { formatEmailAuthQuery, filterEmailAuthRecords } from "./emailAuthParsers";
 import type { AppSettings } from "./settings";
+import { discoverDkim, validateDmarcSyntax, analyzeSpfRecursively } from "./emailValidator";
 
 export type HealthGrade = 'A' | 'B' | 'C' | 'D' | 'F';
 
@@ -24,109 +25,6 @@ export async function runDnsCheck(domain: string, settings: AppSettings) {
       .catch(err => ({ type, success: false, error: err.message }))
   );
   return Promise.all(promises);
-}
-
-async function discoverDkim(domain: string, settings: AppSettings): Promise<{ records: DNSRecord[]; selector: string }> {
-  const commonSelectors = ['google', 'default', 'k1', 'mail', 'mx', 'selector1', 'sig1', 'dkim', 'key'];
-  const promises = commonSelectors.map(async (sel) => {
-    try {
-      const target = `${sel}._domainkey.${domain}`;
-      const res = await queryDNS(target, 'TXT', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
-      const filtered = filterEmailAuthRecords(res.records, 'DKIM');
-      if (filtered && filtered.length > 0) {
-        return { records: filtered, selector: sel };
-      }
-    } catch { /* ignore */ }
-    return null;
-  });
-  
-  const results = await Promise.all(promises);
-  const found = results.find(r => r !== null);
-  return found || { records: [], selector: 'default' };
-}
-
-function validateDmarcSyntax(dmarcRecord: string): { valid: boolean; errors: string[] } {
-  const errors: string[] = [];
-  const tags = dmarcRecord.split(';').map(t => t.trim()).filter(Boolean);
-  
-  const dmarcTags: Record<string, string> = {};
-  for (const t of tags) {
-    const parts = t.split('=');
-    if (parts.length === 2) {
-      dmarcTags[parts[0].trim().toLowerCase()] = parts[1].trim();
-    }
-  }
-
-  if (dmarcTags['v'] && dmarcTags['v'].toUpperCase() !== 'DMARC1') {
-    errors.push("v= tag value must be DMARC1.");
-  }
-  
-  const p = dmarcTags['p'];
-  if (!p) {
-    errors.push("Missing policy (p=) tag.");
-  } else if (!['none', 'quarantine', 'reject'].includes(p.toLowerCase())) {
-    errors.push(`Invalid policy value: p=${p}. Must be 'none', 'quarantine', or 'reject'.`);
-  }
-
-  const pct = dmarcTags['pct'];
-  if (pct) {
-    const pctVal = parseInt(pct, 10);
-    if (isNaN(pctVal) || pctVal < 0 || pctVal > 100) {
-      errors.push(`Invalid percentage: pct=${pct}. Must be an integer between 0 and 100.`);
-    }
-  }
-
-  const rua = dmarcTags['rua'];
-  if (rua) {
-    const uris = rua.split(',');
-    for (const uri of uris) {
-      if (!uri.trim().toLowerCase().startsWith('mailto:')) {
-        errors.push(`Reporting URI in rua tag must start with mailto: (${uri.trim()})`);
-      }
-    }
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors
-  };
-}
-
-async function validateSpfIncludes(spfRecord: string, settings: AppSettings): Promise<{ valid: boolean; errors: string[] }> {
-  const errors: string[] = [];
-  const parts = spfRecord.split(/\s+/);
-  const includeDomains: string[] = [];
-  let redirectDomain = '';
-
-  for (const part of parts) {
-    if (part.toLowerCase().startsWith('include:')) {
-      includeDomains.push(part.substring(8));
-    } else if (part.toLowerCase().startsWith('redirect=')) {
-      redirectDomain = part.substring(9);
-    }
-  }
-
-  const domainsToCheck = [...includeDomains];
-  if (redirectDomain) domainsToCheck.push(redirectDomain);
-
-  const lookups = domainsToCheck.map(async (dom) => {
-    try {
-      const res = await queryDNS(dom, 'TXT', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
-      const spfText = res.records.find(r => r.data.toLowerCase().includes('v=spf1'));
-      if (!spfText) {
-        errors.push(`Domain '${dom}' in SPF record has no valid SPF (TXT) record.`);
-      }
-    } catch {
-      errors.push(`Failed to resolve external SPF domain '${dom}'.`);
-    }
-  });
-
-  await Promise.all(lookups);
-
-  return {
-    valid: errors.length === 0,
-    errors
-  };
 }
 
 export async function runDomainHealth(domain: string, selector: string, settings: AppSettings) {
@@ -232,11 +130,24 @@ export async function runDomainHealth(domain: string, selector: string, settings
       recommendations.push({ level: 'good', msg: "SPF is properly secured with -all (Hardfail)." });
     }
 
-    // Validate SPF external domains
-    const spfValidation = await validateSpfIncludes(spfValue, settings);
-    if (!spfValidation.valid) {
+    // SPF recursive validation & lookup count check
+    const spfAnalysis = await analyzeSpfRecursively(domain, settings);
+    if (spfAnalysis.lookupsCount > 10) {
+      score -= 20;
+      recommendations.push({
+        level: 'critical',
+        msg: `SPF record triggers ${spfAnalysis.lookupsCount} recursive DNS lookups, exceeding the RFC-mandated limit of 10. This causes a PermError.`
+      });
+    } else {
+      recommendations.push({
+        level: 'good',
+        msg: `SPF record triggers ${spfAnalysis.lookupsCount} recursive DNS lookups (RFC limit is 10).`
+      });
+    }
+
+    if (spfAnalysis.errors.length > 0) {
       score -= 10;
-      spfValidation.errors.forEach(err => {
+      spfAnalysis.errors.forEach(err => {
         recommendations.push({ level: 'high', msg: `SPF include check: ${err}` });
       });
     }

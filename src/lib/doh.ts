@@ -4,6 +4,11 @@ import { Buffer } from 'buffer';
 import type { CorsProvider } from './cors';
 import { getProxiedUrl, authenticatedFetch } from './cors';
 
+// Polyfill Buffer on window for browser-compatibility with dns-packet
+if (typeof window !== 'undefined' && !(window as { Buffer?: typeof Buffer }).Buffer) {
+  (window as { Buffer?: typeof Buffer }).Buffer = Buffer;
+}
+
 export interface DNSRecord {
   name: string;
   type: number;
@@ -49,6 +54,51 @@ function getMinTtl(response: DNSResponse): number {
   return Math.min(minTtl, 600); // Cap cache duration at 10 minutes to prevent overly stale results
 }
 
+function formatDnsData(type: string, data: unknown): string {
+  if (data === null || data === undefined) return '';
+  if (typeof data === 'string') return data;
+  
+  if (data instanceof Uint8Array || (typeof Buffer !== 'undefined' && Buffer.isBuffer(data))) {
+    return new TextDecoder().decode(data);
+  }
+
+  if (Array.isArray(data)) {
+    return data.map(item => formatDnsData(type, item)).join('');
+  }
+
+  if (typeof data === 'object') {
+    const record = data as {
+      preference?: number;
+      priority?: number;
+      exchange?: string;
+      mname?: string;
+      rname?: string;
+      serial?: number;
+      refresh?: number;
+      retry?: number;
+      expire?: number;
+      minimum?: number;
+      weight?: number;
+      port?: number;
+      target?: string;
+    };
+    if (type === 'MX') {
+      const pref = record.preference !== undefined ? record.preference : (record.priority !== undefined ? record.priority : 0);
+      const exchange = record.exchange || '';
+      return `${pref} ${exchange}`;
+    }
+    if (type === 'SOA') {
+      return `${record.mname || ''} ${record.rname || ''} ${record.serial ?? 0} ${record.refresh ?? 0} ${record.retry ?? 0} ${record.expire ?? 0} ${record.minimum ?? 0}`;
+    }
+    if (type === 'SRV') {
+      return `${record.priority ?? 0} ${record.weight ?? 0} ${record.port ?? 0} ${record.target || ''}`;
+    }
+    return JSON.stringify(data);
+  }
+
+  return String(data);
+}
+
 async function executeSingleQuery(
   domain: string,
   type: string,
@@ -70,7 +120,16 @@ async function executeSingleQuery(
   } else if (provider === 'alidns') {
     url = `https://dns.alidns.com/resolve?name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`;
   } else if (provider === 'adguard') {
-    url = `https://dns.adguard-dns.com/resolve?name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`;
+    const packet = dnsPacket.encode({
+      type: 'query',
+      id: 1,
+      flags: dnsPacket.RECURSION_DESIRED,
+      questions: [{ type: type as dnsPacket.RecordType, name: domain }]
+    });
+    const base64 = btoa(Array.from(packet).map(b => String.fromCharCode(b)).join(''));
+    const base64Url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    url = `https://dns.adguard-dns.com/dns-query?dns=${base64Url}`;
+    headers = { 'Accept': 'application/dns-message' };
   } else if (provider === 'quad9') {
     const packet = dnsPacket.encode({
       type: 'query',
@@ -157,13 +216,16 @@ async function executeSingleQuery(
 
     const queryTime = Math.round(performance.now() - startTime);
     const mapRecords = (records: { name: string; type: number; TTL: number; data: unknown }[] = []): DNSRecord[] => {
-      return records.map((r: { name: string; type: number; TTL: number; data: unknown }) => ({
-        name: r.name,
-        type: r.type,
-        typeName: typeof getTypeName === 'function' ? getTypeName(r.type) : `TYPE${r.type}`,
-        TTL: r.TTL,
-        data: typeof r.data === 'string' ? r.data : JSON.stringify(r.data),
-      }));
+      return records.map((r: { name: string; type: number; TTL: number; data: unknown }) => {
+        const typeName = typeof getTypeName === 'function' ? getTypeName(r.type) : `TYPE${r.type}`;
+        return {
+          name: r.name,
+          type: r.type,
+          typeName,
+          TTL: r.TTL,
+          data: formatDnsData(typeName, r.data)
+        };
+      });
     };
 
     return {
