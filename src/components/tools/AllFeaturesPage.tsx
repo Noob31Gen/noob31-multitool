@@ -69,10 +69,9 @@ const FEATURE_CATEGORIES = [
     title: "Health & Security",
     description: "Check Domain and Email Integrity.",
     features: [
-      { name: "DNS Check", path: "/health/dns" },
       { name: "Domain Health", path: "/health/domain" },
       { name: "Email Deliverability", path: "/health/deliverability" },
-      { name: "Blacklist Check", path: "/security/blacklist" },
+      { name: "IPv4 Blacklist Check", path: "/security/blacklist" },
       { name: "CERT Lookup", path: "/security/cert" },
       { name: "Domain Reputation", path: "/security/domain-reputation" },
       { name: "Threat Intel Explorer", path: "/security/threat-intel" },

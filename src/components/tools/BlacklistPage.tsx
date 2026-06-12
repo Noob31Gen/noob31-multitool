@@ -69,7 +69,7 @@ export function BlacklistPage() {
   return (
     <div className="space-y-6">
       <SEO
-        title="Blacklist Check"
+        title="IPv4 Blacklist Check"
         description="Check if an IP address is listed on major DNSBL (Blackhole) lists. Important for email deliverability and security."
         url="https://tools.noob31.com/security/blacklist"
       />

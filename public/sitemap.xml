@@ -73,12 +73,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://tools.noob31.com/health/dns</loc>
-    <lastmod>2026-05-03</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://tools.noob31.com/health/domain</loc>
     <lastmod>2026-05-03</lastmod>
     <changefreq>monthly</changefreq>

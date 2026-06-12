@@ -87,13 +87,6 @@ export function CreditsPage() {
           how: "Fetches subdomain history via the Open Threat Exchange indicator endpoint."
         },
         {
-          name: "ThreatMiner (Subdomains)",
-          url: "https://www.threatminer.org/",
-          badge: "Direct API",
-          why: "To extract subdomain associations from intelligence files.",
-          how: "Performs passive indicators query (rt=5) against the ThreatMiner database."
-        },
-        {
           name: "Subdomain Center",
           url: "https://subdomain.center/",
           badge: "Direct API",
@@ -265,13 +258,6 @@ export function CreditsPage() {
           how: "Fetches recent threat reports using OTX's general domain endpoint."
         },
         {
-          name: "ThreatMiner (Malware)",
-          url: "https://www.threatminer.org/",
-          badge: "Direct API",
-          why: "To count malware samples associated with a domain in threat reports.",
-          how: "Performs malware analysis queries (rt=4) against the ThreatMiner catalog."
-        },
-        {
           name: "Google Safe Browsing",
           url: "https://safebrowsing.google.com/",
           badge: "External Redirect",
@@ -304,13 +290,6 @@ export function CreditsPage() {
           badge: "Direct API",
           why: "To inspect file hash definitions, signatures, and vendor detection rate averages.",
           how: "Sends POST requests to Abuse.ch MalwareBazaar's keyless file hash database."
-        },
-        {
-          name: "ThreatMiner (Passive Intel)",
-          url: "https://www.threatminer.org/",
-          badge: "Direct API",
-          why: "To extract historic host-to-IP passive DNS and malware hash connections.",
-          how: "Queries ThreatMiner's unauthenticated hosts and domain endpoints."
         },
         {
           name: "urlscan.io (Scan Search)",

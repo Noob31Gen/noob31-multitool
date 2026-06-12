@@ -7,7 +7,6 @@ import { RegistrationLookupPage } from "@/components/tools/RegistrationLookupPag
 import { MyIpPage } from "@/components/tools/MyIpPage"
 import { HttpLookupPage } from "@/components/tools/HttpLookupPage"
 import { UrlScannerPage } from "@/components/tools/UrlScannerPage"
-import { DnsCheckPage } from "@/components/tools/DnsCheckPage"
 import { DomainHealthPage } from "@/components/tools/DomainHealthPage"
 import { CertLookupPage } from "@/components/tools/CertLookupPage"
 import { BlacklistPage } from "@/components/tools/BlacklistPage"
@@ -126,7 +125,6 @@ function App() {
           <Route path="/network/my-ip" element={<MyIpPage />} />
           <Route path="/network/mac-lookup" element={<MacLookupPage />} />
           <Route path="/network/http/:scheme" element={<HttpLookupPage />} />
-          <Route path="/health/dns" element={<DnsCheckPage />} />
           <Route path="/health/domain" element={<DomainHealthPage />} />
           <Route path="/health/deliverability" element={<EmailDeliverabilityPage />} />
           <Route path="/security/cert" element={<CertLookupPage />} />
