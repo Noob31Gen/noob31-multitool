@@ -11,6 +11,7 @@ export interface ReputationBlocklistItem {
   type?: string;
   details?: string;
   error?: boolean;
+  refused?: boolean;
 }
 
 export interface OtxPulse {
@@ -35,19 +36,6 @@ export interface DomainReputationResult {
   threatMinerMalwareCount: number;
 }
 
-function classifySpamhausDbl(ip: string): string {
-  switch (ip) {
-    case "127.0.1.2": return "Spam Domain";
-    case "127.0.1.4": return "Phishing Domain";
-    case "127.0.1.5": return "Malware Domain";
-    case "127.0.1.6": return "Botnet C&C Domain";
-    case "127.0.1.102": return "Abused Legitimate Spam Domain";
-    case "127.0.1.104": return "Abused Legitimate Phishing Domain";
-    case "127.0.1.105": return "Abused Legitimate Malware Domain";
-    case "127.0.1.106": return "Abused Legitimate Botnet C&C Domain";
-    default: return "Listed (Spamhaus DBL)";
-  }
-}
 
 function classifySurbl(ip: string): string {
   const lastOctet = parseInt(ip.split('.').pop() || "0", 10);
@@ -63,14 +51,6 @@ function classifySurbl(ip: string): string {
   return types.length > 0 ? `Listed: ${types.join(', ')}` : "Listed (SURBL)";
 }
 
-function classifyUribl(ip: string): string {
-  switch (ip) {
-    case "127.0.0.2": return "Blacklisted (High Risk)";
-    case "127.0.0.4": return "Greylisted (Suspicious)";
-    case "127.0.0.8": return "Red Listed (Abused Redirector)";
-    default: return "Listed (URIBL)";
-  }
-}
 export function getRegistrableDomain(domain: string): string {
   const parts = domain.trim().toLowerCase().split('.');
   if (parts.length <= 2) return domain;
@@ -115,9 +95,7 @@ export async function checkDomainReputation(
 
   // 1. DNSBL / Domain Blocklists
   const dbls = [
-    { zone: "dbl.spamhaus.org", name: "Spamhaus DBL", classifier: classifySpamhausDbl },
-    { zone: "multi.surbl.org", name: "SURBL", classifier: classifySurbl },
-    { zone: "multi.uribl.com", name: "URIBL", classifier: classifyUribl }
+    { zone: "multi.surbl.org", name: "SURBL", classifier: classifySurbl }
   ];
 
   const dblPromises = dbls.map(async (dbl) => {
@@ -136,17 +114,11 @@ export async function checkDomainReputation(
         // Ignore normal external IPs, DBL responses should be 127.0.x.x loopbacks
         if (ip.startsWith("127.")) {
           // Check for query refusal / rate limiting due to public DoH resolving
-          if (dbl.zone === "dbl.spamhaus.org" && (ip === "127.255.255.252" || ip === "127.255.255.254" || ip === "127.255.255.255")) {
+          if (dbl.zone === "multi.surbl.org" && ip === "127.0.0.1") {
             return {
               name: dbl.name,
               listed: false,
-              details: "Query Refused / Rate Limited by Spamhaus (public DoH resolver query block)"
-            };
-          }
-          if ((dbl.zone === "multi.surbl.org" || dbl.zone === "multi.uribl.com") && ip === "127.0.0.1") {
-            return {
-              name: dbl.name,
-              listed: false,
+              refused: true,
               details: `Query Refused / Rate Limited by ${dbl.name} (public DoH resolver query block)`
             };
           }

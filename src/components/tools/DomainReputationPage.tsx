@@ -77,7 +77,7 @@ export function DomainReputationPage() {
     <div className="space-y-6">
       <SEO
         title="Domain Reputation Lookup"
-        description="Check domain reputation scores. Scan against Spamhaus DBL, SURBL, and URIBL domain blocklists, evaluate threat history on AlienVault OTX, and verify Quad9 block status."
+        description="Check domain reputation scores. Scan against the SURBL domain blocklist, evaluate threat history on AlienVault OTX, and verify Quad9 block status."
         url="https://tools.noob31.com/security/domain-reputation"
       />
       <div>
@@ -140,8 +140,8 @@ export function DomainReputationPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center gap-2">
                         <span className="font-semibold text-sm">{block.name}</span>
-                        <Badge variant={block.listed ? "destructive" : "secondary"}>
-                          {block.listed ? "LISTED" : "CLEAN"}
+                        <Badge variant={block.listed ? "destructive" : (block.refused ? "outline" : "secondary")}>
+                          {block.listed ? "LISTED" : (block.refused ? "REFUSED" : "CLEAN")}
                         </Badge>
                       </div>
                       {block.listed && block.type && (
@@ -149,7 +149,7 @@ export function DomainReputationPage() {
                           Category: {block.type}
                         </p>
                       )}
-                      {block.listed && block.details && (
+                      {block.details && (
                         <p className="text-xs text-muted-foreground mt-1 font-mono break-all">
                           {block.details}
                         </p>

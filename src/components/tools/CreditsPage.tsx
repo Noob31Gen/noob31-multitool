@@ -251,25 +251,11 @@ export function CreditsPage() {
       description: "Databases queried via DNS or API to detect active malicious domains.",
       sources: [
         {
-          name: "Spamhaus DBL",
-          url: "https://www.spamhaus.org/",
-          badge: "DNS Query",
-          why: "To flag domains linked to spam, phishing, and malware activities.",
-          how: "Queries the Spamhaus Domain Blocklist zone (dbl.spamhaus.org) via DoH."
-        },
-        {
           name: "SURBL",
           url: "https://www.surbl.org/",
           badge: "DNS Query",
           why: "To check malicious URI lists embedded inside spam emails.",
           how: "Queries the SURBL multi-zone (multi.surbl.org) using custom return IP classifiers."
-        },
-        {
-          name: "URIBL",
-          url: "https://www.uribl.com/",
-          badge: "DNS Query",
-          why: "To flag high-risk redirectors and dynamic abuse domains.",
-          how: "Queries the URIBL multi-zone (multi.uribl.com) via DoH resolvers."
         },
         {
           name: "AlienVault OTX Threat Pulses",
