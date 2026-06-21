@@ -352,6 +352,18 @@ export function DomainReputationPage() {
                   <Button
                     variant="outline"
                     className="w-full justify-between h-auto py-3 px-4 text-left font-normal border-border/80 hover:bg-muted/50 hover:border-border"
+                    onClick={() => window.open(`https://talosintelligence.com/reputation_center/lookup?search=${encodeURIComponent(result.domain)}`, '_blank', 'noopener,noreferrer')}
+                  >
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-semibold text-sm text-foreground">Talos Intelligence</span>
+                      <span className="text-[10px] text-muted-foreground">Check domain reputation and network owner</span>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0 ml-2" />
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between h-auto py-3 px-4 text-left font-normal border-border/80 hover:bg-muted/50 hover:border-border"
                     onClick={() => window.open(`https://transparencyreport.google.com/safe-browsing/search?url=${encodeURIComponent(result.domain)}`, '_blank', 'noopener,noreferrer')}
                   >
                     <div className="flex flex-col gap-0.5">

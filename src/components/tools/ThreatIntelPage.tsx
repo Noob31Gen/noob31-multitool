@@ -106,6 +106,7 @@ export function ThreatIntelPage() {
       case "ip":
         return [
           { name: "VirusTotal IP", url: `https://www.virustotal.com/gui/ip-address/${clean}` },
+          { name: "Talos Intelligence", url: `https://talosintelligence.com/reputation_center/lookup?search=${clean}` },
           { name: "AlienVault OTX", url: `https://otx.alienvault.com/indicator/ip/${clean}` },
           { name: "AbuseIPDB", url: `https://www.abuseipdb.com/check/${clean}` },
           { name: "Spamhaus", url: `https://check.spamhaus.org/results/?query=${clean}` },
@@ -114,6 +115,7 @@ export function ThreatIntelPage() {
       case "domain":
         return [
           { name: "VirusTotal Domain", url: `https://www.virustotal.com/gui/domain/${cleanDom}` },
+          { name: "Talos Intelligence", url: `https://talosintelligence.com/reputation_center/lookup?search=${cleanDom}` },
           { name: "AlienVault OTX", url: `https://otx.alienvault.com/indicator/domain/${cleanDom}` },
           { name: "URLVoid Scan", url: `https://www.urlvoid.com/scan/${cleanDom}/` },
           { name: "Spamhaus", url: `https://check.spamhaus.org/results/?query=${cleanDom}` },
@@ -122,12 +124,14 @@ export function ThreatIntelPage() {
       case "url":
         return [
           { name: "VirusTotal URL", url: `https://www.virustotal.com/gui/search/${encodeURIComponent(clean)}` },
+          { name: "Talos Intelligence", url: `https://talosintelligence.com/reputation_center/lookup?search=${encodeURIComponent(clean)}` },
           { name: "AlienVault OTX", url: `https://otx.alienvault.com/indicator/url/${encodeURIComponent(clean)}` },
           { name: "URLScan.io Portal", url: `https://urlscan.io/` },
         ];
       case "hash":
         return [
           { name: "VirusTotal Hash", url: `https://www.virustotal.com/gui/file/${clean}` },
+          { name: "Talos Intelligence", url: `https://talosintelligence.com/reputation_center/lookup?search=${clean}` },
           { name: "AlienVault OTX", url: `https://otx.alienvault.com/indicator/file/${clean}` },
           { name: "MalwareBazaar Details", url: `https://malshare.com/` }, // generic fallback or malshare
           { name: "ThreatMiner Hash", url: `https://www.threatminer.org/sample.php?q=${clean}` },

@@ -115,6 +115,7 @@ export function BlacklistPage() {
           action={
             <div className="flex flex-wrap gap-2 items-center">
               <Button onClick={() => window.open(`https://check.spamhaus.org/results/?query=${encodeURIComponent(ip)}`, '_blank', 'noopener,noreferrer')}>Check on Spamhaus</Button>
+              <Button onClick={() => window.open(`https://talosintelligence.com/reputation_center/lookup?search=${encodeURIComponent(ip)}`, '_blank', 'noopener,noreferrer')}>Check on Talos</Button>
               <CopyButton data={JSON.stringify(result.data, null, 2)} text="Copy JSON" />
               <ExportButton data={result.data} filename={`${ip}-blacklist.json`} />
             </div>
