@@ -27,6 +27,9 @@ import { AllFeaturesPage } from "@/components/tools/AllFeaturesPage"
 import { ReverseDnsPage } from "@/components/tools/ReverseDnsPage"
 import { DomainReputationPage } from "@/components/tools/DomainReputationPage"
 import { ThreatIntelPage } from "@/components/tools/ThreatIntelPage"
+import { CveLookupPage } from "@/components/tools/CveLookupPage"
+import { GlobalPingPage } from "@/components/tools/GlobalPingPage"
+import { CompanyLookupPage } from "@/components/tools/CompanyLookupPage"
 import { SEO } from "@/components/shared/SEO"
 import { Info, Globe, Cpu, ShieldCheck } from "lucide-react"
 function App() {
@@ -119,18 +122,21 @@ function App() {
           <Route path="/dnssec/:type" element={<DNSSECLookupPage />} />
           <Route path="/email/:type" element={<EmailAuthPage />} />
           <Route path="/registration/:tool" element={<RegistrationLookupPage />} />
+          <Route path="/registration/company" element={<CompanyLookupPage />} />
           <Route path="/network/url-scanner" element={<UrlScannerPage />} />
           <Route path="/network/subdomains" element={<SubdomainScannerPage />} />
           <Route path="/network/reverse-dns" element={<ReverseDnsPage />} />
           <Route path="/network/my-ip" element={<MyIpPage />} />
           <Route path="/network/mac-lookup" element={<MacLookupPage />} />
           <Route path="/network/http/:scheme" element={<HttpLookupPage />} />
+          <Route path="/network/global-ping" element={<GlobalPingPage />} />
           <Route path="/health/domain" element={<DomainHealthPage />} />
           <Route path="/health/deliverability" element={<EmailDeliverabilityPage />} />
           <Route path="/security/cert" element={<CertLookupPage />} />
           <Route path="/security/blacklist" element={<BlacklistPage />} />
           <Route path="/security/domain-reputation" element={<DomainReputationPage />} />
           <Route path="/security/threat-intel" element={<ThreatIntelPage />} />
+          <Route path="/security/cve" element={<CveLookupPage />} />
           <Route path="/bonus/headers" element={<EmailHeaderAnalyzerPage />} />
           <Route path="/bonus/subnet" element={<SubnetCalculatorPage />} />
           <Route path="/bonus/spf-generator" element={<SpfGeneratorPage />} />

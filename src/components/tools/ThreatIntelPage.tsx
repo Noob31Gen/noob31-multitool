@@ -439,6 +439,11 @@ export function ThreatIntelPage() {
                         MalwareBazaar
                       </TabsTrigger>
                     )}
+                    {result.detectedType === "ip" && (
+                      <TabsTrigger value="internetdb" className="px-3 py-1.5 text-xs sm:text-sm shrink-0">
+                        InternetDB ({result.sourceErrors?.['InternetDB'] ? '⚠' : result.internetDb?.ports?.length || 0})
+                      </TabsTrigger>
+                    )}
                   </TabsList>
                 </div>
 
@@ -850,6 +855,111 @@ export function ThreatIntelPage() {
                     )}
                   </ResultCard>
                 </TabsContent>
+
+                {/* Tab content InternetDB */}
+                {result.detectedType === "ip" && (
+                  <TabsContent value="internetdb" className="mt-4 focus-visible:ring-0">
+                    <ResultCard
+                      title="InternetDB IP Enrichment"
+                      description="Rapid scanning of open ports, vulnerabilities, and hostnames for this IP."
+                    >
+                      {result.sourceErrors?.['InternetDB'] ? (
+                        <div className="flex items-center gap-3 p-4 rounded-md border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                          <AlertCircle className="w-5 h-5 shrink-0" />
+                          <div className="text-sm">
+                            <span className="font-bold block">InternetDB feed failed to respond</span>
+                            <span className="text-xs opacity-80">{result.sourceErrors['InternetDB']}</span>
+                          </div>
+                        </div>
+                      ) : result.internetDb ? (
+                        <div className="space-y-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-4 border rounded-lg bg-card space-y-2">
+                              <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-bold">
+                                Open Ports ({result.internetDb.ports?.length || 0})
+                              </span>
+                              {result.internetDb.ports && result.internetDb.ports.length > 0 ? (
+                                <div className="flex flex-wrap gap-1.5">
+                                  {result.internetDb.ports.map((port) => (
+                                    <Badge key={port} variant="outline" className="font-mono bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
+                                      {port}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">No open ports found.</span>
+                              )}
+                            </div>
+
+                            <div className="p-4 border rounded-lg bg-card space-y-2">
+                              <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-bold">
+                                Hostnames ({result.internetDb.hostnames?.length || 0})
+                              </span>
+                              {result.internetDb.hostnames && result.internetDb.hostnames.length > 0 ? (
+                                <div className="space-y-1 max-h-32 overflow-y-auto">
+                                  {result.internetDb.hostnames.map((host, idx) => (
+                                    <div key={idx} className="text-xs font-mono break-all">{host}</div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">No hostnames associated.</span>
+                              )}
+                            </div>
+
+                            <div className="p-4 border rounded-lg bg-card space-y-2">
+                              <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-bold">
+                                Vulnerabilities (CVEs) ({result.internetDb.vulns?.length || 0})
+                              </span>
+                              {result.internetDb.vulns && result.internetDb.vulns.length > 0 ? (
+                                <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                                  {result.internetDb.vulns.map((cve) => (
+                                    <a key={cve} href={`/security/cve#?cve=${cve}`} target="_blank" rel="noreferrer">
+                                      <Badge variant="destructive" className="font-mono text-[10px] hover:bg-destructive/80 transition-colors cursor-pointer">
+                                        {cve}
+                                      </Badge>
+                                    </a>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground text-green-500">No known vulnerabilities detected.</span>
+                              )}
+                            </div>
+
+                            <div className="p-4 border rounded-lg bg-card space-y-2">
+                              <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-bold">
+                                CPEs & Tags
+                              </span>
+                              <div className="flex flex-col gap-2">
+                                {result.internetDb.cpes && result.internetDb.cpes.length > 0 && (
+                                  <div className="flex flex-wrap gap-1">
+                                    {result.internetDb.cpes.map((cpe, idx) => (
+                                      <Badge key={idx} variant="secondary" className="font-mono text-[9px] py-0 px-1">
+                                        {cpe}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
+                                {result.internetDb.tags && result.internetDb.tags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {result.internetDb.tags.map((tag, idx) => (
+                                      <Badge key={idx} variant="outline" className="font-mono text-[9px] py-0 px-1 border-primary/30 text-primary">
+                                        {tag}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-6 border rounded-lg text-center text-sm text-muted-foreground bg-muted/10">
+                          No InternetDB records found for this IP. It might not have any public open ports tracked by Shodan.
+                        </div>
+                      )}
+                    </ResultCard>
+                  </TabsContent>
+                )}
               </Tabs>
             </div>
           </div>

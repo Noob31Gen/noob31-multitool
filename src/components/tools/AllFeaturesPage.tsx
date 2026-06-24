@@ -50,6 +50,7 @@ const FEATURE_CATEGORIES = [
       { name: "WHOIS", path: "/registration/whois" },
       { name: "ARIN", path: "/registration/arin" },
       { name: "ASN", path: "/registration/asn" },
+      { name: "Public Company Lookup", path: "/registration/company" },
     ],
   },
   {
@@ -58,6 +59,7 @@ const FEATURE_CATEGORIES = [
     features: [
       { name: "URL Scanner", path: "/network/url-scanner" },
       { name: "Subdomain Scanner", path: "/network/subdomains" },
+      { name: "Global Ping", path: "/network/global-ping" },
       { name: "HTTP Headers", path: "/network/http/http" },
       { name: "HTTPS Headers", path: "/network/http/https" },
       { name: "What Is My IP?", path: "/network/my-ip" },
@@ -75,6 +77,7 @@ const FEATURE_CATEGORIES = [
       { name: "CERT Lookup", path: "/security/cert" },
       { name: "Domain Reputation", path: "/security/domain-reputation" },
       { name: "Threat Intel Explorer", path: "/security/threat-intel" },
+      { name: "CVE Lookup", path: "/security/cve" },
     ],
   },
   {

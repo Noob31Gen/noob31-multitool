@@ -280,6 +280,54 @@ export function CreditsPage() {
       ]
     },
     {
+      title: "Shodan Intelligence & Tools",
+      description: "External services and API data provided by Shodan for network and security scanning.",
+      sources: [
+        {
+          name: "Shodan InternetDB",
+          url: "https://internetdb.shodan.io/",
+          badge: "Direct API",
+          why: "To fetch fast, offline-compiled open ports and vulnerabilities for IP addresses.",
+          how: "Queries the Shodan InternetDB REST endpoint."
+        },
+        {
+          name: "Shodan CVEDB",
+          url: "https://cvedb.shodan.io/",
+          badge: "Direct API",
+          why: "To lookup CVE descriptions, CVSS scores, and EPS metrics.",
+          how: "Queries the Shodan CVEDB REST endpoint."
+        },
+        {
+          name: "Shodan Geonet",
+          url: "https://geonet.shodan.io/",
+          badge: "Direct API",
+          why: "To perform global ping measurements from different geographic locations.",
+          how: "Queries the Shodan Geonet ping tool API."
+        },
+        {
+          name: "Shodan EntityDB",
+          url: "https://entitydb.shodan.io/",
+          badge: "Direct API",
+          why: "To lookup public companies, associated ASNs, and financial data.",
+          how: "Queries the Shodan EntityDB using ticker symbols."
+        },
+        {
+          name: "shdn.io (Quick IP Check)",
+          url: "https://shdn.io/",
+          badge: "Data Fetch",
+          why: "A fast, external way to check your own IP address and its exposure.",
+          how: "Users can visit the URL directly in their browser for quick diagnostics."
+        },
+        {
+          name: "Shodan Browser Plugins",
+          url: "https://help.shodan.io/mastery/browser-plugins",
+          badge: "Data Fetch",
+          why: "To see open ports and details of websites directly in your browser.",
+          how: "Available for Chrome and Firefox."
+        }
+      ]
+    },
+    {
       title: "MAC Address Databases (OUI)",
       description: "Directories queried to parse network card manufacturers and OUI blocks.",
       sources: [

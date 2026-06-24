@@ -1,6 +1,7 @@
 import { getProxiedUrl, authenticatedFetch } from "./cors";
 import type { AppSettings } from "./settings";
 import { logger } from "./logger";
+import { queryInternetDb, type InternetDbHost } from "./internetdb";
 
 export type ThreatInputType = "ip" | "domain" | "url" | "hash" | "keyword";
 
@@ -62,6 +63,7 @@ export interface AggregatedThreatIntel {
   phishStatsMatches: PhishStatsRecord[];
   urlScanHistory: UrlScanRecord[];
   malwareBazaar?: MalwareBazaarRecord;
+  internetDb?: InternetDbHost | null;
   queryTime: number;
   /** Map of source name → error message when a source failed to fetch */
   sourceErrors: Record<string, string>;
@@ -376,11 +378,19 @@ export async function searchThreatIntel(
   const mbPromise =
     detectedType === "hash" ? fetchMalwareBazaar(clean, settings) : Promise.resolve(undefined);
 
-  const [otxRes, psRes, usRes, mbRes] = await Promise.all([
+  const internetDbPromise =
+    detectedType === "ip" ? queryInternetDb(clean, settings).catch(err => {
+      logger.warn("Threat Intel: InternetDB fetch failed", err);
+      const errorResult = { __error: err instanceof Error ? err.message : "Unknown error" };
+      return errorResult as any;
+    }) : Promise.resolve(undefined);
+
+  const [otxRes, psRes, usRes, mbRes, idbRes] = await Promise.all([
     otxPromise,
     psPromise,
     usPromise,
     mbPromise,
+    internetDbPromise,
   ]);
 
   // Collect source errors
@@ -392,9 +402,8 @@ export async function searchThreatIntel(
   if ((usRes as unknown as { __error?: string }).__error) {
     sourceErrors["URLScan.io"] = (usRes as unknown as { __error: string }).__error;
   }
-  if (detectedType === "hash" && mbRes === undefined) {
-    // MalwareBazaar returning undefined could be "not found" which is normal
-    // We only add error if the fetch function flagged an error
+  if (idbRes && (idbRes as any).__error) {
+    sourceErrors["InternetDB"] = (idbRes as any).__error;
   }
 
   return {
@@ -406,6 +415,7 @@ export async function searchThreatIntel(
     phishStatsMatches: psRes,
     urlScanHistory: usRes,
     malwareBazaar: mbRes,
+    internetDb: (idbRes && !(idbRes as any).__error) ? idbRes : undefined,
     queryTime: Date.now() - startTime,
     sourceErrors,
   };
