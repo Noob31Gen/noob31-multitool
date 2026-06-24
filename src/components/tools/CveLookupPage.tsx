@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Search, Loader2, AlertCircle, Shield, Link2, ExternalLink } from "lucide-react";
 import { useSettings } from "../../lib/settings";
 import { queryCveDb, type CveData } from "../../lib/cvedb";
@@ -14,17 +14,7 @@ export function CveLookupPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CveData | null>(null);
 
-  // Parse CVE ID from URL hash on load
-  useEffect(() => {
-    const hashParam = window.location.hash.split("?cve=")[1];
-    if (hashParam) {
-      const decoded = decodeURIComponent(hashParam);
-      setCveId(decoded);
-      handleSearch(decoded);
-    }
-  }, []);
-
-  const handleSearch = async (queryId: string = cveId) => {
+  const handleSearch = useCallback(async (queryId: string) => {
     const cleanId = queryId.trim().toUpperCase();
     if (!cleanId) return;
 
@@ -49,11 +39,24 @@ export function CveLookupPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [settings]);
+
+  const lastHandledHash = useRef<string | null>(null);
+
+  // Parse CVE ID from URL hash on load
+  useEffect(() => {
+    const hashParam = window.location.hash.split("?cve=")[1];
+    if (hashParam && hashParam !== lastHandledHash.current) {
+      lastHandledHash.current = hashParam;
+      const decoded = decodeURIComponent(hashParam);
+      setCveId(decoded);
+      handleSearch(decoded);
+    }
+  }, [handleSearch]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      handleSearch();
+      handleSearch(cveId);
     }
   };
 
@@ -80,7 +83,7 @@ export function CveLookupPage() {
               />
             </div>
             <Button
-              onClick={() => handleSearch()}
+              onClick={() => handleSearch(cveId)}
               disabled={loading || !cveId.trim()}
               className="sm:w-32 transition-all active:scale-95"
             >

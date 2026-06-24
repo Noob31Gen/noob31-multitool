@@ -382,7 +382,7 @@ export async function searchThreatIntel(
     detectedType === "ip" ? queryInternetDb(clean, settings).catch(err => {
       logger.warn("Threat Intel: InternetDB fetch failed", err);
       const errorResult = { __error: err instanceof Error ? err.message : "Unknown error" };
-      return errorResult as any;
+      return errorResult as { __error: string };
     }) : Promise.resolve(undefined);
 
   const [otxRes, psRes, usRes, mbRes, idbRes] = await Promise.all([
@@ -402,8 +402,8 @@ export async function searchThreatIntel(
   if ((usRes as unknown as { __error?: string }).__error) {
     sourceErrors["URLScan.io"] = (usRes as unknown as { __error: string }).__error;
   }
-  if (idbRes && (idbRes as any).__error) {
-    sourceErrors["InternetDB"] = (idbRes as any).__error;
+  if (idbRes && (idbRes as { __error?: string }).__error) {
+    sourceErrors["InternetDB"] = (idbRes as { __error: string }).__error;
   }
 
   return {
@@ -415,7 +415,7 @@ export async function searchThreatIntel(
     phishStatsMatches: psRes,
     urlScanHistory: usRes,
     malwareBazaar: mbRes,
-    internetDb: (idbRes && !(idbRes as any).__error) ? idbRes : undefined,
+    internetDb: (idbRes && !(idbRes as { __error?: string }).__error) ? (idbRes as InternetDbHost) : undefined,
     queryTime: Date.now() - startTime,
     sourceErrors,
   };

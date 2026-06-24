@@ -9,8 +9,25 @@ export interface LightEntity {
   entity_name: string;
 }
 
+export interface FinanceData {
+  report_year?: number;
+  data_year?: number;
+  data_quarter?: number;
+  revenue: number;
+  net_income: number;
+  gross_profit: number;
+  [key: string]: unknown;
+}
+
+export interface Executive {
+  name: string;
+  role?: string;
+  title?: string;
+  [key: string]: unknown;
+}
+
 export interface EntityFullInfo {
-  finance_data: any[];
+  finance_data: FinanceData[];
   entity: {
     id: number;
     cik: number;
@@ -22,9 +39,14 @@ export interface EntityFullInfo {
       alias: string[];
       domain: string[];
     };
-    [key: string]: any;
+    hostname?: string;
+    business_address?: string;
+    phone?: string;
+    sic_description?: string;
+    asns?: { asn: number }[];
+    [key: string]: unknown;
   };
-  executives: any[];
+  executives: Executive[];
 }
 
 export async function searchEntities(settings: AppSettings): Promise<LightEntity[]> {
