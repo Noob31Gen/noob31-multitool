@@ -27,6 +27,10 @@ Created by [Noob31](https://noob31.com/).
 - [TypeScript](https://www.typescriptlang.org/) - Type safety
 - [Shadcn/UI](https://ui.shadcn.com/) - UI Components
 
+## API Worker
+
+`api-worker` is a test tool to run the project on a cloudflare worker instance and fetch information via api.
+
 ## Installation
 
 To run this project locally, follow these steps:
