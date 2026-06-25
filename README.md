@@ -29,7 +29,7 @@ Created by [Noob31](https://noob31.com/).
 
 ## API Worker
 
-`api-worker` is a test tool to run the project on a cloudflare worker instance and fetch information via api.
+`api-worker` is a test tool to run the project on a cloudflare worker instance and fetch information via api. THIS HAS NOT BEEN TESTED YET. DO NOT DEPLOY IT.
 
 ## Installation
 
