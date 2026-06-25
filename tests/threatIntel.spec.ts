@@ -33,13 +33,13 @@ test.describe("Threat Intelligence Explorer End-to-End Tests", () => {
     const otxTab = page.getByRole("tab", { name: /AlienVault OTX/i });
     await expect(otxTab).toBeVisible();
 
-    const phishstatsTab = page.getByRole("tab", { name: /PhishStats/i });
-    await expect(phishstatsTab).toBeVisible();
+    const urlscanTab = page.getByRole("tab", { name: /URLScan.io/i });
+    await expect(urlscanTab).toBeVisible();
 
-    // 10. Click PhishStats tab and verify results card is visible
-    await phishstatsTab.click();
-    const phishstatsContent = page.locator("text=PhishStats Phishing Incidents");
-    await expect(phishstatsContent).toBeVisible();
+    // 10. Click URLScan.io tab and verify results card is visible
+    await urlscanTab.click();
+    const urlscanContent = page.locator("text=URLScan.io History Search");
+    await expect(urlscanContent).toBeVisible();
   });
 
   test("should handle file hash query detection and render details tabs", async ({ page }) => {
@@ -59,9 +59,9 @@ test.describe("Threat Intelligence Explorer End-to-End Tests", () => {
     const resultsContainer = page.locator("text=Target Indicator");
     await expect(resultsContainer).toBeVisible({ timeout: 15000 });
 
-    // Verify MalwareBazaar tab is present
-    const mbTab = page.getByRole("tab", { name: /MalwareBazaar/i });
-    await expect(mbTab).toBeVisible();
+    // Verify AlienVault OTX tab is present
+    const otxTab = page.getByRole("tab", { name: /AlienVault OTX/i });
+    await expect(otxTab).toBeVisible();
   });
 
   test("should check that redirect links on external portal panel exist", async ({ page }) => {

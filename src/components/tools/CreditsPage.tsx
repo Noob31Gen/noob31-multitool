@@ -52,13 +52,6 @@ export function CreditsPage() {
           how: "Queries SSLMate's keyless CertSpotter v1 API logs."
         },
         {
-          name: "Anubis",
-          url: "https://jldc.me/anubis/",
-          badge: "Direct API",
-          why: "To lookup historical subdomains in a passive repository.",
-          how: "Queries the keyless subdomain enumeration API hosted by jldc.me."
-        },
-        {
           name: "Mnemonic",
           url: "https://api.mnemonic.no/",
           badge: "Direct API",
@@ -66,32 +59,11 @@ export function CreditsPage() {
           how: "Queries Mnemonic's passive DNS v3 lookup service."
         },
         {
-          name: "BufferOver",
-          url: "https://tls.bufferover.run/",
-          badge: "Direct API",
-          why: "To harvest subdomains from large public FDNS datasets.",
-          how: "Performs DNS lookup queries against their keyless TLS endpoint."
-        },
-        {
-          name: "Wayback Machine",
-          url: "http://web.archive.org/",
-          badge: "Direct API",
-          why: "To discover subdomains indexed in historical snapshots.",
-          how: "Scans the Internet Archive CDX server database using wildcard domain paths."
-        },
-        {
           name: "AlienVault OTX (Passive DNS)",
           url: "https://otx.alienvault.com/",
           badge: "Direct API",
           why: "To retrieve passive DNS resolution records from community sensors.",
           how: "Fetches subdomain history via the Open Threat Exchange indicator endpoint."
-        },
-        {
-          name: "Subdomain Center",
-          url: "https://subdomain.center/",
-          badge: "Direct API",
-          why: "To fetch consolidated subdomains from a keyless indexer.",
-          how: "Requests subdomain list directly using their keyless public search API."
         }
       ]
     },
@@ -203,13 +175,6 @@ export function CreditsPage() {
           how: "Acts as a secondary proxy-friendly IP details lookup fallback."
         },
         {
-          name: "ipapi.co",
-          url: "https://ipapi.co/",
-          badge: "Direct API",
-          why: "To retrieve IP location details directly on the client side.",
-          how: "Used as a direct HTTPS geolocation query fallback."
-        },
-        {
           name: "RIPE Stat",
           url: "https://stat.ripe.net/",
           badge: "Direct API",
@@ -222,13 +187,6 @@ export function CreditsPage() {
           badge: "Direct API",
           why: "To look up exchange points, public peering facilities, and website URLs.",
           how: "Queries PeeringDB's public ASN networking catalog."
-        },
-        {
-          name: "BGPView",
-          url: "https://bgpview.io/",
-          badge: "Direct API",
-          why: "To extract autonomous system routes and IP address prefix blocks.",
-          how: "Queries the BGPView public autonomous system API."
         }
       ]
     },
@@ -256,20 +214,6 @@ export function CreditsPage() {
       title: "Threat Intelligence Aggregation",
       description: "Feeds and databases queried dynamically in the Threat Intelligence Explorer to trace Indicators of Compromise (IOCs).",
       sources: [
-        {
-          name: "PhishStats",
-          url: "https://phishstats.info/",
-          badge: "Direct API",
-          why: "To search recent phishing logs for target indicators and track threat scores.",
-          how: "Queries the PhishStats API for URLs matching domains, IPs, or keywords via proxy."
-        },
-        {
-          name: "MalwareBazaar",
-          url: "https://malwarebazaar.abuse.ch/",
-          badge: "Direct API",
-          why: "To inspect file hash definitions, signatures, and vendor detection rate averages.",
-          how: "Sends POST requests to Abuse.ch MalwareBazaar's keyless file hash database."
-        },
         {
           name: "urlscan.io (Scan Search)",
           url: "https://urlscan.io/",

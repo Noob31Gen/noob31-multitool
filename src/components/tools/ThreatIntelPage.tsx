@@ -133,7 +133,6 @@ export function ThreatIntelPage() {
           { name: "VirusTotal Hash", url: `https://www.virustotal.com/gui/file/${clean}` },
           { name: "Talos Intelligence", url: `https://talosintelligence.com/reputation_center/lookup?search=${clean}` },
           { name: "AlienVault OTX", url: `https://otx.alienvault.com/indicator/file/${clean}` },
-          { name: "MalwareBazaar Details", url: `https://malshare.com/` }, // generic fallback or malshare
           { name: "ThreatMiner Hash", url: `https://www.threatminer.org/sample.php?q=${clean}` },
         ];
       default:
@@ -182,10 +181,8 @@ export function ThreatIntelPage() {
     if (!result) return { label: "Unknown", color: "text-muted-foreground", bg: "bg-muted" };
 
     const totalOtx = result.otxPulses.length;
-    const totalPhish = result.phishStatsMatches.length;
-    const hasMb = !!result.malwareBazaar;
 
-    if (totalPhish > 0 || hasMb || totalOtx > 3) {
+    if (totalOtx > 3) {
       return { label: "MALICIOUS / HIGH RISK", color: "text-destructive font-bold", bg: "bg-destructive/10 border-destructive/20" };
     }
     if (totalOtx > 0) {
@@ -193,7 +190,7 @@ export function ThreatIntelPage() {
     }
     // If all sources errored out, mark as inconclusive
     const errorCount = result.sourceErrors ? Object.keys(result.sourceErrors).length : 0;
-    if (errorCount > 0 && totalOtx === 0 && totalPhish === 0 && !hasMb) {
+    if (errorCount > 0 && totalOtx === 0) {
       return { label: "INCONCLUSIVE / SOURCES FAILED", color: "text-amber-500 font-bold", bg: "bg-amber-500/10 border-amber-500/20" };
     }
     return { label: "CLEAN / NO IMMEDIATE MATCHES", color: "text-green-500 font-bold", bg: "bg-green-500/10 border-green-500/20" };
@@ -205,7 +202,7 @@ export function ThreatIntelPage() {
     <div className="space-y-6">
       <SEO
         title="Threat Intelligence Explorer"
-        description="Search domains, IPs, URLs, file hashes or keywords across AlienVault OTX, ThreatMiner, PhishStats, URLScan.io and MalwareBazaar."
+        description="Search domains, IPs, URLs, file hashes or keywords across AlienVault OTX and URLScan.io."
         url="https://tools.noob31.com/security/threat-intel"
       />
 
@@ -261,7 +258,7 @@ export function ThreatIntelPage() {
           <div className="py-6 space-y-4">
             <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
               <Activity className="w-4 h-4 animate-spin text-primary" />
-              <span>Querying OTX Pulses, PhishStats, URLScan, and MalwareBazaar...</span>
+              <span>Querying OTX Pulses and URLScan.io...</span>
             </div>
             <LoadingSkeleton />
           </div>
@@ -296,16 +293,8 @@ export function ThreatIntelPage() {
                   <p className="text-muted-foreground/80">Check pulses and reputation matching domains, IPs, URLs, or hashes.</p>
                 </div>
                 <div className="p-3 rounded-lg border border-border/40 bg-muted/10 space-y-1">
-                  <span className="font-semibold text-primary">PhishStats Feed</span>
-                  <p className="text-muted-foreground/80">Scan recent phishing logs for target records and track threat scores.</p>
-                </div>
-                <div className="p-3 rounded-lg border border-border/40 bg-muted/10 space-y-1">
                   <span className="font-semibold text-primary">URLScan.io</span>
                   <p className="text-muted-foreground/80">Historic public scan results and screenshots of web pages.</p>
-                </div>
-                <div className="p-3 rounded-lg border border-border/40 bg-muted/10 space-y-1">
-                  <span className="font-semibold text-primary">MalwareBazaar</span>
-                  <p className="text-muted-foreground/80">Inspect file hash definitions, signatures, and vendor detection rate averages.</p>
                 </div>
               </div>
             </CardContent>
@@ -426,19 +415,9 @@ export function ThreatIntelPage() {
                     <TabsTrigger value="otx" className="px-3 py-1.5 text-xs sm:text-sm shrink-0">
                       AlienVault OTX ({result.otxPulses.length})
                     </TabsTrigger>
-                    {result.detectedType !== "hash" && (
-                      <TabsTrigger value="phishstats" className="px-3 py-1.5 text-xs sm:text-sm shrink-0">
-                        PhishStats ({result.sourceErrors?.['PhishStats'] ? '⚠' : result.phishStatsMatches.length})
-                      </TabsTrigger>
-                    )}
                     <TabsTrigger value="urlscan" className="px-3 py-1.5 text-xs sm:text-sm shrink-0">
                       URLScan.io ({result.sourceErrors?.['URLScan.io'] ? '⚠' : result.urlScanHistory.length})
                     </TabsTrigger>
-                    {result.detectedType === "hash" && (
-                      <TabsTrigger value="malwarebazaar" className="px-3 py-1.5 text-xs sm:text-sm shrink-0">
-                        MalwareBazaar
-                      </TabsTrigger>
-                    )}
                     {result.detectedType === "ip" && (
                       <TabsTrigger value="internetdb" className="px-3 py-1.5 text-xs sm:text-sm shrink-0">
                         InternetDB ({result.sourceErrors?.['InternetDB'] ? '⚠' : result.internetDb?.ports?.length || 0})
@@ -582,139 +561,6 @@ export function ThreatIntelPage() {
                 </TabsContent>
 
 
-
-                {/* Tab content PhishStats */}
-                <TabsContent value="phishstats" className="mt-4 focus-visible:ring-0">
-                  <ResultCard
-                    title="PhishStats Phishing Incidents"
-                    description="Real-time listing of active and historic phishing targets."
-                  >
-                    {result.sourceErrors?.['PhishStats'] ? (
-                      <div className="flex items-center gap-3 p-4 rounded-md border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                        <AlertCircle className="w-5 h-5 shrink-0" />
-                        <div className="text-sm">
-                          <span className="font-bold block">PhishStats feed failed to respond</span>
-                          <span className="text-xs opacity-80">{result.sourceErrors['PhishStats']}</span>
-                        </div>
-                      </div>
-                    ) : result.phishStatsMatches.length > 0 ? (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 p-3 rounded-md border border-destructive/20 bg-destructive/10 text-destructive text-xs font-medium">
-                          <ShieldAlert className="w-4.5 h-4.5 shrink-0" />
-                          <span>Matched verified phishing domains. Handle URL links with extreme caution.</span>
-                        </div>
-                        
-                        {/* Mobile View Card List */}
-                        <div className="space-y-3 md:hidden">
-                          {result.phishStatsMatches.map((row) => (
-                            <div key={row.id} className="p-4 border border-border/60 rounded-lg bg-card space-y-3 text-sm">
-                              <div className="flex justify-between items-start gap-2">
-                                <div className="space-y-1 min-w-0">
-                                  <span className="font-bold text-foreground text-xs block truncate" title={row.title}>
-                                    {row.title}
-                                  </span>
-                                  <span className="text-[10px] text-muted-foreground break-all block leading-tight font-mono select-all select-text">
-                                    {row.url}
-                                  </span>
-                                </div>
-                                <Badge
-                                  variant={row.score >= 7 ? "destructive" : "secondary"}
-                                  className="font-mono text-xs shrink-0"
-                                >
-                                  {row.score}/10
-                                </Badge>
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/40 text-xs">
-                                <div>
-                                  <span className="text-muted-foreground block text-[10px] uppercase font-semibold">Date Listed</span>
-                                  <span className="text-foreground font-medium">{row.date}</span>
-                                </div>
-                                <div>
-                                  <span className="text-muted-foreground block text-[10px] uppercase font-semibold">IP Address</span>
-                                  <button
-                                    onClick={() => handleQuickSearch(row.ip)}
-                                    className="text-primary hover:underline font-bold font-mono text-[11px] cursor-pointer"
-                                  >
-                                    {row.ip}
-                                  </button>
-                                  <span className="text-[10px] text-muted-foreground block truncate">
-                                    {row.country} ({row.asn})
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Desktop View Table */}
-                        <div className="hidden md:block max-h-[400px] overflow-y-auto border rounded-lg">
-                          <Table>
-                            <TableHeader className="bg-muted/40 sticky top-0 z-10">
-                              <TableRow>
-                                <TableHead className="font-bold">Target Title / URL</TableHead>
-                                <TableHead className="font-bold">Date Listed</TableHead>
-                                <TableHead className="font-bold">IP (Geo)</TableHead>
-                                <TableHead className="font-bold text-center">Score</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {result.phishStatsMatches.map((row) => (
-                                <TableRow key={row.id} className="hover:bg-muted/20">
-                                  <TableCell className="max-w-[250px]">
-                                    <div className="space-y-1">
-                                      <span className="font-bold text-foreground text-xs block truncate" title={row.title}>
-                                        {row.title}
-                                      </span>
-                                      <span
-                                        className="text-[10px] text-muted-foreground break-all block leading-tight font-mono select-all select-text"
-                                        title={row.url}
-                                      >
-                                        {row.url}
-                                      </span>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                                    {row.date}
-                                  </TableCell>
-                                  <TableCell className="text-xs">
-                                    <div className="space-y-0.5">
-                                      <button
-                                        onClick={() => handleQuickSearch(row.ip)}
-                                        className="text-primary hover:underline font-bold font-mono text-[11px] cursor-pointer"
-                                      >
-                                        {row.ip}
-                                      </button>
-                                      <span className="text-[10px] text-muted-foreground block">
-                                        {row.country} ({row.asn})
-                                      </span>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    <Badge
-                                      variant={row.score >= 7 ? "destructive" : "secondary"}
-                                      className="font-mono text-xs"
-                                    >
-                                      {row.score}/10
-                                    </Badge>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-3 p-4 rounded-md border border-border bg-green-500/10 text-green-600 dark:text-green-400">
-                        <CheckCircle className="w-5 h-5 shrink-0" />
-                        <div className="text-sm font-medium">
-                          No phishing records matched this query in the PhishStats index.
-                        </div>
-                      </div>
-                    )}
-                  </ResultCard>
-                </TabsContent>
-
                 {/* Tab content URLScan */}
                 <TabsContent value="urlscan" className="mt-4 focus-visible:ring-0">
                   <ResultCard
@@ -827,125 +673,7 @@ export function ThreatIntelPage() {
                   </ResultCard>
                 </TabsContent>
 
-                {/* Tab content MalwareBazaar (Abuse.ch) */}
-                <TabsContent value="malwarebazaar" className="mt-4 focus-visible:ring-0">
-                  <ResultCard
-                    title="Abuse.ch MalwareBazaar"
-                    description="Detailed malware telemetry report for the queried file hash."
-                  >
-                    {result.malwareBazaar ? (
-                      <div className="space-y-6">
-                        <div className="flex items-center gap-2 p-3 rounded-md border border-destructive/20 bg-destructive/10 text-destructive text-xs font-semibold">
-                          <ShieldAlert className="w-4.5 h-4.5 shrink-0" />
-                          <span>Identified Malware Sample: {result.malwareBazaar.family}</span>
-                        </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="p-3.5 border rounded-lg space-y-1">
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-bold">
-                              File Name
-                            </span>
-                            <span className="text-xs font-bold text-foreground truncate block font-mono">
-                              {result.malwareBazaar.fileName}
-                            </span>
-                          </div>
-
-                          <div className="p-3.5 border rounded-lg space-y-1">
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-bold">
-                              Malware Family
-                            </span>
-                            <span className="text-xs font-bold text-primary block uppercase tracking-wide">
-                              {result.malwareBazaar.family}
-                            </span>
-                          </div>
-
-                          <div className="p-3.5 border rounded-lg space-y-1">
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-bold">
-                              File Type & Size
-                            </span>
-                            <span className="text-xs text-foreground font-semibold">
-                              {result.malwareBazaar.fileType} (
-                              {(result.malwareBazaar.fileSize / 1024).toFixed(2)} KB)
-                            </span>
-                          </div>
-
-                          <div className="p-3.5 border rounded-lg space-y-1">
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-bold">
-                              First Submitted
-                            </span>
-                            <span className="text-xs text-foreground font-semibold">
-                              {result.malwareBazaar.firstSeen}
-                            </span>
-                          </div>
-
-                          {result.malwareBazaar.virustotalPercentage && (
-                            <div className="p-3.5 border rounded-lg sm:col-span-2 space-y-2">
-                              <div className="flex justify-between items-center text-xs">
-                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
-                                  VirusTotal Detection Ratio
-                                </span>
-                                <span className="font-bold text-destructive font-mono">
-                                  {result.malwareBazaar.virustotalPercentage}
-                                </span>
-                              </div>
-                              <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden border">
-                                <div
-                                  className="bg-destructive h-full transition-all rounded-full"
-                                  style={{
-                                    width: result.malwareBazaar.virustotalPercentage.includes("%")
-                                      ? result.malwareBazaar.virustotalPercentage
-                                      : `${parseFloat(result.malwareBazaar.virustotalPercentage) || 0}%`,
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          )}
-
-                          {result.malwareBazaar.clamAv && (
-                            <div className="p-3.5 border rounded-lg bg-card">
-                              <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-bold">
-                                ClamAV Signature
-                              </span>
-                              <span className="text-xs font-mono font-semibold text-destructive/80 break-words block mt-1">
-                                {result.malwareBazaar.clamAv}
-                              </span>
-                            </div>
-                          )}
-
-                          {result.malwareBazaar.trendMicro && (
-                            <div className="p-3.5 border rounded-lg bg-card">
-                              <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-bold">
-                                TrendMicro Signature
-                              </span>
-                              <span className="text-xs font-mono font-semibold text-destructive/80 break-words block mt-1">
-                                {result.malwareBazaar.trendMicro}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {result.malwareBazaar.tags.length > 0 && (
-                          <div className="space-y-2">
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-bold">
-                              Tags ({result.malwareBazaar.tagsCount})
-                            </span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {result.malwareBazaar.tags.map((tag, idx) => (
-                                <Badge key={idx} variant="outline" className="font-mono text-xs">
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="p-6 border rounded-lg text-center text-sm text-muted-foreground bg-muted/10">
-                        No results found for this file hash in MalwareBazaar. Note that MalwareBazaar index relies on SHA-256 submissions.
-                      </div>
-                    )}
-                  </ResultCard>
-                </TabsContent>
 
                 {/* Tab content InternetDB */}
                 {result.detectedType === "ip" && (

@@ -441,7 +441,7 @@ Queries blocklists, Quad9, Shodan pulses, and domain age registries.
 ---
 
 ### 18. Threat Intelligence Aggregator (`GET /threat-intel`)
-Searches AlienVault OTX, PhishStats, URLScan, and MalwareBazaar databases for a keyword, IP, domain, URL, or file hash.
+Searches AlienVault OTX and URLScan.io databases for a keyword, IP, domain, URL, or file hash.
 * **Parameters**:
   * `target` (Required): The query string.
 * **Example Request**:
@@ -452,9 +452,7 @@ Searches AlienVault OTX, PhishStats, URLScan, and MalwareBazaar databases for a 
     "query": "8.8.8.8",
     "detectedType": "ip",
     "otxPulses": [...],
-    "phishStatsMatches": [],
     "urlScanHistory": [...],
-    "malwareBazaar": null,
     "internetDb": { "ports": [53, 443], "cves": [], "tags": ["dns"] },
     "queryTime": 412,
     "sourceErrors": {}

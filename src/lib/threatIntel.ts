@@ -16,16 +16,6 @@ export interface ThreatPulse {
 
 
 
-export interface PhishStatsRecord {
-  id: number;
-  url: string;
-  ip: string;
-  country: string;
-  asn: string;
-  title: string;
-  date: string;
-  score: number;
-}
 
 export interface UrlScanRecord {
   id: string;
@@ -43,19 +33,7 @@ export interface UrlScanRecord {
   asnname?: string;
 }
 
-export interface MalwareBazaarRecord {
-  sha256: string;
-  fileName: string;
-  fileSize: number;
-  fileType: string;
-  family: string;
-  firstSeen: string;
-  tags: string[];
-  tagsCount: number;
-  clamAv?: string;
-  trendMicro?: string;
-  virustotalPercentage?: string;
-}
+
 
 export interface AggregatedThreatIntel {
   query: string;
@@ -72,9 +50,7 @@ export interface AggregatedThreatIntel {
     malwareFamilies: string[];
     industries: string[];
   };
-  phishStatsMatches: PhishStatsRecord[];
   urlScanHistory: UrlScanRecord[];
-  malwareBazaar?: MalwareBazaarRecord;
   internetDb?: InternetDbHost | null;
   queryTime: number;
   /** Map of source name → error message when a source failed to fetch */
@@ -217,75 +193,6 @@ async function fetchOtxPulses(
   }
 }
 
-
-
-async function fetchPhishStats(
-  query: string,
-  type: ThreatInputType,
-  settings: AppSettings
-): Promise<PhishStatsRecord[]> {
-  try {
-    let whereClause = "";
-    const clean = query.trim();
-
-    if (type === "ip") {
-      whereClause = `(ip,eq,${clean})`;
-    } else if (type === "domain") {
-      const cleanDom = clean.replace(/^(https?:\/\/)?(www\.)?/, "");
-      whereClause = `(url,like,~${cleanDom}~)`;
-    } else if (type === "url") {
-      whereClause = `(url,eq,${clean})`;
-    } else if (type === "keyword") {
-      whereClause = `(title,like,~${clean}~)~or(url,like,~${clean}~)`;
-    } else {
-      return []; // Hash not supported in PhishStats
-    }
-
-    const targetUrl = `https://api.phishstats.info/api/phishing?_where=${encodeURIComponent(
-      whereClause
-    )}&_sort=-id&_size=20`;
-    const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25000);
-    const res = await authenticatedFetch(proxyUrl, { signal: controller.signal });
-    clearTimeout(timeoutId);
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    if (Array.isArray(data)) {
-      return data.map((item: {
-        id?: number;
-        url?: string;
-        ip?: string;
-        countrycode?: string;
-        asn?: string;
-        title?: string;
-        date?: string;
-        score?: number;
-      }) => ({
-        id: item.id || 0,
-        url: item.url || "",
-        ip: item.ip || "",
-        country: item.countrycode || "Unknown",
-        asn: item.asn || "N/A",
-        title: item.title || "Phishing Page",
-        date: item.date ? new Date(item.date).toLocaleDateString() : "N/A",
-        score: typeof item.score === "number" ? item.score : 0,
-      }));
-    }
-    return [];
-  } catch (err) {
-    logger.warn("Threat Intel: PhishStats fetch failed", err);
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    // Return a marker object so the orchestrator knows it failed vs. returned empty
-    const errorResult: PhishStatsRecord[] = [];
-    (errorResult as unknown as { __error: string }).__error = msg;
-    return errorResult;
-  }
-}
-
 async function fetchUrlScan(
   query: string,
   type: ThreatInputType,
@@ -352,60 +259,6 @@ async function fetchUrlScan(
   }
 }
 
-async function fetchMalwareBazaar(
-  hash: string,
-  settings: AppSettings
-): Promise<MalwareBazaarRecord | undefined> {
-  // Try sending POST request through proxies that support body forwarding.
-  // Standard transparent proxies like corsproxy.io support it.
-  try {
-    const targetUrl = "https://mb-api.abuse.ch/api/v1/";
-    const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-
-    const bodyParams = new URLSearchParams();
-    bodyParams.append("query", "get_info");
-    bodyParams.append("hash", hash.trim());
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-    const res = await authenticatedFetch(proxyUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: bodyParams.toString(),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    if (data && data.query_status === "ok" && Array.isArray(data.data) && data.data.length > 0) {
-      const item = data.data[0];
-      const vendorIntel = item.vendor_intel || {};
-      const vt = vendorIntel.VirusTotal || {};
-
-      return {
-        sha256: item.sha256_hash || hash,
-        fileName: item.file_name || "Unknown",
-        fileSize: item.file_size || 0,
-        fileType: item.file_type || "Unknown",
-        family: item.signature || "Unidentified Family",
-        firstSeen: item.first_seen ? new Date(item.first_seen).toLocaleDateString() : "N/A",
-        tags: Array.isArray(item.tags) ? item.tags : [],
-        tagsCount: Array.isArray(item.tags) ? item.tags.length : 0,
-        clamAv: vendorIntel.ClamAV || undefined,
-        trendMicro: vendorIntel.TrendMicro || undefined,
-        virustotalPercentage: typeof vt.detection_rate === "string" ? vt.detection_rate : undefined,
-      };
-    }
-    return undefined;
-  } catch (err) {
-    logger.warn("Threat Intel: MalwareBazaar fetch failed", err);
-    return undefined;
-  }
-}
 
 // Master search orchestrator
 export async function searchThreatIntel(
@@ -419,10 +272,7 @@ export async function searchThreatIntel(
 
   // Run fetches in parallel
   const otxPromise = fetchOtxPulses(clean, detectedType, settings);
-  const psPromise = fetchPhishStats(clean, detectedType, settings);
   const usPromise = fetchUrlScan(clean, detectedType, settings);
-  const mbPromise =
-    detectedType === "hash" ? fetchMalwareBazaar(clean, settings) : Promise.resolve(undefined);
 
   const internetDbPromise =
     detectedType === "ip" ? queryInternetDb(clean, settings).catch(err => {
@@ -431,20 +281,15 @@ export async function searchThreatIntel(
       return errorResult as { __error: string };
     }) : Promise.resolve(undefined);
 
-  const [otxRes, psRes, usRes, mbRes, idbRes] = await Promise.all([
+  const [otxRes, usRes, idbRes] = await Promise.all([
     otxPromise,
-    psPromise,
     usPromise,
-    mbPromise,
     internetDbPromise,
   ]);
 
   // Collect source errors
   const sourceErrors: Record<string, string> = {};
   if (otxRes.error) sourceErrors["AlienVault OTX"] = otxRes.error;
-  if ((psRes as unknown as { __error?: string }).__error) {
-    sourceErrors["PhishStats"] = (psRes as unknown as { __error: string }).__error;
-  }
   if ((usRes as unknown as { __error?: string }).__error) {
     sourceErrors["URLScan.io"] = (usRes as unknown as { __error: string }).__error;
   }
@@ -460,9 +305,7 @@ export async function searchThreatIntel(
     otxUnauthKeywordSearch: otxRes.keywordUnauth,
     otxValidation: otxRes.validation,
     otxRelated: otxRes.related,
-    phishStatsMatches: psRes,
     urlScanHistory: usRes,
-    malwareBazaar: mbRes,
     internetDb: (idbRes && !(idbRes as { __error?: string }).__error) ? (idbRes as InternetDbHost) : undefined,
     queryTime: Date.now() - startTime,
     sourceErrors,

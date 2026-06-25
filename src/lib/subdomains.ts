@@ -71,13 +71,8 @@ export async function querySubdomains(
     { name: 'URLScan.io', fn: fetchUrlScan },
     { name: 'crt.sh', fn: fetchCrtSh },
     { name: 'CertSpotter', fn: fetchCertSpotter },
-    { name: 'Anubis', fn: fetchAnubis },
     { name: 'Mnemonic', fn: fetchMnemonic },
-    { name: 'BufferOver', fn: fetchBufferOver },
-    { name: 'Wayback Machine', fn: fetchWaybackMachine },
-    { name: 'AlienVault OTX', fn: fetchAlienVaultOTX },
-    { name: 'ThreatMiner', fn: fetchThreatMiner },
-    { name: 'Subdomain Center', fn: fetchSubdomainCenter }
+    { name: 'AlienVault OTX', fn: fetchAlienVaultOTX }
   ];
   
   const subdomainMap = new Map<string, Set<string>>();
@@ -237,31 +232,6 @@ async function fetchCertSpotter(domain: string, settings: AppSettings): Promise<
   }
 }
 
-async function fetchAnubis(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
-  const targetUrl = `https://jldc.me/anubis/subdomains/${domain}`;
-  try {
-    const res = await fetchWithProxyFallback(targetUrl, settings);
-    const text = await res.text();
-    if (!text || text.trim().startsWith('<')) {
-      throw new Error('API returned HTML instead of JSON');
-    }
-    const data = JSON.parse(text);
-    const results: { subdomain: string, source: string }[] = [];
-    if (Array.isArray(data)) {
-      for (const sub of data) {
-        if (typeof sub === 'string') {
-          const validSub = extractValidSubdomain(sub, domain);
-          if (validSub) results.push({ subdomain: validSub, source: 'Anubis' });
-        }
-      }
-    }
-    return results;
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`${message}`);
-  }
-}
-
 async function fetchMnemonic(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://api.mnemonic.no/pdns/v3/${domain}`;
   try {
@@ -287,72 +257,6 @@ async function fetchMnemonic(domain: string, settings: AppSettings): Promise<{ s
   }
 }
 
-async function fetchWaybackMachine(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
-  const targetUrl = `http://web.archive.org/cdx/search/cdx?url=*.${domain}/*&output=json&collapse=urlkey&fl=original&limit=10000`;
-  try {
-    const res = await fetchWithProxyFallback(targetUrl, settings);
-    const text = await res.text();
-    if (!text || text.trim().startsWith('<')) {
-      throw new Error('API returned HTML instead of JSON');
-    }
-    const data = JSON.parse(text);
-    const results: { subdomain: string, source: string }[] = [];
-    if (Array.isArray(data) && data.length > 1) {
-      const chunkSize = 1000;
-      for (let i = 1; i < data.length; i += chunkSize) {
-        const chunk = data.slice(i, i + chunkSize);
-        for (const row of chunk) {
-          if (Array.isArray(row) && row.length > 0) {
-            try {
-              let hostname = "";
-              if (row[0].startsWith('http')) {
-                const url = new URL(row[0]);
-                hostname = url.hostname;
-              } else {
-                hostname = row[0];
-              }
-              const validSub = extractValidSubdomain(hostname, domain);
-              if (validSub) results.push({ subdomain: validSub, source: 'Wayback Machine' });
-            } catch { /* ignore */ }
-          }
-        }
-        if (i + chunkSize < data.length) {
-          await new Promise(resolve => setTimeout(resolve, 0));
-        }
-      }
-    }
-    return results;
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`${message}`);
-  }
-}
-
-async function fetchBufferOver(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
-  const targetUrl = `https://tls.bufferover.run/dns?q=.${domain}`;
-  try {
-    const res = await fetchWithProxyFallback(targetUrl, settings);
-    const text = await res.text();
-    if (!text || text.trim().startsWith('<')) throw new Error('API returned HTML instead of JSON');
-    const data = JSON.parse(text);
-    const results: { subdomain: string, source: string }[] = [];
-    if (data && Array.isArray(data.FDNS_A)) {
-      for (const record of data.FDNS_A) {
-        if (typeof record === 'string') {
-          const parts = record.split(',');
-          if (parts.length > 1) {
-            const validSub = extractValidSubdomain(parts[1], domain);
-            if (validSub) results.push({ subdomain: validSub, source: 'BufferOver' });
-          }
-        }
-      }
-    }
-    return results;
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`${message}`);
-  }
-}
 
 async function fetchAlienVaultOTX(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
   const targetUrl = `https://otx.alienvault.com/api/v1/indicators/domain/${domain}/passive_dns`;
@@ -366,52 +270,6 @@ async function fetchAlienVaultOTX(domain: string, settings: AppSettings): Promis
           const validSub = extractValidSubdomain(record.hostname, domain);
           if (validSub) {
             results.push({ subdomain: validSub, source: 'AlienVault OTX' });
-          }
-        }
-      }
-    }
-    return results;
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`${message}`);
-  }
-}
-
-async function fetchThreatMiner(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
-  const targetUrl = `https://api.threatminer.org/v2/domain.php?q=${domain}&rt=5`;
-  try {
-    const res = await fetchWithProxyFallback(targetUrl, settings);
-    const data = await res.json();
-    const results: { subdomain: string, source: string }[] = [];
-    if (data && Array.isArray(data.results)) {
-      for (const sub of data.results) {
-        if (typeof sub === 'string') {
-          const validSub = extractValidSubdomain(sub, domain);
-          if (validSub) {
-            results.push({ subdomain: validSub, source: 'ThreatMiner' });
-          }
-        }
-      }
-    }
-    return results;
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`${message}`);
-  }
-}
-
-async function fetchSubdomainCenter(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
-  const targetUrl = `https://api.subdomain.center/api4?domain=${domain}`;
-  try {
-    const res = await fetchWithProxyFallback(targetUrl, settings);
-    const data = await res.json();
-    const results: { subdomain: string, source: string }[] = [];
-    if (Array.isArray(data)) {
-      for (const sub of data) {
-        if (typeof sub === 'string') {
-          const validSub = extractValidSubdomain(sub, domain);
-          if (validSub) {
-            results.push({ subdomain: validSub, source: 'Subdomain Center' });
           }
         }
       }
