@@ -194,6 +194,19 @@ export function ReverseDnsPage() {
                         </Badge>
                       </div>
                     )}
+                    {(result.asnDetails.prefixesV4 !== undefined || result.asnDetails.prefixesV6 !== undefined) && (
+                      <div className="border-t pt-2 space-y-1">
+                        <p className="text-[10px] font-bold uppercase text-muted-foreground">Announced Prefixes</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          <Badge variant="outline" className="text-[9px] py-0 px-1.5 font-mono text-muted-foreground">
+                            IPv4: {result.asnDetails.prefixesV4 || 0}
+                          </Badge>
+                          <Badge variant="outline" className="text-[9px] py-0 px-1.5 font-mono text-muted-foreground">
+                            IPv6: {result.asnDetails.prefixesV6 || 0}
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <p className="text-xs text-muted-foreground italic">

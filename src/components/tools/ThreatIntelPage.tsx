@@ -453,6 +453,65 @@ export function ThreatIntelPage() {
                     title="OTX Security Pulses"
                     description="Active threat advisory reports associated with this indicator in AlienVault OTX."
                   >
+                    {result.otxValidation && result.otxValidation.length > 0 && (
+                      <div className="mb-4 space-y-1.5">
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-bold">
+                          Indicator Validation & Whitelists
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {result.otxValidation.map((val, idx) => (
+                            <Badge
+                              key={idx}
+                              variant="outline"
+                              className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 text-xs px-2.5 py-1"
+                            >
+                              {val.name}: {val.message}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {result.otxRelated && (result.otxRelated.adversaries.length > 0 || result.otxRelated.malwareFamilies.length > 0 || result.otxRelated.industries.length > 0) && (
+                      <div className="mb-5 p-3.5 border border-border/80 rounded-lg bg-muted/20 space-y-3.5">
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-bold">
+                          Related Threat Intelligence Context
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                          {result.otxRelated.adversaries.length > 0 && (
+                            <div className="space-y-1.5">
+                              <span className="text-xs text-muted-foreground block font-semibold">Adversaries</span>
+                              <div className="flex flex-wrap gap-1">
+                                {result.otxRelated.adversaries.map((adv) => (
+                                  <Badge key={adv} variant="destructive" className="text-[10px] font-mono">{adv}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {result.otxRelated.malwareFamilies.length > 0 && (
+                            <div className="space-y-1.5">
+                              <span className="text-xs text-muted-foreground block font-semibold">Malware Families</span>
+                              <div className="flex flex-wrap gap-1">
+                                {result.otxRelated.malwareFamilies.map((fam) => (
+                                  <Badge key={fam} variant="destructive" className="text-[10px] font-mono">{fam}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {result.otxRelated.industries.length > 0 && (
+                            <div className="space-y-1.5">
+                              <span className="text-xs text-muted-foreground block font-semibold">Targeted Industries</span>
+                              <div className="flex flex-wrap gap-1">
+                                {result.otxRelated.industries.map((ind) => (
+                                  <Badge key={ind} variant="secondary" className="text-[10px] font-mono">{ind}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {result.otxUnauthKeywordSearch ? (
                       <div className="flex items-center gap-3 p-4 rounded-md border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400">
                         <ShieldAlert className="w-5 h-5 shrink-0" />
@@ -713,6 +772,38 @@ export function ThreatIntelPage() {
                                   >
                                     {scan.domain || scan.url}
                                   </span>
+                                  <div className="flex flex-wrap gap-1 mt-1.5">
+                                    {scan.server && (
+                                      <Badge variant="outline" className="text-[9px] py-0 px-1 font-mono uppercase bg-muted/40 border-muted text-muted-foreground">
+                                        Server: {scan.server}
+                                      </Badge>
+                                    )}
+                                    {scan.mimeType && (
+                                      <Badge variant="outline" className="text-[9px] py-0 px-1 font-mono bg-muted/40 border-muted text-muted-foreground">
+                                        Mime: {scan.mimeType}
+                                      </Badge>
+                                    )}
+                                    {scan.requests !== undefined && (
+                                      <Badge variant="outline" className="text-[9px] py-0 px-1 font-mono bg-blue-500/5 text-blue-500 border-blue-500/10 dark:bg-blue-500/10">
+                                        Reqs: {scan.requests}
+                                      </Badge>
+                                    )}
+                                    {scan.uniqIPs !== undefined && (
+                                      <Badge variant="outline" className="text-[9px] py-0 px-1 font-mono bg-indigo-500/5 text-indigo-500 border-indigo-500/10 dark:bg-indigo-500/10">
+                                        IPs: {scan.uniqIPs}
+                                      </Badge>
+                                    )}
+                                    {scan.uniqCountries !== undefined && (
+                                      <Badge variant="outline" className="text-[9px] py-0 px-1 font-mono bg-purple-500/5 text-purple-500 border-purple-500/10 dark:bg-purple-500/10">
+                                        Locs: {scan.uniqCountries}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  {scan.asnname && (
+                                    <span className="text-[9px] text-muted-foreground block mt-1.5 truncate" title={scan.asnname}>
+                                      Network: {scan.asnname}
+                                    </span>
+                                  )}
                                 </div>
                                 <Button
                                   variant="ghost"

@@ -16,6 +16,8 @@ export interface ReverseDnsResult {
     rir?: string;
     country?: string;
     type?: string;
+    prefixesV4?: number;
+    prefixesV6?: number;
   };
   error?: string;
 }
@@ -212,7 +214,9 @@ export async function lookupReverseDns(
         asn: asnRes.parsed.asn,
         org: asnRes.parsed.org,
         rir: asnRes.parsed.rir,
-        country: asnRes.parsed.country || asnRes.parsed.country_code
+        country: asnRes.parsed.country || asnRes.parsed.country_code,
+        prefixesV4: asnRes.parsed.prefixes_v4?.length || 0,
+        prefixesV6: asnRes.parsed.prefixes_v6?.length || 0
       };
     }
   } catch {

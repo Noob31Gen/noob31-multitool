@@ -35,6 +35,12 @@ export interface UrlScanRecord {
   time: string;
   title: string;
   screenshot?: string;
+  server?: string;
+  mimeType?: string;
+  requests?: number;
+  uniqIPs?: number;
+  uniqCountries?: number;
+  asnname?: string;
 }
 
 export interface MalwareBazaarRecord {
@@ -60,6 +66,12 @@ export interface AggregatedThreatIntel {
     sections?: string[];
   };
   otxUnauthKeywordSearch?: boolean;
+  otxValidation?: { source: string; message: string; name: string }[];
+  otxRelated?: {
+    adversaries: string[];
+    malwareFamilies: string[];
+    industries: string[];
+  };
   phishStatsMatches: PhishStatsRecord[];
   urlScanHistory: UrlScanRecord[];
   malwareBazaar?: MalwareBazaarRecord;
@@ -113,7 +125,18 @@ async function fetchOtxPulses(
   query: string,
   type: ThreatInputType,
   settings: AppSettings
-): Promise<{ pulses: ThreatPulse[]; metadata?: { reputation?: number }; keywordUnauth?: boolean; error?: string }> {
+): Promise<{
+  pulses: ThreatPulse[];
+  metadata?: { reputation?: number };
+  keywordUnauth?: boolean;
+  error?: string;
+  validation?: { source: string; message: string; name: string }[];
+  related?: {
+    adversaries: string[];
+    malwareFamilies: string[];
+    industries: string[];
+  };
+}> {
   try {
     let otxType = "domain";
     if (type === "ip") {
@@ -124,7 +147,7 @@ async function fetchOtxPulses(
       otxType = "url";
     } else if (type === "keyword") {
       // General OTX keyword search is not allowed keylessly (returns 401/403).
-      return { pulses: [], keywordUnauth: true };
+      return { pulses: [] };
     }
 
     // Clean query slightly if url
@@ -168,9 +191,25 @@ async function fetchOtxPulses(
       }));
     }
 
+    const validation = Array.isArray(data.validation) ? data.validation : [];
+    const related = {
+      adversaries: [] as string[],
+      malwareFamilies: [] as string[],
+      industries: [] as string[]
+    };
+
+    if (data.pulse_info && data.pulse_info.related) {
+      const rel = data.pulse_info.related.alienvault || data.pulse_info.related.other || {};
+      if (Array.isArray(rel.adversary)) related.adversaries = rel.adversary;
+      if (Array.isArray(rel.malware_families)) related.malwareFamilies = rel.malware_families;
+      if (Array.isArray(rel.industries)) related.industries = rel.industries;
+    }
+
     return {
       pulses,
       metadata: data && typeof data.reputation === "number" ? { reputation: data.reputation } : undefined,
+      validation,
+      related
     };
   } catch (err) {
     logger.warn("Threat Intel: OTX fetch failed", err);
@@ -286,7 +325,8 @@ async function fetchUrlScan(
       return data.results.map((item: {
         _id?: string;
         task?: { url?: string; time?: string };
-        page?: { domain?: string; ip?: string; title?: string };
+        page?: { domain?: string; ip?: string; title?: string; server?: string; mimeType?: string; asnname?: string };
+        stats?: { requests?: number; uniqIPs?: number; uniqCountries?: number };
       }) => ({
         id: item._id || "",
         url: item.task?.url || "",
@@ -295,6 +335,12 @@ async function fetchUrlScan(
         time: item.task?.time ? new Date(item.task.time).toLocaleString() : "N/A",
         title: item.page?.title || "N/A",
         screenshot: item._id ? `https://urlscan.io/screenshots/${item._id}.png` : undefined,
+        server: item.page?.server || undefined,
+        mimeType: item.page?.mimeType || undefined,
+        requests: item.stats?.requests || undefined,
+        uniqIPs: item.stats?.uniqIPs || undefined,
+        uniqCountries: item.stats?.uniqCountries || undefined,
+        asnname: item.page?.asnname || undefined,
       }));
     }
     return [];
@@ -412,6 +458,8 @@ export async function searchThreatIntel(
     otxPulses: otxRes.pulses,
     otxMetadata: otxRes.metadata,
     otxUnauthKeywordSearch: otxRes.keywordUnauth,
+    otxValidation: otxRes.validation,
+    otxRelated: otxRes.related,
     phishStatsMatches: psRes,
     urlScanHistory: usRes,
     malwareBazaar: mbRes,
