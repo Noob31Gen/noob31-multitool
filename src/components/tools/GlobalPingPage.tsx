@@ -116,15 +116,15 @@ export function GlobalPingPage() {
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="font-bold text-sm">
-                            {res.loc?.city || "Unknown City"}
+                            {res.from_loc?.city || "Unknown City"}
                           </div>
                           <div className="text-xs text-muted-foreground uppercase tracking-widest font-mono">
-                            {res.loc?.country_code || "Unknown Country"}
+                            {res.from_loc?.country || "Unknown Country"}
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className={`text-xl font-mono font-bold ${getLatencyColor(res.avg)}`}>
-                            {res.avg !== undefined ? `${res.avg.toFixed(1)}ms` : 'ERR'}
+                          <div className={`text-xl font-mono font-bold ${getLatencyColor(res.avg_rtt)}`}>
+                            {res.avg_rtt !== undefined ? `${res.avg_rtt.toFixed(1)}ms` : 'ERR'}
                           </div>
                         </div>
                       </div>
@@ -132,7 +132,7 @@ export function GlobalPingPage() {
                       <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-border/50">
                         <div>
                           <span className="text-muted-foreground block">Min / Max</span>
-                          <span className="font-mono">{res.min?.toFixed(1) || '-'} / {res.max?.toFixed(1) || '-'} ms</span>
+                          <span className="font-mono">{res.min_rtt?.toFixed(1) || '-'} / {res.max_rtt?.toFixed(1) || '-'} ms</span>
                         </div>
                         <div>
                           <span className="text-muted-foreground block">Packets (Tx/Rx)</span>

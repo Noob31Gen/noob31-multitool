@@ -4,17 +4,21 @@ import { getProxiedUrl, authenticatedFetch } from "./cors";
 
 export interface PingLocation {
   city?: string;
-  country_code?: string;
+  country?: string;
+  latlon?: string;
 }
 
 export interface PingResult {
-  loc?: PingLocation;
-  max?: number;
-  min?: number;
-  avg?: number;
+  from_loc?: PingLocation;
+  max_rtt?: number;
+  min_rtt?: number;
+  avg_rtt?: number;
+  rtts?: number[];
   packets_sent?: number;
   packets_received?: number;
+  packet_loss?: number;
   ip?: string;
+  is_alive?: boolean;
   error?: string;
 }
 
