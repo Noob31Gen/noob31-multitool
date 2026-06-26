@@ -28,7 +28,6 @@ const TOOL_CATEGORIES = [
       { name: "HTTP Headers", path: "/network/http/http" },
       { name: "Email Header Analyzer", path: "/bonus/headers" },
       { name: "Threat Intel Explorer", path: "/security/threat-intel" },
-      { name: "CVE Lookup", path: "/security/cve" },
     ],
   },
   {

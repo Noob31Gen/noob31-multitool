@@ -235,13 +235,6 @@ export function CreditsPage() {
           how: "Queries the Shodan InternetDB REST endpoint."
         },
         {
-          name: "Shodan CVEDB",
-          url: "https://cvedb.shodan.io/",
-          badge: "Direct API",
-          why: "To lookup CVE descriptions, CVSS scores, and EPS metrics.",
-          how: "Queries the Shodan CVEDB REST endpoint."
-        },
-        {
           name: "Shodan Geonet",
           url: "https://geonet.shodan.io/",
           badge: "Direct API",
