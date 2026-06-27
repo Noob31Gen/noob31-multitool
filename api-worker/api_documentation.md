@@ -461,7 +461,31 @@ Searches AlienVault OTX and URLScan.io databases for a keyword, IP, domain, URL,
 
 ---
 
-### 19. Email Header Parser (`POST /email-headers`)
+### 19. CVE Vulnerability Lookup (`GET /cve`)
+Looks up vulnerability parameters (CVSS score, EPSS ranking, Ransomware campaign status, CPE definitions) for a CVE identifier.
+* **Parameters**:
+  * `target` (Required): CVE ID (e.g. `CVE-2021-34527`).
+* **Example Request**:
+  `/cve?target=CVE-2021-44228`
+* **Example Response**:
+  ```json
+  {
+    "cve_id": "CVE-2021-44228",
+    "summary": "Apache Log4j2 JNDI features do not protect against attacker controlled LDAP...",
+    "cvss": 10.0,
+    "cvss_version": 3,
+    "cvss_v3": 10.0,
+    "epss": 0.97,
+    "ranking_epss": 0.99,
+    "kev": true,
+    "ransomware_campaign": "Known Campaigns",
+    "references": [...]
+  }
+  ```
+
+---
+
+### 20. Email Header Parser (`POST /email-headers`)
 Analyzes email headers to calculate delivery latency hops, identify mail transfer agent pathing, and inspect authentication tags.
 * **Body** (Required): Raw email headers in plain text.
 * **Example Request**:
@@ -495,7 +519,7 @@ Analyzes email headers to calculate delivery latency hops, identify mail transfe
 
 ---
 
-### 20. Subnet Calculator (`GET /subnet`)
+### 21. Subnet Calculator (`GET /subnet`)
 Calculates network properties (mask, network address, broadcast address, hosts count) for a CIDR boundary.
 * **Parameters**:
   * `ip` (Required): IPv4 address.

@@ -725,7 +725,7 @@ export function ThreatIntelPage() {
                               {result.internetDb.vulns && result.internetDb.vulns.length > 0 ? (
                                 <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
                                   {result.internetDb.vulns.map((cve) => (
-                                    <a key={cve} href={`https://nvd.nist.gov/vuln/detail/${cve}`} target="_blank" rel="noreferrer">
+                                    <a key={cve} href={`/security/cve#?cve=${cve}`} target="_blank" rel="noreferrer">
                                       <Badge variant="destructive" className="font-mono text-[10px] hover:bg-destructive/80 transition-colors cursor-pointer">
                                         {cve}
                                       </Badge>

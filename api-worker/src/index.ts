@@ -10,6 +10,7 @@ import { lookupMac } from './lib/macLookup';
 import { checkBlacklist } from './lib/blacklist';
 import { checkDomainReputation } from './lib/reputation';
 import { searchThreatIntel } from './lib/threatIntel';
+import { queryCveDb } from './lib/cvedb';
 import { parseEmailHeaders } from './lib/headerParser';
 import { calculateSubnet } from './lib/subnet';
 import { runDomainHealth } from './lib/health';
@@ -251,6 +252,12 @@ export default {
         case '/threat-intel': {
           if (!target) return jsonResponse({ error: "Missing 'target' parameter" }, 400);
           const result = await searchThreatIntel(target, settings);
+          return jsonResponse(result);
+        }
+
+        case '/cve': {
+          if (!target) return jsonResponse({ error: "Missing 'target' parameter" }, 400);
+          const result = await queryCveDb(target, settings);
           return jsonResponse(result);
         }
 

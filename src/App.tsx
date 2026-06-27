@@ -27,6 +27,7 @@ import { AllFeaturesPage } from "@/components/tools/AllFeaturesPage"
 import { ReverseDnsPage } from "@/components/tools/ReverseDnsPage"
 import { DomainReputationPage } from "@/components/tools/DomainReputationPage"
 import { ThreatIntelPage } from "@/components/tools/ThreatIntelPage"
+import { CveLookupPage } from "@/components/tools/CveLookupPage"
 import { GlobalPingPage } from "@/components/tools/GlobalPingPage"
 import { CompanyLookupPage } from "@/components/tools/CompanyLookupPage"
 import { SEO } from "@/components/shared/SEO"
@@ -135,6 +136,7 @@ function App() {
           <Route path="/security/blacklist" element={<BlacklistPage />} />
           <Route path="/security/domain-reputation" element={<DomainReputationPage />} />
           <Route path="/security/threat-intel" element={<ThreatIntelPage />} />
+          <Route path="/security/cve" element={<CveLookupPage />} />
           <Route path="/bonus/headers" element={<EmailHeaderAnalyzerPage />} />
           <Route path="/bonus/subnet" element={<SubnetCalculatorPage />} />
           <Route path="/bonus/spf-generator" element={<SpfGeneratorPage />} />

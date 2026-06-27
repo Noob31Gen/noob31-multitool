@@ -77,6 +77,7 @@ const FEATURE_CATEGORIES = [
       { name: "CERT Lookup", path: "/security/cert" },
       { name: "Domain Reputation", path: "/security/domain-reputation" },
       { name: "Threat Intel Explorer", path: "/security/threat-intel" },
+      { name: "CVE Lookup", path: "/security/cve" },
     ],
   },
   {
