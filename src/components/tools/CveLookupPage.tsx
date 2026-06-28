@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { CopyButton, ExportButton } from "../shared/ActionButtons";
 
 export function CveLookupPage() {
   const { settings } = useSettings();
@@ -130,6 +131,10 @@ export function CveLookupPage() {
                       CVSS {result.cvss_version || ''}: {result.cvss.toFixed(1)}
                     </Badge>
                   )}
+                  <div className="flex items-center gap-2 sm:border-l sm:pl-3 border-border">
+                    <CopyButton data={JSON.stringify(result, null, 2)} text="Copy JSON" />
+                    <ExportButton data={result} filename={`${result.cve_id}.json`} />
+                  </div>
                 </div>
               </div>
             </CardHeader>
