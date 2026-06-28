@@ -17,6 +17,29 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
     const finalOptions: RequestInit = { ...options };
     const headers = new Headers(finalOptions.headers || {});
 
+    // Inject Bearer token or credentials mode for Custom CORS Proxy if configured
+    try {
+        const saved = localStorage.getItem('url-scanner-settings');
+        if (saved) {
+            const settings = JSON.parse(saved);
+            if (
+                settings.corsProvider === 'custom' &&
+                settings.customCorsUrl &&
+                url.startsWith(settings.customCorsUrl)
+            ) {
+                // 1. API Channel (Manual Token)
+                if (settings.customCorsToken) {
+                    headers.set("Authorization", `Bearer ${settings.customCorsToken}`);
+                }
+
+                // 2. Browser Channel (Automatic Cookie transmission)
+                if (!options.credentials) {
+                    finalOptions.credentials = 'include';
+                }
+            }
+        }
+    } catch { /* ignore */ }
+
     try {
         const u = new URL(url);
         if (u.username || u.password) {

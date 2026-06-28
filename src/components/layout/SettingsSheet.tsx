@@ -129,6 +129,16 @@ export function SettingsSheet() {
               disabled={localSettings.corsProvider !== 'custom'}
             />
           </div>
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium">Custom CORS Proxy Token</h3>
+            <Input
+              type="password"
+              placeholder="Bearer Token (Optional)"
+              value={localSettings.customCorsToken || ''}
+              onChange={(e) => setLocalSettings({ ...localSettings, customCorsToken: e.target.value })}
+              disabled={localSettings.corsProvider !== 'custom'}
+            />
+          </div>
           <Button onClick={handleApply} className="w-full mt-4">Apply</Button>
         </div>
       </SheetContent>

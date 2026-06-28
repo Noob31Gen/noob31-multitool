@@ -8,6 +8,7 @@ export interface AppSettings {
   customDnsUrl: string;
   corsProvider: CorsProvider;
   customCorsUrl: string;
+  customCorsToken: string;
   theme: 'light' | 'dark' | 'system';
   persistenceEnabled: boolean;
 }
@@ -16,6 +17,7 @@ export const defaultSettings: AppSettings = {
   customDnsUrl: '',
   corsProvider: 'auto',
   customCorsUrl: '',
+  customCorsToken: '',
   theme: 'system',
   persistenceEnabled: safeStorage.isEnabled(),
 };
