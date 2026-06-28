@@ -65,7 +65,7 @@ export function CveLookupPage() {
       <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">CVE Lookup</h1>
         <p className="text-muted-foreground">
-          Search for Common Vulnerabilities and Exposures (CVE) using Shodan's CVEDB.
+          Search for Common Vulnerabilities and Exposures (CVE) using Shodan's CVEDB. Notice: This tool refuses to work without a custom CORS Proxy.
         </p>
       </div>
 
