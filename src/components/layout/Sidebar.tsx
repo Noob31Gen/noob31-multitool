@@ -48,50 +48,55 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <nav className="grid items-start px-4 text-sm font-medium pb-16">
       <div className="mb-4">
-        <Link
-          to="/"
-          onClick={onNavigate}
-          className={cn(
-            "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
-            location.pathname === "/" && "bg-muted font-medium text-foreground"
-          )}
-        >
-          Home
-        </Link>
-        <Link
-          to="/about/info"
-          onClick={onNavigate}
-          className={cn(
-            "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
-            location.pathname === "/about/info" && "bg-muted font-medium text-foreground"
-          )}
-        >
-          About
-        </Link>
-        <Link
-          to="/about/credits"
-          onClick={onNavigate}
-          className={cn(
-            "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
-            location.pathname === "/about/credits" && "bg-muted font-medium text-foreground"
-          )}
-        >
-          Credits
-        </Link>
-        <Link
-          to="/about/features"
-          onClick={onNavigate}
-          className={cn(
-            "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
-            location.pathname === "/about/features" && "bg-muted font-medium text-foreground"
-          )}
-        >
-          Index
-        </Link>
+        <h4 className="mb-2 px-2 py-1 text-xs font-bold uppercase tracking-wider text-muted-foreground/70">
+          General
+        </h4>
+        <div className="grid grid-flow-row auto-rows-max text-sm">
+          <Link
+            to="/"
+            onClick={onNavigate}
+            className={cn(
+              "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
+              location.pathname === "/" && "bg-muted font-medium text-foreground"
+            )}
+          >
+            Home
+          </Link>
+          <Link
+            to="/about/info"
+            onClick={onNavigate}
+            className={cn(
+              "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
+              location.pathname === "/about/info" && "bg-muted font-medium text-foreground"
+            )}
+          >
+            About
+          </Link>
+          <Link
+            to="/about/credits"
+            onClick={onNavigate}
+            className={cn(
+              "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
+              location.pathname === "/about/credits" && "bg-muted font-medium text-foreground"
+            )}
+          >
+            Credits
+          </Link>
+          <Link
+            to="/about/features"
+            onClick={onNavigate}
+            className={cn(
+              "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
+              location.pathname === "/about/features" && "bg-muted font-medium text-foreground"
+            )}
+          >
+            Index
+          </Link>
+        </div>
       </div>
       {TOOL_CATEGORIES.map((category) => (
         <div key={category.title} className="mb-4">
-          <h4 className="mb-1 rounded-md px-2 py-1 text-sm font-semibold tracking-tight">
+          <h4 className="mb-2 px-2 py-1 text-xs font-bold uppercase tracking-wider text-muted-foreground/70">
             {category.title}
           </h4>
           <div className="grid grid-flow-row auto-rows-max text-sm">
