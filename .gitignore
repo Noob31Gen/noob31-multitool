@@ -52,3 +52,6 @@ subscan.py
 refresh.mjs
 tag-release.mjs
 test-results
+additional-sources.md
+existing-sources-report.md
+proxy-info.txt

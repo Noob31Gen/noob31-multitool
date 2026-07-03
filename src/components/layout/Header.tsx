@@ -30,17 +30,17 @@ export function Header() {
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0 !inset-y-2 !left-2 !h-[calc(100dvh-1rem)] rounded-2xl border border-border shadow-2xl overflow-hidden transition-transform will-change-transform">
+          <SheetContent side="left" className="w-72 p-0 !inset-y-2 !left-2 !h-[calc(100dvh-1rem)] rounded-2xl border border-border shadow-2xl overflow-hidden transition-transform will-change-transform flex flex-col bg-background">
             <SheetHeader className="sr-only">
               <SheetTitle>Navigation Menu</SheetTitle>
               <SheetDescription>Access all tools and utilities.</SheetDescription>
             </SheetHeader>
-            <div className="flex h-16 items-center border-b px-6">
+            <div className="flex h-16 items-center border-b border-border/40 shrink-0 px-6">
               <Link to="/" onClick={() => setOpen(false)} className="flex items-center">
                 <img src={SiteLogo} alt="Logo" className="h-8 w-auto" />
               </Link>
             </div>
-            <div className="overflow-auto py-4 h-[calc(100dvh-5rem)]">
+            <div className="flex-1 overflow-y-auto py-4 min-h-0">
               <SidebarNav onNavigate={() => setOpen(false)} />
             </div>
           </SheetContent>

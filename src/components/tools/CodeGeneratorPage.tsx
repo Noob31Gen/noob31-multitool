@@ -199,11 +199,11 @@ export function CodeGeneratorPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 p-6 space-y-6 rounded-2xl">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6 rounded-xl p-1 bg-muted/50">
-              <TabsTrigger value="qr" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
+            <TabsList className="grid w-full grid-cols-2 mb-6 p-1 bg-muted/50">
+              <TabsTrigger value="qr" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
                 <QrIcon className="h-4 w-4" /> QR Code
               </TabsTrigger>
-              <TabsTrigger value="barcode" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
+              <TabsTrigger value="barcode" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
                 <BarIcon className="h-4 w-4" /> Barcode
               </TabsTrigger>
             </TabsList>

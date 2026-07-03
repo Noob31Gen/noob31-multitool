@@ -45,50 +45,43 @@ const TOOL_CATEGORIES = [
 ]
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const location = useLocation();
+  const linkClass = (path: string) => cn(
+    "flex w-full items-center rounded-md border border-transparent px-2.5 py-1.5 hover:bg-muted/50 hover:text-foreground transition-colors text-muted-foreground",
+    location.pathname === path && "bg-muted font-semibold text-foreground"
+  );
+
   return (
-    <nav className="grid items-start px-4 text-sm font-medium pb-16">
+    <nav className="grid items-start px-4 text-sm font-medium pb-16 gap-1">
       <div className="mb-4">
-        <h4 className="mb-2 px-2 py-1 text-xs font-bold uppercase tracking-wider text-muted-foreground/70">
+        <h4 className="mb-2 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-muted-foreground/70">
           General
         </h4>
-        <div className="grid grid-flow-row auto-rows-max text-sm">
+        <div className="grid grid-flow-row auto-rows-max text-sm gap-0.5">
           <Link
             to="/"
             onClick={onNavigate}
-            className={cn(
-              "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
-              location.pathname === "/" && "bg-muted font-medium text-foreground"
-            )}
+            className={linkClass("/")}
           >
             Home
           </Link>
           <Link
             to="/about/info"
             onClick={onNavigate}
-            className={cn(
-              "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
-              location.pathname === "/about/info" && "bg-muted font-medium text-foreground"
-            )}
+            className={linkClass("/about/info")}
           >
             About
           </Link>
           <Link
             to="/about/credits"
             onClick={onNavigate}
-            className={cn(
-              "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
-              location.pathname === "/about/credits" && "bg-muted font-medium text-foreground"
-            )}
+            className={linkClass("/about/credits")}
           >
             Credits
           </Link>
           <Link
             to="/about/features"
             onClick={onNavigate}
-            className={cn(
-              "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
-              location.pathname === "/about/features" && "bg-muted font-medium text-foreground"
-            )}
+            className={linkClass("/about/features")}
           >
             Index
           </Link>
@@ -96,19 +89,16 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       </div>
       {TOOL_CATEGORIES.map((category) => (
         <div key={category.title} className="mb-4">
-          <h4 className="mb-2 px-2 py-1 text-xs font-bold uppercase tracking-wider text-muted-foreground/70">
+          <h4 className="mb-2 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-muted-foreground/70">
             {category.title}
           </h4>
-          <div className="grid grid-flow-row auto-rows-max text-sm">
+          <div className="grid grid-flow-row auto-rows-max text-sm gap-0.5">
             {category.tools.map((tool) => (
               <Link
                 key={tool.path}
                 to={tool.path}
                 onClick={onNavigate}
-                className={cn(
-                  "flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground",
-                  location.pathname === tool.path && "bg-muted font-medium text-foreground"
-                )}
+                className={linkClass(tool.path)}
               >
                 {tool.name}
               </Link>
