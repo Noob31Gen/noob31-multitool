@@ -61,6 +61,10 @@ export function AboutPage() {
                 <p>
                   Most results are available in UI or in JSON format. Alternatively use the <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs font-medium text-foreground border border-border/50">?output=json</code> tag to get results directly as JSON.
                 </p>
+
+                <p>
+                  Important to note that this is NOT an API endpoint. This tool only runs in browser so you can't "integrate" it to your own applications.
+                </p>
               </div>
             </div>
             <div className="pt-4 border-t border-border/50 flex flex-wrap gap-2 items-center">
