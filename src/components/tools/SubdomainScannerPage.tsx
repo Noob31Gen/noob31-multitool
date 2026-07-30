@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { logger } from "@/lib/logger"
-import { useLocation } from "react-router-dom"
 import { querySubdomains, type SubdomainResult } from "@/lib/subdomains"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
@@ -20,9 +19,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
+
 export function SubdomainScannerPage() {
   const { settings } = useSettings()
-  const location = useLocation()
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<{ data: SubdomainResult[]; queryTime: number } | null>(null)
@@ -52,18 +53,22 @@ export function SubdomainScannerPage() {
     }
   }, [settings]);
 
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
   const lastHandledTarget = useRef<string | null>(null);
   useEffect(() => {
-    const target = location.state?.target;
-    if (target && target !== lastHandledTarget.current) {
-      lastHandledTarget.current = target;
-      setDomain(target);
-      performSearch(target);
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setDomain(urlTarget);
+      performSearch(urlTarget);
     }
-  }, [location.state, performSearch]);
+  }, [urlTarget, performSearch]);
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
+  }
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result ? { ...result, scanErrors } : null} error={errorMsg} query={domain || urlTarget} tool="Subdomain Scanner" />
   }
   return (
     <div className="space-y-6">

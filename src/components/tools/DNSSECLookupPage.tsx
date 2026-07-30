@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { logger } from "@/lib/logger"
-import { useParams, useNavigate, useLocation } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { queryDNS, type DNSResponse, type DNSRecord } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
@@ -29,6 +29,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
 const DNSSEC_INFO: Record<string, { title: string, desc: string }> = {
   DNSKEY: { title: "DNSKEY Lookup", desc: "View the public keys used to verify DNSSEC signatures." },
   DS: { title: "DS Record Lookup", desc: "Check Delegation Signer (DS) records for a domain." },
@@ -218,19 +220,22 @@ export function DNSSECLookupPage() {
     }
   }, [recordType, settings]);
 
-  const location = useLocation()
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
   const lastHandledTarget = useRef<string | null>(null);
   useEffect(() => {
-    const q = (location.state as { target?: string })?.target;
-    if (q && q !== lastHandledTarget.current) {
-      lastHandledTarget.current = q;
-      setDomain(q);
-      performSearch(q);
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setDomain(urlTarget);
+      performSearch(urlTarget);
     }
-  }, [location, performSearch]);
+  }, [urlTarget, performSearch]);
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
+  }
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result ? { ...result, isSigned } : null} error={errorMsg} query={domain || urlTarget} tool={`DNSSEC ${recordType} Lookup`} />
   }
   return (
     <div className="space-y-6">

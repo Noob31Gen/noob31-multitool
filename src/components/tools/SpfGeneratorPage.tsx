@@ -6,12 +6,17 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
+
 export function SpfGeneratorPage() {
   const [a, setA] = useState(true)
   const [mx, setMx] = useState(true)
   const [includes, setIncludes] = useState("")
   const [ipv4s, setIpv4s] = useState("")
   const [qualifier, setQualifier] = useState("-all")
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
+
   const generateSPF = () => {
     const parts = ["v=spf1"];
     if (a) parts.push("a");
@@ -26,6 +31,10 @@ export function SpfGeneratorPage() {
     return parts.join(" ");
   }
   const result = generateSPF();
+
+  if (isJsonMode) {
+    return <JsonResultView status="success" data={{ record: result, a, mx, includes, ipv4s, qualifier }} query={urlTarget} tool="SPF Record Generator" />
+  }
   return (
     <div className="space-y-6">
       <SEO

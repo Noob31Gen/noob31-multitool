@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import { useLocation } from "react-router-dom"
 import { lookupMac, type MacLookupResponse, formatMac, isValidMac } from "@/lib/macLookup"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
@@ -12,13 +11,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Info, ShieldCheck } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
+
 export function MacLookupPage() {
   const { settings } = useSettings()
   const [input, setInput] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<MacLookupResponse | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-  const location = useLocation();
+
   const performLookup = useCallback(async (macAddress: string) => {
     if (!macAddress.trim()) return
     setStatus('loading')
@@ -40,18 +42,23 @@ export function MacLookupPage() {
     }
   }, [settings.corsProvider, settings.customCorsUrl]);
 
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
   const lastHandledTarget = useRef<string | null>(null);
   useEffect(() => {
-    const q = location.state?.target;
-    if (q && q !== lastHandledTarget.current) {
-      lastHandledTarget.current = q;
-      setInput(q);
-      performLookup(q);
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setInput(urlTarget);
+      performLookup(urlTarget);
     }
-  }, [location.state, performLookup]);
+  }, [urlTarget, performLookup]);
+
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performLookup(input)
+  }
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result} error={errorMsg} query={input || urlTarget} tool="MAC / OUI Address Lookup" />
   }
   return (
     <div className="space-y-6">

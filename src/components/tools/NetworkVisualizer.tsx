@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import type { Device, Link } from '@/lib/networkSimulator';
 import { DeviceType, SimulationEngine } from '@/lib/networkSimulator';
 import { Card } from '@/components/ui/card';
+import { useUrlQuery } from "@/lib/useUrlQuery";
+import { JsonResultView } from "@/components/shared/JsonResultView";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -2680,6 +2682,12 @@ const NetworkVisualizerContent: React.FC = () => {
 };
 
 export const NetworkVisualizer: React.FC = () => {
+  const { isJsonMode } = useUrlQuery();
+
+  if (isJsonMode) {
+    return <JsonResultView status="success" data={{ message: "Network Visualizer interactive environment active." }} tool="Network Visualizer" />;
+  }
+
   return (
     <TooltipProvider delayDuration={300}>
       <NetworkVisualizerContent />

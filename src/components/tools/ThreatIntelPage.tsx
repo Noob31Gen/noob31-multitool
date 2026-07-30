@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useLocation } from "react-router-dom";
 import { useSettings } from "@/lib/settings";
 import { SEO } from "@/components/shared/SEO";
 import { ResultCard } from "@/components/shared/ResultCard";
@@ -11,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useUrlQuery } from "@/lib/useUrlQuery";
+import { JsonResultView } from "@/components/shared/JsonResultView";
 
 import {
   Search,
@@ -37,7 +38,6 @@ import { logger } from "@/lib/logger";
 
 export function ThreatIntelPage() {
   const { settings } = useSettings();
-  const location = useLocation();
 
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -70,20 +70,24 @@ export function ThreatIntelPage() {
     [settings]
   );
 
+  const { target: urlTarget, isJsonMode } = useUrlQuery();
   const lastHandledTarget = useRef<string | null>(null);
   useEffect(() => {
-    const target = (location.state as { target?: string })?.target;
-    if (target && target !== lastHandledTarget.current) {
-      lastHandledTarget.current = target;
-      setQuery(target);
-      performSearch(target);
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setQuery(urlTarget);
+      performSearch(urlTarget);
     }
-  }, [location, performSearch]);
+  }, [urlTarget, performSearch]);
 
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     performSearch(query);
   };
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result} error={errorMsg} query={query || urlTarget} tool="Threat Intelligence Lookup" />;
+  }
 
   const handleQuickSearch = (newQuery: string) => {
     setQuery(newQuery);

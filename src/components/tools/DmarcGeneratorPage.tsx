@@ -5,12 +5,17 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
+
 export function DmarcGeneratorPage() {
   const [policy, setPolicy] = useState("none")
   const [sp, setSp] = useState("same")
   const [rua, setRua] = useState("")
   const [ruf, setRuf] = useState("")
   const [pct, setPct] = useState("100")
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
+
   const generateDMARC = () => {
     const parts = ["v=DMARC1"];
     parts.push(`p=${policy}`);
@@ -21,6 +26,10 @@ export function DmarcGeneratorPage() {
     return parts.join("; ");
   }
   const result = generateDMARC();
+
+  if (isJsonMode) {
+    return <JsonResultView status="success" data={{ record: result, policy, sp, rua, ruf, pct }} query={urlTarget} tool="DMARC Record Generator" />
+  }
   return (
     <div className="space-y-6">
       <SEO

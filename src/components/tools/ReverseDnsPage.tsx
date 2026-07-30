@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import { useLocation } from "react-router-dom"
 import { lookupReverseDns, type ReverseDnsResult } from "@/lib/reverseDns"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
@@ -12,10 +11,11 @@ import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Search, Globe, Network, MapPin, AlertTriangle, CheckCircle } from "lucide-react"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
 
 export function ReverseDnsPage() {
   const { settings } = useSettings()
-  const location = useLocation()
   const [inputIp, setInputIp] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<ReverseDnsResult | null>(null)
@@ -37,19 +37,23 @@ export function ReverseDnsPage() {
     }
   }, [settings])
 
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
   const lastHandledTarget = useRef<string | null>(null)
   useEffect(() => {
-    const target = (location.state as { target?: string })?.target
-    if (target && target !== lastHandledTarget.current) {
-      lastHandledTarget.current = target
-      setInputIp(target)
-      performSearch(target)
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget
+      setInputIp(urlTarget)
+      performSearch(urlTarget)
     }
-  }, [location, performSearch])
+  }, [urlTarget, performSearch])
 
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(inputIp)
+  }
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result} error={errorMsg} query={inputIp || urlTarget} tool="Reverse DNS Lookup" />
   }
 
   return (

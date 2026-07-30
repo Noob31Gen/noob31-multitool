@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { logger } from "@/lib/logger"
-import { useLocation } from "react-router-dom"
 import { queryCert } from "@/lib/cert"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
@@ -21,6 +20,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { NormalizedCert } from "@/lib/cert"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
 
 interface CertResult {
   data: NormalizedCert[];
@@ -28,7 +29,6 @@ interface CertResult {
 }
 export function CertLookupPage() {
   const { settings } = useSettings()
-  const location = useLocation()
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<CertResult | null>(null)
@@ -52,18 +52,22 @@ export function CertLookupPage() {
     }
   }, [settings]);
 
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
   const lastHandledTarget = useRef<string | null>(null);
   useEffect(() => {
-    const target = (location.state as { target?: string })?.target;
-    if (target && target !== lastHandledTarget.current) {
-      lastHandledTarget.current = target;
-      setDomain(target);
-      performSearch(target);
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setDomain(urlTarget);
+      performSearch(urlTarget);
     }
-  }, [location, performSearch]);
+  }, [urlTarget, performSearch]);
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
+  }
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result} error={errorMsg} query={domain || urlTarget} tool="Certificate Lookup" />
   }
   return (
     <div className="space-y-6">

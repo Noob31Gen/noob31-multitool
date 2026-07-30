@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { logger } from "@/lib/logger"
-import { useParams, useNavigate, useLocation } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { queryDNS, type DNSResponse } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
@@ -20,6 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
+
 const DNS_INFO: Record<string, { title: string, desc: string }> = {
   A: { title: "A Record Lookup", desc: "Check IPv4 address (A records) for a domain." },
   AAAA: { title: "AAAA Record Lookup", desc: "Check IPv6 address (AAAA records) for a domain." },
@@ -78,19 +81,22 @@ export function DNSLookupPage() {
     }
   }, [recordType, settings]);
 
-  const location = useLocation()
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
   const lastHandledTarget = useRef<string | null>(null);
   useEffect(() => {
-    const q = (location.state as { target?: string })?.target;
-    if (q && q !== lastHandledTarget.current) {
-      lastHandledTarget.current = q;
-      setDomain(q);
-      performSearch(q);
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setDomain(urlTarget);
+      performSearch(urlTarget);
     }
-  }, [location, performSearch]);
+  }, [urlTarget, performSearch]);
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
+  }
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result} error={errorMsg} query={domain || urlTarget} tool={`DNS ${recordType} Lookup`} />
   }
   return (
     <div className="space-y-6">

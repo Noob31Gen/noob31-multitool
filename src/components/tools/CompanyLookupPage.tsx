@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, Loader2, AlertCircle, Building2, TrendingUp, Users } from "lucide-react";
 import { useSettings } from "../../lib/settings";
 import { getEntityBySymbol, type EntityFullInfo } from "../../lib/entitydb";
@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
+import { useUrlQuery } from "../../lib/useUrlQuery";
+import { JsonResultView } from "../shared/JsonResultView";
 
 export function CompanyLookupPage() {
   const { settings } = useSettings();
@@ -14,8 +16,8 @@ export function CompanyLookupPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<EntityFullInfo | null>(null);
 
-  const handleSearch = async () => {
-    const cleanSymbol = symbol.trim().toUpperCase();
+  const performSearch = useCallback(async (targetSymbol: string) => {
+    const cleanSymbol = targetSymbol.trim().toUpperCase();
     if (!cleanSymbol) return;
 
     setLoading(true);
@@ -34,6 +36,21 @@ export function CompanyLookupPage() {
     } finally {
       setLoading(false);
     }
+  }, [settings]);
+
+  const { target: urlTarget, isJsonMode } = useUrlQuery();
+  const lastHandledTarget = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setSymbol(urlTarget);
+      performSearch(urlTarget);
+    }
+  }, [urlTarget, performSearch]);
+
+  const handleSearch = () => {
+    performSearch(symbol);
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -41,6 +58,12 @@ export function CompanyLookupPage() {
       handleSearch();
     }
   };
+
+  const status = loading ? 'loading' : error ? 'error' : result ? 'success' : 'idle';
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result} error={error || undefined} query={symbol || urlTarget} tool="Public Company Lookup" />;
+  }
 
   return (
     <div className="space-y-6">

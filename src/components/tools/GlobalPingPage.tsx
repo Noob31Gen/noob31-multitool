@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, Loader2, AlertCircle, Globe2, Activity } from "lucide-react";
 import { useSettings } from "../../lib/settings";
 import { queryGeoping, type PingResult } from "../../lib/geonet";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { useUrlQuery } from "../../lib/useUrlQuery";
+import { JsonResultView } from "../shared/JsonResultView";
 
 export function GlobalPingPage() {
   const { settings } = useSettings();
@@ -13,22 +15,36 @@ export function GlobalPingPage() {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<PingResult[] | null>(null);
 
-  const handleSearch = async () => {
-    const cleanTarget = target.trim();
-    if (!cleanTarget) return;
+  const performSearch = useCallback(async (cleanTarget: string) => {
+    if (!cleanTarget.trim()) return;
 
     setLoading(true);
     setError(null);
     setResults(null);
 
     try {
-      const data = await queryGeoping(cleanTarget, settings);
+      const data = await queryGeoping(cleanTarget.trim(), settings);
       setResults(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch geoping data");
     } finally {
       setLoading(false);
     }
+  }, [settings]);
+
+  const { target: urlTarget, isJsonMode } = useUrlQuery();
+  const lastHandledTarget = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setTarget(urlTarget);
+      performSearch(urlTarget);
+    }
+  }, [urlTarget, performSearch]);
+
+  const handleSearch = () => {
+    performSearch(target);
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -36,6 +52,12 @@ export function GlobalPingPage() {
       handleSearch();
     }
   };
+
+  const status = loading ? 'loading' : error ? 'error' : results ? 'success' : 'idle';
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={results} error={error || undefined} query={target || urlTarget} tool="Global Ping" />;
+  }
 
   const getLatencyColor = (avg: number | undefined) => {
     if (avg === undefined) return "text-muted-foreground";

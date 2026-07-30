@@ -7,6 +7,8 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { CopyButton, ExportButton } from "../shared/ActionButtons";
+import { useUrlQuery } from "../../lib/useUrlQuery";
+import { JsonResultView } from "../shared/JsonResultView";
 
 export function CveLookupPage() {
   const { settings } = useSettings();
@@ -43,23 +45,30 @@ export function CveLookupPage() {
   }, [settings]);
 
   const lastHandledHash = useRef<string | null>(null);
+  const { target: urlTarget, isJsonMode } = useUrlQuery();
 
-  // Parse CVE ID from URL hash on load
+  // Parse CVE ID from URL query or hash on load
   useEffect(() => {
     const hashParam = window.location.hash.split("?cve=")[1];
-    if (hashParam && hashParam !== lastHandledHash.current) {
-      lastHandledHash.current = hashParam;
-      const decoded = decodeURIComponent(hashParam);
-      setCveId(decoded);
-      handleSearch(decoded);
+    const targetCve = urlTarget || (hashParam ? decodeURIComponent(hashParam) : "");
+    if (targetCve && targetCve !== lastHandledHash.current) {
+      lastHandledHash.current = targetCve;
+      setCveId(targetCve);
+      handleSearch(targetCve);
     }
-  }, [handleSearch]);
+  }, [urlTarget, handleSearch]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleSearch(cveId);
     }
   };
+
+  const status = loading ? 'loading' : error ? 'error' : result ? 'success' : 'idle';
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result} error={error || undefined} query={cveId || urlTarget} tool="CVE Lookup" />;
+  }
 
   return (
     <div className="space-y-6">

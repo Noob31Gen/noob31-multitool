@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { logger } from "@/lib/logger"
-import { useLocation } from "react-router-dom"
 import { checkBlacklist } from "@/lib/blacklist"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
@@ -12,6 +11,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, CheckCircle2, XCircle, AlertCircle } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
 
 interface BlacklistResultItem {
   zone: string;
@@ -28,7 +29,6 @@ interface BlacklistResult {
 }
 export function BlacklistPage() {
   const { settings } = useSettings()
-  const location = useLocation()
   const [ip, setIp] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<BlacklistResult | null>(null)
@@ -52,18 +52,22 @@ export function BlacklistPage() {
     }
   }, [settings]);
 
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
   const lastHandledTarget = useRef<string | null>(null);
   useEffect(() => {
-    const target = (location.state as { target?: string })?.target;
-    if (target && target !== lastHandledTarget.current) {
-      lastHandledTarget.current = target;
-      setIp(target);
-      performSearch(target);
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setIp(urlTarget);
+      performSearch(urlTarget);
     }
-  }, [location, performSearch]);
-  const handleSearch = async (e?: React.FormEvent) => {
+  }, [urlTarget, performSearch]);
+  const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(ip)
+  }
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result} error={errorMsg} query={ip || urlTarget} tool="IP Blacklist Checker" />
   }
   const listedCount = result?.data?.filter((r: BlacklistResultItem) => r.listed).length || 0;
   const totalCount = result?.data?.length || 0;

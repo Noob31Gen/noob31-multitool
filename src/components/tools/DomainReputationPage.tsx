@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import { useLocation } from "react-router-dom"
 import { checkDomainReputation, type DomainReputationResult } from "@/lib/reputation"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
@@ -11,21 +10,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import {
-  Search,
-  CheckCircle,
-  XCircle,
-  Calendar,
-  ShieldCheck,
-  ShieldAlert,
-  Activity,
-  ExternalLink,
-  AlertCircle
-} from "lucide-react"
+import { Search, ShieldAlert, ShieldCheck, CheckCircle, XCircle, AlertCircle, Activity, Calendar, ExternalLink } from "lucide-react"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
 
 export function DomainReputationPage() {
   const { settings } = useSettings()
-  const location = useLocation()
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<DomainReputationResult | null>(null)
@@ -47,19 +37,23 @@ export function DomainReputationPage() {
     }
   }, [settings])
 
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
   const lastHandledTarget = useRef<string | null>(null)
   useEffect(() => {
-    const target = (location.state as { target?: string })?.target
-    if (target && target !== lastHandledTarget.current) {
-      lastHandledTarget.current = target
-      setDomain(target)
-      performSearch(target)
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget
+      setDomain(urlTarget)
+      performSearch(urlTarget)
     }
-  }, [location, performSearch])
+  }, [urlTarget, performSearch])
 
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
+  }
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result} error={errorMsg} query={domain || urlTarget || ""} tool="Domain Reputation Check" />
   }
 
   // Helper styles based on reputation status

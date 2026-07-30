@@ -8,8 +8,12 @@ import { Copy, RefreshCw, Camera, ScanLine, X, Upload, Image as ImageIcon, Shiel
 import { logger } from "@/lib/logger"
 import { ResultCard } from "@/components/shared/ResultCard"
 import { cn } from "@/lib/utils"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
+
 export function CodeScannerPage() {
   const [scanResult, setScanResult] = useState<string | null>(null)
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
 
   const detectedUrls = useMemo(() => {
     if (!scanResult) return [];
@@ -188,6 +192,12 @@ export function CodeScannerPage() {
       toast.success("Result copied to clipboard")
     }
   }
+
+  if (isJsonMode) {
+    const status = scanResult ? 'success' : 'idle'
+    return <JsonResultView status={status} data={{ result: scanResult, detectedUrls }} query={scanResult || urlTarget} tool="QR & Barcode Scanner" />
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <SEO

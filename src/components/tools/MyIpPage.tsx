@@ -9,15 +9,20 @@ import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton"
 import { MapPin, Network, Globe, ShieldAlert, Server, Activity } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
+
 export function MyIpPage() {
   const { settings } = useSettings()
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [result, setResult] = useState<ASNResult | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-  const fetchMyIp = useCallback(async (isMounted: boolean) => {
+
+  const fetchMyIp = useCallback(async (targetIp: string, isMounted: boolean) => {
     setStatus('loading');
     try {
-      const res = await queryASN("", settings);
+      const res = await queryASN(targetIp, settings);
       if (isMounted) {
         setResult(res);
         setStatus('success');
@@ -31,17 +36,22 @@ export function MyIpPage() {
     }
   }, [settings]);
 
-  const fetched = useRef(false);
+  const fetchedTarget = useRef<string | null>(null);
   useEffect(() => {
     let isMounted = true;
-    if (!fetched.current) {
-      fetched.current = true;
-      fetchMyIp(isMounted);
+    if (fetchedTarget.current !== urlTarget) {
+      fetchedTarget.current = urlTarget;
+      fetchMyIp(urlTarget, isMounted);
     }
     return () => { isMounted = false; };
-  }, [fetchMyIp]);
+  }, [urlTarget, fetchMyIp]);
+
   const parsed = result?.parsed;
   const currentIp = (result?.ipapi as { ip?: string })?.ip || "Unknown IP";
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result} error={errorMsg} query={urlTarget || currentIp} tool="My IP" />
+  }
   return (
     <div className="space-y-6">
       <SEO
@@ -74,7 +84,7 @@ export function MyIpPage() {
               ? "CORS policy blocked the request. Try setting a CORS Proxy in Settings."
               : "Ensure you are connected to the internet. Adblockers may also interfere with network API requests."
           }
-          onRetry={() => fetchMyIp(true)}
+          onRetry={() => fetchMyIp(urlTarget, true)}
         />
       )}
       {status === 'success' && parsed && (

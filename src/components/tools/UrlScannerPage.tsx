@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import { useLocation } from "react-router-dom"
 import { useSettings } from "@/lib/settings"
 import { logger } from "@/lib/logger"
 import { ResultCard } from "@/components/shared/ResultCard"
@@ -27,6 +26,8 @@ import {
 } from "@/components/ui/table"
 import { parseUrl, visitUrl, type ParsedUrl, type VisitResult } from "@/lib/urlScanner"
 import { SEO } from "@/components/shared/SEO"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
 
 const getStatusColor = (code: number) => {
   if (code >= 200 && code < 300) return "bg-green-500 hover:bg-green-600";
@@ -44,7 +45,6 @@ const InfoRow = ({ label, value, mono = false }: { label: string; value: React.R
 )
 export function UrlScannerPage() {
   const { settings } = useSettings()
-  const location = useLocation();
   const [url, setUrl] = useState("")
   const [visitEnabled, setVisitEnabled] = useState(false)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -77,19 +77,23 @@ export function UrlScannerPage() {
     }
   }, [settings]);
 
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
   const lastHandledTarget = useRef<string | null>(null);
   useEffect(() => {
-    const q = location.state?.target;
-    if (q && q !== lastHandledTarget.current) {
-      lastHandledTarget.current = q;
-      setUrl(q);
-      performSearch(q, isVisitActive);
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setUrl(urlTarget);
+      performSearch(urlTarget, isVisitActive);
     }
-  }, [location.state, performSearch, isVisitActive]);
+  }, [urlTarget, performSearch, isVisitActive]);
 
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(url, isVisitActive)
+  }
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={{ parsed, visitData }} error={errorMsg} query={url || urlTarget} tool="URL Scanner" />
   }
   return (
     <div className="space-y-6">

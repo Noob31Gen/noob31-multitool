@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { SEO } from "@/components/shared/SEO"
 import { parseEmailHeaders } from "@/lib/headerParser"
 import { CopyButton } from "@/components/shared/ActionButtons"
@@ -7,6 +7,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Mail, ShieldCheck, Clock, Server, ArrowDown, User, Hash } from "lucide-react"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
+
 interface EmailHeaderResult {
   from: string;
   to: string;
@@ -20,10 +23,30 @@ interface EmailHeaderResult {
 export function EmailHeaderAnalyzerPage() {
   const [input, setInput] = useState("")
   const [result, setResult] = useState<EmailHeaderResult | null>(null)
-  const handleAnalyze = () => {
-    if (!input.trim()) return;
-    const res = parseEmailHeaders(input);
+
+  const performAnalyze = useCallback((rawHeaders: string) => {
+    if (!rawHeaders.trim()) return;
+    const res = parseEmailHeaders(rawHeaders);
     setResult(res);
+  }, []);
+
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
+  const lastHandledTarget = useRef<string | null>(null);
+  useEffect(() => {
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setInput(urlTarget);
+      performAnalyze(urlTarget);
+    }
+  }, [urlTarget, performAnalyze]);
+
+  const handleAnalyze = () => {
+    performAnalyze(input);
+  }
+
+  if (isJsonMode) {
+    const status = result ? 'success' : 'idle';
+    return <JsonResultView status={status} data={result} query={input || urlTarget} tool="Email Header Analyzer" />
   }
   const getSpfStatus = (spfLine: string) => {
     const lower = spfLine.toLowerCase();

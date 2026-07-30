@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { logger } from "@/lib/logger"
-import { useParams, useNavigate, useLocation } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { fetchHeaders } from "@/lib/http"
 import { useSettings } from "@/lib/settings"
 import { SEO } from "@/components/shared/SEO"
@@ -27,11 +27,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
+
 export function HttpLookupPage() {
   const { scheme: paramScheme } = useParams<{ scheme: string }>()
   const navigate = useNavigate()
   const { settings } = useSettings()
-  const location = useLocation();
   const scheme = (paramScheme || 'http').toLowerCase()
   const [domain, setDomain] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -68,18 +70,22 @@ export function HttpLookupPage() {
     }
   }, [scheme, settings]);
 
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
   const lastHandledTarget = useRef<string | null>(null);
   useEffect(() => {
-    const q = location.state?.target;
-    if (q && q !== lastHandledTarget.current) {
-      lastHandledTarget.current = q;
-      setDomain(q);
-      performSearch(q);
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setDomain(urlTarget);
+      performSearch(urlTarget);
     }
-  }, [location.state, performSearch]);
+  }, [urlTarget, performSearch]);
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
+  }
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result} error={errorMsg} query={domain || urlTarget} tool={`HTTP ${scheme.toUpperCase()} Headers Lookup`} />
   }
   return (
     <div className="space-y-6">

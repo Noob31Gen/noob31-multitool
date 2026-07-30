@@ -19,9 +19,21 @@ import { toast } from "sonner"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Play } from "lucide-react"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
+
 export function CodeGeneratorPage() {
   const [activeTab, setActiveTab] = useState<string>("qr")
   const [text, setText] = useState<string>("")
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
+  const lastHandledTarget = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget
+      setText(urlTarget)
+    }
+  }, [urlTarget])
   const [isCopied, setIsCopied] = useState(false)
   const [isHighResAllowed, setIsHighResAllowed] = useState<boolean>(() => {
     return safeStorage.getItem("qr-allow-high-res") === "true"
@@ -185,6 +197,11 @@ export function CodeGeneratorPage() {
       });
     }
   };
+
+  if (isJsonMode) {
+    return <JsonResultView status="success" data={{ text: text || urlTarget, activeTab, barcodeFormat }} query={text || urlTarget} tool="QR & Barcode Generator" />
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <SEO

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { SEO } from "@/components/shared/SEO"
 import { calculateSubnet } from "@/lib/subnet"
 import { ErrorDisplay } from "@/components/shared/ErrorDisplay"
@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
+
 interface SubnetResult {
   ip: string;
   cidr: number;
@@ -23,11 +26,12 @@ export function SubnetCalculatorPage() {
   const [input, setInput] = useState("")
   const [result, setResult] = useState<SubnetResult | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
-  const handleCalculate = (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrorMsg("")
+
+  const performCalculate = useCallback((rawInput: string) => {
+    if (!rawInput.trim()) return;
+    setErrorMsg("");
     try {
-      let ip = input.trim();
+      let ip = rawInput.trim();
       let cidrStr = "24";
       if (ip.includes('/')) {
         const parts = ip.split('/');
@@ -43,6 +47,26 @@ export function SubnetCalculatorPage() {
       const message = err instanceof Error ? err.message : "Invalid IP or CIDR format";
       setErrorMsg(message);
     }
+  }, []);
+
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
+  const lastHandledTarget = useRef<string | null>(null);
+  useEffect(() => {
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setInput(urlTarget);
+      performCalculate(urlTarget);
+    }
+  }, [urlTarget, performCalculate]);
+
+  const handleCalculate = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    performCalculate(input)
+  }
+
+  if (isJsonMode) {
+    const status = result ? 'success' : errorMsg ? 'error' : 'idle';
+    return <JsonResultView status={status} data={result} error={errorMsg} query={input || urlTarget} tool="IPv4 Subnet Calculator" />
   }
   return (
     <div className="space-y-6">

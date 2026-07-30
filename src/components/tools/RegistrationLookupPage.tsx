@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { logger } from "@/lib/logger"
-import { useParams, useNavigate, useLocation } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { queryRDAP } from "@/lib/rdap"
 import { queryASN, type ASNResult } from "@/lib/asn"
 import { useSettings } from "@/lib/settings"
@@ -15,6 +15,8 @@ import { Card } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { parseRDAP } from "@/lib/rdapParser"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
 import {
   Select,
   SelectContent,
@@ -165,7 +167,6 @@ export function RegistrationLookupPage() {
   const { tool: paramTool } = useParams<{ tool: string }>()
   const navigate = useNavigate()
   const { settings } = useSettings()
-  const location = useLocation();
   const getPlaceholder = () => {
     switch (tool) {
       case 'ARIN': return "1.1.1.1";
@@ -246,18 +247,22 @@ export function RegistrationLookupPage() {
     setResult(null)
   }
 
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
   const lastHandledTarget = useRef<string | null>(null);
   useEffect(() => {
-    const q = location.state?.target;
-    if (q && q !== lastHandledTarget.current) {
-      lastHandledTarget.current = q;
-      setQuery(q);
-      performSearch(q);
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setQuery(urlTarget);
+      performSearch(urlTarget);
     }
-  }, [location.state, performSearch]);
+  }, [urlTarget, performSearch]);
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(query)
+  }
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result} error={errorMsg} query={query || urlTarget} tool={`Registration ${info.title}`} />
   }
   return (
     <div className="space-y-6">

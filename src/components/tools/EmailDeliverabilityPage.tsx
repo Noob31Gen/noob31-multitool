@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { logger } from "@/lib/logger"
-import { useLocation } from "react-router-dom"
 import { runDeliverabilityCheck } from "@/lib/deliverability"
 import type { DNSRecord } from "@/lib/doh"
 import { useSettings } from "@/lib/settings"
@@ -15,14 +14,17 @@ import { Search, AlertTriangle, XCircle, CheckCircle, Info } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { HealthItem } from "@/components/shared/HealthReportCard"
 import { DNSResultTable } from "@/components/shared/DNSResultTable"
+import { useUrlQuery } from "@/lib/useUrlQuery"
+import { JsonResultView } from "@/components/shared/JsonResultView"
+
 export function EmailDeliverabilityPage() {
   const { settings } = useSettings()
-  const location = useLocation();
   const [domain, setDomain] = useState("")
   const [selector, setSelector] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [result, setResult] = useState<{ recommendations: { level: string; msg: string }[]; results: { type: string; records?: unknown[] }[]; grade: string; score: number; queryTime: number } | null>(null)
   const [errorMsg, setErrorMsg] = useState("")
+
   const performSearch = useCallback(async (targetDomain: string) => {
     if (!targetDomain.trim()) return
     setStatus('loading')
@@ -42,18 +44,23 @@ export function EmailDeliverabilityPage() {
     }
   }, [selector, settings]);
 
+  const { target: urlTarget, isJsonMode } = useUrlQuery()
   const lastHandledTarget = useRef<string | null>(null);
   useEffect(() => {
-    const q = location.state?.target;
-    if (q && q !== lastHandledTarget.current) {
-      lastHandledTarget.current = q;
-      setDomain(q);
-      performSearch(q);
+    if (urlTarget && urlTarget !== lastHandledTarget.current) {
+      lastHandledTarget.current = urlTarget;
+      setDomain(urlTarget);
+      performSearch(urlTarget);
     }
-  }, [location.state, performSearch]);
+  }, [urlTarget, performSearch]);
+
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     performSearch(domain)
+  }
+
+  if (isJsonMode) {
+    return <JsonResultView status={status} data={result} error={errorMsg} query={domain || urlTarget} tool="Email Deliverability Test" />
   }
   return (
     <div className="space-y-6">
