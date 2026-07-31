@@ -8,7 +8,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isHomePage = location.pathname === "/"
 
   if (isJsonMode) {
-    return <div className="w-full min-h-screen bg-slate-950 text-slate-100">{children}</div>
+    return <>{children}</>
   }
 
   return (

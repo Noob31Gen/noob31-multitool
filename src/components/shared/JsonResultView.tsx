@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+
 interface JsonResultViewProps {
   status: 'idle' | 'loading' | 'success' | 'error'
   data?: unknown
@@ -7,15 +9,11 @@ interface JsonResultViewProps {
 }
 
 export function JsonResultView({ status, data, error, query, tool }: JsonResultViewProps) {
+  const isLoading = status === 'loading' || (status === 'idle' && Boolean(query))
+
   let outputPayload: Record<string, unknown> = {}
 
-  if (status === 'loading') {
-    outputPayload = {
-      status: "loading",
-      tool: tool || "Tool",
-      query: query || null
-    }
-  } else if (status === 'error') {
+  if (status === 'error') {
     outputPayload = {
       status: "error",
       tool: tool || "Tool",
@@ -40,9 +38,30 @@ export function JsonResultView({ status, data, error, query, tool }: JsonResultV
 
   const jsonString = JSON.stringify(outputPayload, null, 2)
 
+  useEffect(() => {
+    if (!isLoading) {
+      try {
+        const blob = new Blob([jsonString], { type: 'application/json' })
+        const blobUrl = URL.createObjectURL(blob)
+        window.location.replace(blobUrl)
+      } catch {
+        window.location.replace(`data:application/json;charset=utf-8,${encodeURIComponent(jsonString)}`)
+      }
+    }
+  }, [isLoading, jsonString])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center font-mono text-sm text-muted-foreground">
+        loading...
+      </div>
+    )
+  }
+
   return (
-    <div className="w-full min-h-screen bg-slate-950 text-slate-100 p-4 font-mono text-xs sm:text-sm overflow-x-auto border-none shadow-none">
-      <pre className="whitespace-pre-wrap break-all">{jsonString}</pre>
-    </div>
+    <pre style={{ wordWrap: 'break-word', whiteSpace: 'pre-wrap', margin: 0 }}>
+      {jsonString}
+    </pre>
   )
 }
+
