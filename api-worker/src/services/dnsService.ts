@@ -70,11 +70,12 @@ export async function lookupDns(
   const providerUrls: Record<string, string> = {
     google: `https://dns.google/resolve?name=${encodeURIComponent(cleanDomain)}&type=${encodeURIComponent(cleanType)}`,
     cloudflare: `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(cleanDomain)}&type=${encodeURIComponent(cleanType)}`,
+    dnssb: `https://doh.dns.sb/dns-query?name=${encodeURIComponent(cleanDomain)}&type=${encodeURIComponent(cleanType)}`,
     alidns: `https://dns.alidns.com/resolve?name=${encodeURIComponent(cleanDomain)}&type=${encodeURIComponent(cleanType)}`,
     adguard: `https://dns.adguard-dns.com/resolve?name=${encodeURIComponent(cleanDomain)}&type=${encodeURIComponent(cleanType)}`
   };
 
-  const pool = provider === 'auto' ? ['google', 'cloudflare', 'alidns'] : [provider];
+  const pool = provider === 'auto' ? ['google', 'cloudflare', 'dnssb', 'alidns', 'adguard'] : [provider];
   let lastError: Error | null = null;
 
   for (const prov of pool) {
@@ -118,13 +119,10 @@ export async function lookupDns(
 
 export function formatIpToPtr(ip: string): string {
   const clean = ip.trim();
-  // IPv4
   if (/^(\d{1,3}\.){3}\d{1,3}$/.test(clean)) {
     return clean.split('.').reverse().join('.') + '.in-addr.arpa';
   }
-  // IPv6
   if (clean.includes(':')) {
-    // Expand IPv6
     const parts = clean.split('::');
     let fullHex = '';
     if (parts.length === 2) {

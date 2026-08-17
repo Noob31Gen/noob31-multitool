@@ -3,87 +3,209 @@ import type { GeoIpResult, AsnInfo } from '../types';
 export async function lookupGeoIp(ip: string): Promise<GeoIpResult> {
   const cleanIp = ip.trim();
   const isIpv6 = cleanIp.includes(':');
+  const sourcesUsed: string[] = [];
 
-  // 1. Try FreeIPAPI
-  try {
-    const res = await fetch(`https://freeipapi.com/api/json/${encodeURIComponent(cleanIp)}`, {
-      signal: AbortSignal.timeout(3500)
-    });
-    if (res.ok) {
-      const data = await res.json() as {
-        ipVersion?: number;
-        ipAddress?: string;
-        countryName?: string;
-        countryCode?: string;
-        regionName?: string;
-        cityName?: string;
-        zipCode?: string;
-        latitude?: number;
-        longitude?: number;
-        timeZone?: string;
-        asn?: number;
-      };
+  let country: string | undefined;
+  let countryCode: string | undefined;
+  let countryCode3: string | undefined;
+  let region: string | undefined;
+  let regionCode: string | undefined;
+  let city: string | undefined;
+  let postalCode: string | undefined;
+  let latitude: number | undefined;
+  let longitude: number | undefined;
+  let timezone: string | undefined;
+  let isp: string | undefined;
+  let asn: number | undefined;
+  let asOrganization: string | undefined;
+  let isDatacenter: boolean | undefined;
+  let isVpn: boolean | undefined;
+  let isProxy: boolean | undefined;
+  let isTor: boolean | undefined;
+  let abuseContacts: string[] | undefined;
+  let stopForumSpam: { appears?: number } | undefined;
+  const routingPrefixes: string[] = [];
 
-      return {
-        ip: cleanIp,
-        ipVersion: isIpv6 ? 6 : 4,
-        country: data.countryName,
-        countryCode: data.countryCode,
-        region: data.regionName,
-        city: data.cityName,
-        postalCode: data.zipCode,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        timezone: data.timeZone,
-        asn: data.asn
-      };
+  // 1. Query IPAPI.is (Rich security & proxy detection)
+  const fetchIpApiIs = async () => {
+    try {
+      const res = await fetch(`https://api.ipapi.is/?q=${encodeURIComponent(cleanIp)}`, {
+        signal: AbortSignal.timeout(3500)
+      });
+      if (res.ok) {
+        const data = await res.json() as {
+          is_datacenter?: boolean;
+          is_vpn?: boolean;
+          is_proxy?: boolean;
+          is_tor?: boolean;
+          company?: { name?: string };
+          asn?: { asn?: number; org?: string };
+          location?: { country?: string; country_code?: string; state?: string; city?: string; postal?: string; latitude?: number; longitude?: number; timezone?: string };
+        };
+        isDatacenter = data.is_datacenter;
+        isVpn = data.is_vpn;
+        isProxy = data.is_proxy;
+        isTor = data.is_tor;
+        if (data.asn?.asn && !asn) asn = data.asn.asn;
+        if (data.asn?.org && !asOrganization) asOrganization = data.asn.org;
+        if (data.company?.name && !isp) isp = data.company.name;
+        if (data.location?.country && !country) country = data.location.country;
+        if (data.location?.country_code && !countryCode) countryCode = data.location.country_code;
+        if (data.location?.city && !city) city = data.location.city;
+        if (data.location?.state && !region) region = data.location.state;
+        if (data.location?.latitude && !latitude) latitude = data.location.latitude;
+        if (data.location?.longitude && !longitude) longitude = data.location.longitude;
+        if (data.location?.timezone && !timezone) timezone = data.location.timezone;
+        sourcesUsed.push('ipapi.is');
+      }
+    } catch {
+      // ignore
     }
-  } catch {
-    // fallback
-  }
+  };
 
-  // 2. Fallback: ip.guide
-  try {
-    const res = await fetch(`https://ip.guide/${encodeURIComponent(cleanIp)}`, {
-      signal: AbortSignal.timeout(3500)
-    });
-    if (res.ok) {
-      const data = await res.json() as {
-        location?: {
-          country?: string;
-          country_code?: string;
-          city?: string;
+  // 2. Query FreeIPAPI
+  const fetchFreeIpApi = async () => {
+    try {
+      const res = await fetch(`https://freeipapi.com/api/json/${encodeURIComponent(cleanIp)}`, {
+        signal: AbortSignal.timeout(3500)
+      });
+      if (res.ok) {
+        const data = await res.json() as {
+          countryName?: string;
+          countryCode?: string;
+          regionName?: string;
+          cityName?: string;
+          zipCode?: string;
           latitude?: number;
           longitude?: number;
-          timezone?: string;
-        };
-        autonomous_system?: {
+          timeZone?: string;
           asn?: number;
-          name?: string;
-          organization?: string;
         };
-      };
-
-      return {
-        ip: cleanIp,
-        ipVersion: isIpv6 ? 6 : 4,
-        country: data.location?.country,
-        countryCode: data.location?.country_code,
-        city: data.location?.city,
-        latitude: data.location?.latitude,
-        longitude: data.location?.longitude,
-        timezone: data.location?.timezone,
-        asn: data.autonomous_system?.asn,
-        asOrganization: data.autonomous_system?.organization || data.autonomous_system?.name
-      };
+        if (data.countryName && !country) country = data.countryName;
+        if (data.countryCode && !countryCode) countryCode = data.countryCode;
+        if (data.cityName && !city) city = data.cityName;
+        if (data.regionName && !region) region = data.regionName;
+        if (data.zipCode && !postalCode) postalCode = data.zipCode;
+        if (data.latitude && !latitude) latitude = data.latitude;
+        if (data.longitude && !longitude) longitude = data.longitude;
+        if (data.timeZone && !timezone) timezone = data.timeZone;
+        if (data.asn && !asn) asn = data.asn;
+        sourcesUsed.push('freeipapi.com');
+      }
+    } catch {
+      // ignore
     }
-  } catch {
-    // fallback
-  }
+  };
+
+  // 3. Query IPLocation.net
+  const fetchIpLocation = async () => {
+    try {
+      const res = await fetch(`https://api.iplocation.net/?ip=${encodeURIComponent(cleanIp)}`, {
+        signal: AbortSignal.timeout(3500)
+      });
+      if (res.ok) {
+        const data = await res.json() as { country_name?: string; country_code2?: string; isp?: string };
+        if (data.country_name && !country) country = data.country_name;
+        if (data.country_code2 && !countryCode) countryCode = data.country_code2;
+        if (data.isp && !isp) isp = data.isp;
+        sourcesUsed.push('iplocation.net');
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  // 4. Query IP2C for ISO3 verification
+  const fetchIp2c = async () => {
+    try {
+      const res = await fetch(`https://ip2c.org/${encodeURIComponent(cleanIp)}`, {
+        signal: AbortSignal.timeout(3000)
+      });
+      if (res.ok) {
+        const text = await res.text();
+        const parts = text.split(';');
+        if (parts[0] === '1') {
+          if (!countryCode) countryCode = parts[1];
+          if (!countryCode3) countryCode3 = parts[2];
+          if (!country) country = parts[3];
+          sourcesUsed.push('ip2c.org');
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  // 5. Query RIPE Stat Abuse Contact Finder
+  const fetchAbuseContacts = async () => {
+    try {
+      const res = await fetch(`https://stat.ripe.net/data/abuse-contact-finder/data.json?resource=${encodeURIComponent(cleanIp)}`, {
+        signal: AbortSignal.timeout(3000)
+      });
+      if (res.ok) {
+        const data = await res.json() as { data?: { abuse_contacts?: string[] } };
+        if (data.data?.abuse_contacts && data.data.abuse_contacts.length > 0) {
+          abuseContacts = data.data.abuse_contacts;
+          sourcesUsed.push('RIPE Stat Abuse Contacts');
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  // 6. Query StopForumSpam IP Check
+  const fetchStopForumSpam = async () => {
+    if (isIpv6) return;
+    try {
+      const res = await fetch(`https://api.stopforumspam.org/api?ip=${encodeURIComponent(cleanIp)}&json`, {
+        signal: AbortSignal.timeout(3000)
+      });
+      if (res.ok) {
+        const data = await res.json() as { ip?: { appears?: number; frequency?: number } };
+        if (typeof data.ip?.appears === 'number') {
+          stopForumSpam = { appears: data.ip.appears };
+          sourcesUsed.push('StopForumSpam');
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  await Promise.allSettled([
+    fetchIpApiIs(),
+    fetchFreeIpApi(),
+    fetchIpLocation(),
+    fetchIp2c(),
+    fetchAbuseContacts(),
+    fetchStopForumSpam()
+  ]);
 
   return {
     ip: cleanIp,
-    ipVersion: isIpv6 ? 6 : 4
+    ipVersion: isIpv6 ? 6 : 4,
+    country,
+    countryCode,
+    countryCode3,
+    region,
+    regionCode,
+    city,
+    postalCode,
+    latitude,
+    longitude,
+    timezone,
+    isp,
+    asn,
+    asOrganization,
+    isDatacenter,
+    isVpn,
+    isProxy,
+    isTor,
+    abuseContacts,
+    stopForumSpam,
+    routingPrefixes: routingPrefixes.length > 0 ? routingPrefixes : undefined,
+    sourcesUsed
   };
 }
 
@@ -98,60 +220,90 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
   let description = '';
   let country = '';
   let allocated = '';
+  const origins: number[] = [num];
   let peeringDbData: AsnInfo['peeringDb'] = undefined;
 
   // 1. Query RIPE Stat AS overview
-  try {
-    const ripeUrl = `https://stat.ripe.net/data/as-overview/data.json?resource=AS${num}`;
-    const ripeRes = await fetch(ripeUrl, { signal: AbortSignal.timeout(3500) });
-    if (ripeRes.ok) {
-      const ripeJson = await ripeRes.json() as {
-        data?: {
-          holder?: string;
-          announced?: boolean;
-          block?: {
-            desc?: string;
-            resource?: string;
+  const fetchRipeOverview = async () => {
+    try {
+      const ripeUrl = `https://stat.ripe.net/data/as-overview/data.json?resource=AS${num}`;
+      const ripeRes = await fetch(ripeUrl, { signal: AbortSignal.timeout(3500) });
+      if (ripeRes.ok) {
+        const ripeJson = await ripeRes.json() as {
+          data?: {
+            holder?: string;
+            announced?: boolean;
+            block?: {
+              desc?: string;
+              resource?: string;
+            };
           };
         };
-      };
-      if (ripeJson.data) {
-        asnName = ripeJson.data.holder || '';
-        description = ripeJson.data.block?.desc || '';
+        if (ripeJson.data) {
+          asnName = ripeJson.data.holder || '';
+          description = ripeJson.data.block?.desc || '';
+        }
       }
+    } catch {
+      // ignore
     }
-  } catch {
-    // ignore
-  }
+  };
 
   // 2. Query PeeringDB
-  try {
-    const pdbUrl = `https://www.peeringdb.com/api/net?asn=${num}`;
-    const pdbRes = await fetch(pdbUrl, { signal: AbortSignal.timeout(3500) });
-    if (pdbRes.ok) {
-      const pdbJson = await pdbRes.json() as {
-        data?: {
-          name?: string;
-          website?: string;
-          ix_count?: number;
-          fac_count?: number;
-          notes?: string;
-        }[];
-      };
-      if (pdbJson.data && pdbJson.data.length > 0) {
-        const net = pdbJson.data[0];
-        peeringDbData = {
-          org: net.name,
-          website: net.website,
-          ixCount: net.ix_count,
-          facCount: net.fac_count
+  const fetchPeeringDb = async () => {
+    try {
+      const pdbUrl = `https://www.peeringdb.com/api/net?asn=${num}`;
+      const pdbRes = await fetch(pdbUrl, { signal: AbortSignal.timeout(3500) });
+      if (pdbRes.ok) {
+        const pdbJson = await pdbRes.json() as {
+          data?: {
+            name?: string;
+            website?: string;
+            ix_count?: number;
+            fac_count?: number;
+          }[];
         };
-        if (!asnName && net.name) asnName = net.name;
+        if (pdbJson.data && pdbJson.data.length > 0) {
+          const net = pdbJson.data[0];
+          peeringDbData = {
+            org: net.name,
+            website: net.website,
+            ixCount: net.ix_count,
+            facCount: net.fac_count
+          };
+          if (!asnName && net.name) asnName = net.name;
+        }
       }
+    } catch {
+      // ignore
     }
-  } catch {
-    // ignore
-  }
+  };
+
+  // 3. Query RIPE Stat Routing Status
+  const fetchRipeRouting = async () => {
+    try {
+      const routeUrl = `https://stat.ripe.net/data/routing-status/data.json?resource=AS${num}`;
+      const routeRes = await fetch(routeUrl, { signal: AbortSignal.timeout(3500) });
+      if (routeRes.ok) {
+        const routeJson = await routeRes.json() as {
+          data?: {
+            first_seen?: { time?: string };
+          };
+        };
+        if (routeJson.data?.first_seen?.time) {
+          allocated = routeJson.data.first_seen.time;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  await Promise.allSettled([
+    fetchRipeOverview(),
+    fetchPeeringDb(),
+    fetchRipeRouting()
+  ]);
 
   return {
     asn: num,
@@ -159,6 +311,7 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
     description,
     country,
     allocated,
+    origins,
     peeringDb: peeringDbData
   };
 }

@@ -66,6 +66,37 @@ export async function queryRdap(query: string): Promise<NormalizedRdapResponse> 
   } catch {
     // 2. Direct RIR fallback for IP addresses
     if (isIP) {
+      // 2a. Direct ARIN REST API
+      try {
+        const arinData = await fetchWithTimeout(`https://whois.arin.net/rest/ip/${clean}.json`, 3000) as {
+          net?: {
+            handle?: { '$'?: string };
+            name?: { '$'?: string };
+            orgRef?: { '@name'?: string; '@handle'?: string };
+            registrationDate?: { '$'?: string };
+            updateDate?: { '$'?: string };
+          };
+        };
+        if (arinData.net) {
+          const events: RDAPEvent[] = [];
+          if (arinData.net.registrationDate?.['$']) events.push({ eventAction: 'registration', eventDate: arinData.net.registrationDate['$'] });
+          if (arinData.net.updateDate?.['$']) events.push({ eventAction: 'last changed', eventDate: arinData.net.updateDate['$'] });
+
+          return {
+            handle: arinData.net.handle?.['$'] || arinData.net.name?.['$'] || clean,
+            ldhName: arinData.net.orgRef?.['@name'] || clean,
+            objectClassName: 'ip network',
+            events,
+            raw: arinData,
+            source: 'whois.arin.net (REST)',
+            queryTimeMs: Math.round(performance.now() - startTime)
+          };
+        }
+      } catch {
+        // continue
+      }
+
+      // 2b. Direct RIR RDAP Endpoints
       const rirEndpoints = [
         `https://rdap.arin.net/registry/ip/${clean}`,
         `https://rdap.db.ripe.net/ip/${clean}`,

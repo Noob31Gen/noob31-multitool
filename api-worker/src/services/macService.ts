@@ -55,86 +55,115 @@ export async function lookupMacAddress(mac: string): Promise<MacLookupResult> {
       isUnicast,
       isUniversal,
       category: 'Virtual / Randomized',
+      source: 'IEEE 802 Local Bit Analysis',
       queryTimeMs: Math.round(performance.now() - startTime)
     };
   }
 
-  const sources: (() => Promise<{
+  const sources: { name: string; fetcher: () => Promise<{
     vendor: string;
     address?: string;
     country?: string;
     range?: { start: string; end: string };
     blockType?: string;
-  }>)[] = [
-    // Source 1: maclookup.app
-    async () => {
-      const res = await fetch(`https://api.maclookup.app/v2/macs/${oui}`, {
-        signal: AbortSignal.timeout(3000)
-      });
-      if (res.status === 404 || res.status === 204) return { vendor: 'Unknown Vendor / Not Assigned' };
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json() as { found?: boolean; company?: string; address?: string; country?: string; blockType?: string };
-      if (data && data.found) {
-        return {
-          vendor: data.company || 'Unknown',
-          address: data.address,
-          country: data.country,
-          blockType: data.blockType
-        };
+  }> }[] = [
+    // Source 1: Troubleshooting.tools MAC lookup
+    {
+      name: 'troubleshooting.tools',
+      fetcher: async () => {
+        const res = await fetch(`https://api.troubleshooting.tools/lookup/mac/${oui}`, {
+          signal: AbortSignal.timeout(3000)
+        });
+        if (res.status === 404 || res.status === 204) return { vendor: 'Unknown Vendor / Not Assigned' };
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        if (text && text.trim() && !text.includes('error') && !text.includes('not found')) {
+          return { vendor: text.trim() };
+        }
+        return { vendor: 'Unknown Vendor / Not Assigned' };
       }
-      return { vendor: 'Unknown Vendor / Not Assigned' };
     },
-    // Source 2: macvendorlookup.com
-    async () => {
-      const res = await fetch(`https://www.macvendorlookup.com/api/v2/${oui}`, {
-        signal: AbortSignal.timeout(3000)
-      });
-      if (res.status === 404 || res.status === 204) return { vendor: 'Unknown Vendor / Not Assigned' };
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json() as { company?: string; addressL1?: string; addressL2?: string; country?: string; startHex?: string; endHex?: string; type?: string }[];
-      if (Array.isArray(data) && data.length > 0) {
-        const entry = data[0];
-        return {
-          vendor: entry.company || 'Unknown',
-          address: [entry.addressL1, entry.addressL2].filter(Boolean).join(', '),
-          country: entry.country,
-          range: entry.startHex && entry.endHex ? { start: entry.startHex, end: entry.endHex } : undefined,
-          blockType: entry.type
-        };
+    // Source 2: maclookup.app
+    {
+      name: 'maclookup.app',
+      fetcher: async () => {
+        const res = await fetch(`https://api.maclookup.app/v2/macs/${oui}`, {
+          signal: AbortSignal.timeout(3000)
+        });
+        if (res.status === 404 || res.status === 204) return { vendor: 'Unknown Vendor / Not Assigned' };
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json() as { found?: boolean; company?: string; address?: string; country?: string; blockType?: string };
+        if (data && data.found) {
+          return {
+            vendor: data.company || 'Unknown',
+            address: data.address,
+            country: data.country,
+            blockType: data.blockType
+          };
+        }
+        return { vendor: 'Unknown Vendor / Not Assigned' };
       }
-      throw new Error('Invalid format');
     },
-    // Source 3: macvendors.com
-    async () => {
-      const res = await fetch(`https://api.macvendors.com/${oui}`, {
-        signal: AbortSignal.timeout(3000)
-      });
-      if (res.status === 404 || res.status === 204) return { vendor: 'Unknown Vendor / Not Assigned' };
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const text = await res.text();
-      if (text && text.trim() && !text.includes('errors')) {
-        return { vendor: text.trim() };
+    // Source 3: macvendorlookup.com
+    {
+      name: 'macvendorlookup.com',
+      fetcher: async () => {
+        const res = await fetch(`https://www.macvendorlookup.com/api/v2/${oui}`, {
+          signal: AbortSignal.timeout(3000)
+        });
+        if (res.status === 404 || res.status === 204) return { vendor: 'Unknown Vendor / Not Assigned' };
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json() as { company?: string; addressL1?: string; addressL2?: string; country?: string; startHex?: string; endHex?: string; type?: string }[];
+        if (Array.isArray(data) && data.length > 0) {
+          const entry = data[0];
+          return {
+            vendor: entry.company || 'Unknown',
+            address: [entry.addressL1, entry.addressL2].filter(Boolean).join(', '),
+            country: entry.country,
+            range: entry.startHex && entry.endHex ? { start: entry.startHex, end: entry.endHex } : undefined,
+            blockType: entry.type
+          };
+        }
+        throw new Error('Invalid format');
       }
-      return { vendor: 'Unknown Vendor / Not Assigned' };
+    },
+    // Source 4: macvendors.com
+    {
+      name: 'macvendors.com',
+      fetcher: async () => {
+        const res = await fetch(`https://api.macvendors.com/${oui}`, {
+          signal: AbortSignal.timeout(3000)
+        });
+        if (res.status === 404 || res.status === 204) return { vendor: 'Unknown Vendor / Not Assigned' };
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        if (text && text.trim() && !text.includes('errors')) {
+          return { vendor: text.trim() };
+        }
+        return { vendor: 'Unknown Vendor / Not Assigned' };
+      }
     }
   ];
 
   for (const src of sources) {
     try {
-      const result = await src();
-      return {
-        mac,
-        oui,
-        vendor: result.vendor,
-        address: result.address,
-        country: result.country,
-        range: result.range,
-        blockType: result.blockType,
-        category: getVendorCategory(result.vendor),
-        isUnicast,
-        isUniversal,
-        queryTimeMs: Math.round(performance.now() - startTime)
-      };
+      const result = await src.fetcher();
+      if (result.vendor && result.vendor !== 'Unknown Vendor / Not Assigned') {
+        return {
+          mac,
+          oui,
+          vendor: result.vendor,
+          address: result.address,
+          country: result.country,
+          range: result.range,
+          blockType: result.blockType,
+          category: getVendorCategory(result.vendor),
+          isUnicast,
+          isUniversal,
+          source: src.name,
+          queryTimeMs: Math.round(performance.now() - startTime)
+        };
+      }
     } catch {
       // try next
     }
@@ -147,6 +176,7 @@ export async function lookupMacAddress(mac: string): Promise<MacLookupResult> {
     category: 'General Electronics',
     isUnicast,
     isUniversal,
+    source: 'Fallback exhaustion',
     queryTimeMs: Math.round(performance.now() - startTime)
   };
 }

@@ -1,4 +1,4 @@
-import { lookupDns, formatIpToPtr } from './dnsService';
+import { lookupDns } from './dnsService';
 
 export interface BlacklistCheckResult {
   host: string;
@@ -70,7 +70,13 @@ export async function checkDomainReputation(target: string): Promise<{
   target: string;
   score: number; // 0 to 100
   riskLevel: 'clean' | 'low' | 'medium' | 'high' | 'critical';
-  details: Record<string, unknown>;
+  details: {
+    flags: string[];
+    hasValidDns: boolean;
+    abuseContacts?: string[];
+    stopForumSpamAppears?: number;
+    blocklistDeAttacks?: number;
+  };
   queryTimeMs: number;
 }> {
   const startTime = performance.now();
@@ -78,8 +84,11 @@ export async function checkDomainReputation(target: string): Promise<{
 
   let score = 100;
   const flags: string[] = [];
+  let abuseContacts: string[] | undefined;
+  let stopForumSpamAppears: number | undefined;
+  let blocklistDeAttacks: number | undefined;
 
-  // Check DNS presence
+  // 1. Check DNS presence
   let dnsOk = false;
   try {
     const aRec = await lookupDns(clean, 'A', 'auto');
@@ -90,27 +99,75 @@ export async function checkDomainReputation(target: string): Promise<{
 
   if (!dnsOk) {
     score -= 30;
-    flags.push('Domain has no active A records in public DNS');
+    flags.push('Target domain/host has no active A records in public DNS');
   }
 
-  // Check Blocklist.de if IP
   const isIpv4 = /^(\d{1,3}\.){3}\d{1,3}$/.test(clean);
-  if (isIpv4) {
+
+  // 2. Query StopForumSpam if IP
+  const fetchSfs = async () => {
+    if (!isIpv4) return;
     try {
-      const res = await fetch(`https://api.blocklist.de/api.php?ip=${clean}&format=json`, {
+      const res = await fetch(`https://api.stopforumspam.org/api?ip=${encodeURIComponent(clean)}&json`, {
         signal: AbortSignal.timeout(3000)
       });
       if (res.ok) {
-        const data = await res.json() as { attacks?: number; reports?: number };
-        if ((data.attacks && data.attacks > 0) || (data.reports && data.reports > 0)) {
-          score -= 50;
-          flags.push(`Reported on Blocklist.de (${data.attacks || 0} attacks, ${data.reports || 0} reports)`);
+        const data = await res.json() as { ip?: { appears?: number; frequency?: number } };
+        if (typeof data.ip?.appears === 'number') {
+          stopForumSpamAppears = data.ip.appears;
+          if (data.ip.appears > 0) {
+            score -= Math.min(40, data.ip.appears * 10);
+            flags.push(`Listed on StopForumSpam database (${data.ip.appears} recorded spam incidents)`);
+          }
         }
       }
     } catch {
       // ignore
     }
-  }
+  };
+
+  // 3. Query Blocklist.de if IP
+  const fetchBlocklistDe = async () => {
+    if (!isIpv4) return;
+    try {
+      const res = await fetch(`https://api.blocklist.de/api.php?ip=${encodeURIComponent(clean)}&format=json`, {
+        signal: AbortSignal.timeout(3000)
+      });
+      if (res.ok) {
+        const data = await res.json() as { attacks?: number; reports?: number };
+        blocklistDeAttacks = data.attacks;
+        if ((data.attacks && data.attacks > 0) || (data.reports && data.reports > 0)) {
+          score -= 40;
+          flags.push(`Active reports on Blocklist.de (${data.attacks || 0} attacks, ${data.reports || 0} reports)`);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  // 4. Query RIPE Stat Abuse Contacts
+  const fetchAbuseContacts = async () => {
+    try {
+      const res = await fetch(`https://stat.ripe.net/data/abuse-contact-finder/data.json?resource=${encodeURIComponent(clean)}`, {
+        signal: AbortSignal.timeout(3000)
+      });
+      if (res.ok) {
+        const data = await res.json() as { data?: { abuse_contacts?: string[] } };
+        if (data.data?.abuse_contacts && data.data.abuse_contacts.length > 0) {
+          abuseContacts = data.data.abuse_contacts;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  await Promise.allSettled([
+    fetchSfs(),
+    fetchBlocklistDe(),
+    fetchAbuseContacts()
+  ]);
 
   let riskLevel: 'clean' | 'low' | 'medium' | 'high' | 'critical' = 'clean';
   if (score < 40) riskLevel = 'critical';
@@ -124,7 +181,10 @@ export async function checkDomainReputation(target: string): Promise<{
     riskLevel,
     details: {
       flags,
-      hasValidDns: dnsOk
+      hasValidDns: dnsOk,
+      abuseContacts,
+      stopForumSpamAppears,
+      blocklistDeAttacks
     },
     queryTimeMs: Math.round(performance.now() - startTime)
   };

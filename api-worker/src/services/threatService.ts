@@ -12,18 +12,15 @@ export function detectInputType(query: string): 'ip' | 'domain' | 'url' | 'hash'
 
   if (isIp(clean)) return 'ip';
 
-  // Check Hashes (MD5 = 32, SHA-1 = 40, SHA-256 = 64 hex)
   if (/^[a-fA-F0-9]{32}$|^[a-fA-F0-9]{40}$|^[a-fA-F0-9]{64}$/.test(clean)) {
     return 'hash';
   }
 
-  // Check URL
   if (/^https?:\/\//i.test(clean)) return 'url';
   if (clean.includes('/') && !clean.startsWith('/') && clean.indexOf('/') < clean.lastIndexOf('.')) {
     return 'url';
   }
 
-  // Check Domain
   const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?$/;
   if (domainRegex.test(clean)) {
     return 'domain';
@@ -145,6 +142,24 @@ async function fetchInternetDb(ip: string) {
   }
 }
 
+async function fetchBlocklistDe(ip: string) {
+  const targetUrl = `https://api.blocklist.de/api.php?ip=${encodeURIComponent(ip)}&format=json`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3000);
+  try {
+    const res = await fetch(targetUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json() as {
+      attacks?: number;
+      reports?: number;
+    };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
+}
+
 export async function aggregateThreatIntel(query: string): Promise<ThreatIntelResponse> {
   const startTime = performance.now();
   const clean = query.trim();
@@ -152,10 +167,11 @@ export async function aggregateThreatIntel(query: string): Promise<ThreatIntelRe
 
   const sourceErrors: Record<string, string> = {};
 
-  const [otxRes, urlScanRes, internetDbRes] = await Promise.allSettled([
+  const [otxRes, urlScanRes, internetDbRes, blocklistDeRes] = await Promise.allSettled([
     fetchOtx(clean, detectedType),
     fetchUrlScan(clean, detectedType),
-    detectedType === 'ip' ? fetchInternetDb(clean) : Promise.resolve(null)
+    detectedType === 'ip' ? fetchInternetDb(clean) : Promise.resolve(null),
+    detectedType === 'ip' ? fetchBlocklistDe(clean) : Promise.resolve(null)
   ]);
 
   let otxPulses: ThreatPulse[] = [];
@@ -177,8 +193,13 @@ export async function aggregateThreatIntel(query: string): Promise<ThreatIntelRe
   let internetDb = null;
   if (internetDbRes.status === 'fulfilled') {
     internetDb = internetDbRes.value;
-  } else {
+  } else if (detectedType === 'ip') {
     sourceErrors['Shodan InternetDB'] = internetDbRes.reason?.message || 'Failed to fetch InternetDB';
+  }
+
+  let blocklistDe = null;
+  if (blocklistDeRes.status === 'fulfilled') {
+    blocklistDe = blocklistDeRes.value;
   }
 
   return {
@@ -188,6 +209,7 @@ export async function aggregateThreatIntel(query: string): Promise<ThreatIntelRe
     otxMetadata,
     urlScanHistory,
     internetDb,
+    blocklistDe,
     sourceErrors: Object.keys(sourceErrors).length > 0 ? sourceErrors : undefined,
     queryTimeMs: Math.round(performance.now() - startTime)
   };

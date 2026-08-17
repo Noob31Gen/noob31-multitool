@@ -67,6 +67,10 @@ export interface ThreatIntelResponse {
     hostnames?: string[];
     vulns?: string[];
   } | null;
+  blocklistDe?: {
+    attacks?: number;
+    reports?: number;
+  } | null;
   sourceErrors?: Record<string, string>;
   queryTimeMs: number;
 }
@@ -85,6 +89,7 @@ export interface MacLookupResult {
   category?: string;
   isUnicast: boolean;
   isUniversal: boolean;
+  source: string;
   queryTimeMs: number;
 }
 
@@ -115,6 +120,7 @@ export interface AsnInfo {
   country?: string;
   allocated?: string;
   prefixes?: string[];
+  origins?: number[];
   peeringDb?: {
     org?: string;
     website?: string;
@@ -128,6 +134,7 @@ export interface GeoIpResult {
   ipVersion: 4 | 6;
   country?: string;
   countryCode?: string;
+  countryCode3?: string;
   region?: string;
   regionCode?: string;
   city?: string;
@@ -135,10 +142,20 @@ export interface GeoIpResult {
   latitude?: number;
   longitude?: number;
   timezone?: string;
+  isp?: string;
   asn?: number;
   asOrganization?: string;
   isDatacenter?: boolean;
+  isVpn?: boolean;
+  isProxy?: boolean;
+  isTor?: boolean;
+  abuseContacts?: string[];
+  stopForumSpam?: {
+    appears?: number;
+  };
+  routingPrefixes?: string[];
   colo?: string;
+  sourcesUsed?: string[];
 }
 
 export interface CveDetail {
@@ -150,7 +167,20 @@ export interface CveDetail {
   modified?: string;
   references?: string[];
   vulnerableProducts?: string[];
+  epss?: {
+    score: number;
+    percentile: number;
+  };
   isKnownExploited?: boolean;
+  cisaKev?: {
+    vendorProject?: string;
+    product?: string;
+    vulnerabilityName?: string;
+    dateAdded?: string;
+    shortDescription?: string;
+    requiredAction?: string;
+    dueDate?: string;
+  };
 }
 
 export interface UrlScanResult {
@@ -163,13 +193,21 @@ export interface UrlScanResult {
   responseTimeMs: number;
   contentType: string;
   server: string;
+  detectedTechnologies: string[];
   headers: { key: string; value: string }[];
   securityHeaders: {
     hasHsts: boolean;
+    hstsDetails?: { maxAge?: number; includeSubDomains: boolean; preload: boolean };
     hasCsp: boolean;
     hasXFrameOptions: boolean;
     hasContentTypeOptions: boolean;
     hasReferrerPolicy: boolean;
+    hasPermissionsPolicy: boolean;
+    hasCoep: boolean;
+    hasCoop: boolean;
+    hasCorp: boolean;
+    grade: 'A+' | 'A' | 'B' | 'C' | 'D' | 'F';
+    score: number;
   };
 }
 

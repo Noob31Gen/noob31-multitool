@@ -5,10 +5,18 @@ A high-performance (<10ms CPU time), server-to-server API suite built on **Cloud
 ---
 
 ## ⚡ Key Highlights
-- **Zero CORS Proxy Needed**: Outbound queries execute server-to-server from Cloudflare Edge to target registries/APIs, avoiding all browser CORS restrictions.
+- **Direct Server-to-Server Requests**: Outbound queries execute from Cloudflare Edge to target registries and APIs, eliminating all browser CORS restrictions and third-party proxy bottlenecks.
 - **Universal CORS Enabled**: Returns standard `Access-Control-Allow-Origin: *` to your web frontend.
-- **Ultra-Low Latency & CPU Time**: Sub-millisecond routing overhead powered by Hono and non-blocking asynchronous Fetch API.
-- **Cascading Fallbacks**: Multi-layer fallbacks for DNS (Google, Cloudflare, AliDNS, AdGuard), RDAP (rdap.org, ARIN, RIPE, APNIC, LACNIC, AFRINIC, who-dat), and MAC lookups.
+- **Ultra-Low Latency & CPU Time**: Sub-millisecond routing overhead powered by Hono with non-blocking asynchronous Fetch API.
+- **Multi-Source Cascades & Fallbacks**:
+  - **DNS**: Google DoH, Cloudflare DoH, AliDNS, AdGuard DoH.
+  - **RDAP / WHOIS**: rdap.org, direct RIRs (ARIN, RIPE, APNIC, LACNIC, AFRINIC), who-dat.
+  - **Subdomains**: crt.sh, CertSpotter, Mnemonic PDNS, RapidDNS scraping, URLScan.io index.
+  - **GeoIP & ASN**: IPAPI.is (Datacenter/VPN/Tor detection), FreeIPAPI, IPLocation.net, IP2C, RIPE Stat routing status, PeeringDB.
+  - **CVE Vulnerabilities**: CIRCL CVE-Search, OSV, First.org EPSS (Exploit Prediction Scoring), CISA Known Exploited Vulnerabilities (KEV).
+  - **Threat Intel & Reputation**: AlienVault OTX, URLScan.io, Shodan InternetDB, Blocklist.de, 7 DNSBL spam databases.
+  - **MAC OUI Lookup**: Troubleshooting.tools, maclookup.app, macvendorlookup.com, macvendors.com.
+  - **HTTP Inspection**: Mozilla Observatory-style security header scoring, technology detection, and redirect hop tracking.
 
 ---
 
@@ -50,29 +58,6 @@ Resolves standard DNS records with multi-provider DoH fallback.
   - `type` (optional, default `A`): Record type (`A`, `AAAA`, `MX`, `TXT`, `CNAME`, `NS`, `SOA`, `PTR`, `SRV`, `CAA`, `ANY`)
   - `provider` (optional, default `auto`): Resolver (`auto`, `google`, `cloudflare`, `alidns`, `adguard`)
 
-**Example Response**:
-```json
-{
-  "success": true,
-  "data": {
-    "domain": "google.com",
-    "type": "A",
-    "status": 0,
-    "records": [
-      {
-        "name": "google.com.",
-        "type": 1,
-        "typeName": "A",
-        "TTL": 300,
-        "data": "142.250.190.46"
-      }
-    ],
-    "provider": "google",
-    "queryTimeMs": 42
-  }
-}
-```
-
 #### `GET /api/dns/dnssec`
 Inspects DNSSEC keys and signatures (`DNSKEY`, `DS`, `RRSIG`).
 - **Parameters**:
@@ -89,12 +74,12 @@ Performs Reverse DNS (PTR) lookup for IPv4 or IPv6.
 ### 3. RDAP & WHOIS
 
 #### `GET /api/rdap/lookup`
-Fetches structured RFC-compliant RDAP registration data for domains or IP addresses with direct RIR fallback.
+Fetches structured RFC-compliant RDAP registration data for domains or IP addresses with direct RIR fallback (ARIN, RIPE, APNIC, LACNIC, AFRINIC) and who-dat fallback.
 - **Parameters**:
   - `query` (required): Domain name (e.g. `github.com`) or IP address (e.g. `1.1.1.1`)
 
 #### `GET /api/rdap/company`
-Searches company profile, domain, and stock ticker.
+Searches company profile, domain, and stock ticker via Clearbit and Yahoo Finance.
 - **Parameters**:
   - `query` (required): Company name or symbol (e.g. `Microsoft` or `MSFT`)
 
@@ -103,7 +88,7 @@ Searches company profile, domain, and stock ticker.
 ### 4. Security & Threat Intelligence
 
 #### `GET /api/security/threat-intel`
-Aggregates AlienVault OTX pulses, URLScan.io historical scans & screenshots, and Shodan InternetDB open ports and CVEs.
+Aggregates AlienVault OTX pulses, URLScan.io historical scans & screenshots, Shodan InternetDB open ports and CVEs, and Blocklist.de attack reports.
 - **Parameters**:
   - `query` (required): IP, Domain, Hash (MD5/SHA1/SHA256), or URL
 
@@ -113,7 +98,7 @@ Fetches historical SSL/TLS Certificate Transparency (CT) logs via crt.sh and Cer
   - `domain` (required): Target domain (e.g. `google.com`)
 
 #### `GET /api/security/blacklist`
-Scans an IP address against major DNSBL anti-spam and malicious host databases.
+Scans an IP address against 7 major DNSBL anti-spam and malicious host databases (Spamhaus, Barracuda, Spamcop, SORBS, DroneBL, Blocklist.de, BlockedServers).
 - **Parameters**:
   - `target` (required): IPv4 address (e.g. `148.228.16.3`)
 
@@ -123,35 +108,58 @@ Calculates comprehensive domain/IP reputation, security flags, and risk rating.
   - `target` (required): Domain or IP (e.g. `example.com`)
 
 #### `GET /api/security/cve`
-Fetches vulnerability records and CVSS scores from CIRCL CVE-Search and OSV.
+Fetches vulnerability records from CIRCL CVE-Search, OSV, real-time Exploit Prediction Score (EPSS) from First.org, and CISA Known Exploited Vulnerabilities (KEV) status.
 - **Parameters**:
-  - `cve` (required): CVE ID (e.g. `CVE-2024-1234`)
+  - `cve` (required): CVE ID (e.g. `CVE-2021-44228`)
+
+**Example Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "CVE-2021-44228",
+    "summary": "Apache Log4j2 JNDI features do not protect against attacker controlled LDAP and other JNDI related endpoints...",
+    "cvss": 10.0,
+    "epss": {
+      "score": 0.975,
+      "percentile": 0.999
+    },
+    "isKnownExploited": true,
+    "cisaKev": {
+      "vendorProject": "Apache",
+      "product": "Log4j",
+      "vulnerabilityName": "Apache Log4j Remote Code Execution",
+      "dateAdded": "2021-12-10"
+    }
+  }
+}
+```
 
 ---
 
 ### 5. Network & Hardware Diagnostics
 
 #### `GET /api/network/subdomains`
-Enumerates active and historical subdomains from Certificate Transparency logs and Passive DNS.
+Enumerates active and historical subdomains from 5 sources: crt.sh, CertSpotter, Mnemonic PDNS, RapidDNS scraping, and URLScan.io crawl index.
 - **Parameters**:
   - `domain` (required): Target domain (e.g. `github.com`)
 
 #### `GET /api/network/my-ip`
-Extracts client public IP, Cloudflare edge datacenter code (`colo`), ASN, and Geolocation context.
+Extracts client public IP, Cloudflare edge datacenter code (`colo`), ASN, and Geolocation context directly from request.
 
 #### `GET /api/network/geoip`
-Queries geolocation for a specific IP address.
+Queries geolocation and proxy/datacenter detection for a specific IP address using IPAPI.is, FreeIPAPI, IPLocation.net, and IP2C.
 - **Parameters**:
   - `ip` (required): Target IP (e.g. `8.8.8.8`)
 
 #### `GET /api/network/asn`
-Fetches Autonomous System Number (ASN) details, IP prefix ownership, and PeeringDB data.
+Fetches Autonomous System Number (ASN) details, IP prefix ownership, RIPE Stat routing status, and PeeringDB data.
 - **Parameters**:
   - `asn` (optional): ASN number (e.g. `15169`)
   - `ip` (optional): IP address to look up ASN for
 
 #### `GET /api/network/mac`
-Identifies the hardware manufacturer (OUI) from a MAC address using a 4-tier vendor API cascade.
+Identifies the hardware manufacturer (OUI) from a MAC address using a 4-tier vendor API cascade (Troubleshooting.tools, maclookup.app, macvendorlookup.com, macvendors.com).
 - **Parameters**:
   - `mac` (required): Full MAC address or first 6 characters (e.g. `00:11:22:33:44:55` or `001122`)
 
@@ -160,7 +168,7 @@ Identifies the hardware manufacturer (OUI) from a MAC address using a 4-tier ven
 ### 6. Web & HTTP Inspection
 
 #### `GET /api/http/scan` / `GET /api/url/scan`
-Traces full HTTP redirect chains (up to 5 hops), response headers, latency, content-type, and security headers (HSTS, CSP, X-Frame-Options, etc.).
+Traces full HTTP redirect chains (up to 5 hops), response headers, latency, content-type, technology/CDN detection, and security headers grading (`A+` to `F`).
 - **Parameters**:
   - `url` (required): Target URL (e.g. `https://example.com`)
 
