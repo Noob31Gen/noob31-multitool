@@ -3,12 +3,17 @@ import { logger } from './logger';
 import type { CorsProvider } from './cors';
 import { safeStorage } from './storage';
 export type DoHProvider = 'auto' | 'google' | 'cloudflare' | 'alidns' | 'adguard' | 'custom';
+export type ServerMode = 'browser' | 'custom';
+
 export interface AppSettings {
   dohProvider: DoHProvider;
   customDnsUrl: string;
   corsProvider: CorsProvider;
   customCorsUrl: string;
   customCorsToken: string;
+  serverMode: ServerMode;
+  customServerUrl: string;
+  customServerToken: string;
   theme: 'light' | 'dark' | 'system';
   persistenceEnabled: boolean;
 }
@@ -18,6 +23,9 @@ export const defaultSettings: AppSettings = {
   corsProvider: 'auto',
   customCorsUrl: '',
   customCorsToken: '',
+  serverMode: 'browser',
+  customServerUrl: '',
+  customServerToken: '',
   theme: 'system',
   persistenceEnabled: safeStorage.isEnabled(),
 };

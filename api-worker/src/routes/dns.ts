@@ -1,5 +1,7 @@
 import { Hono } from 'hono';
 import { lookupDns, lookupReverseDns } from '../services/dnsService';
+import { checkDnsPropagation } from '../services/dnsPropagationService';
+import { jsonSuccess, jsonError } from '../utils/response';
 
 export const dnsRouter = new Hono();
 
@@ -9,17 +11,14 @@ dnsRouter.get('/lookup', async (c) => {
   const provider = c.req.query('provider') || 'auto';
 
   if (!name) {
-    return c.json({ success: false, error: 'Query parameter "name" or "domain" is required.' }, 400);
+    return jsonError(c, 'Query parameter "name" or "domain" is required.', 400, 'Example: /api/dns/lookup?name=google.com&type=A');
   }
 
   try {
     const data = await lookupDns(name, type, provider);
-    return c.json({ success: true, data });
+    return jsonSuccess(c, data);
   } catch (err) {
-    return c.json({
-      success: false,
-      error: err instanceof Error ? err.message : 'DNS lookup failed'
-    }, 500);
+    return jsonError(c, err instanceof Error ? err.message : 'DNS lookup failed', 500);
   }
 });
 
@@ -28,33 +27,43 @@ dnsRouter.get('/dnssec', async (c) => {
   const type = c.req.query('type') || 'DNSKEY';
 
   if (!name) {
-    return c.json({ success: false, error: 'Query parameter "name" is required.' }, 400);
+    return jsonError(c, 'Query parameter "name" is required.', 400, 'Example: /api/dns/dnssec?name=cloudflare.com&type=DNSKEY');
   }
 
   try {
     const data = await lookupDns(name, type, 'cloudflare');
-    return c.json({ success: true, data });
+    return jsonSuccess(c, data);
   } catch (err) {
-    return c.json({
-      success: false,
-      error: err instanceof Error ? err.message : 'DNSSEC lookup failed'
-    }, 500);
+    return jsonError(c, err instanceof Error ? err.message : 'DNSSEC lookup failed', 500);
   }
 });
 
 dnsRouter.get('/reverse', async (c) => {
   const ip = c.req.query('ip');
   if (!ip) {
-    return c.json({ success: false, error: 'Query parameter "ip" is required.' }, 400);
+    return jsonError(c, 'Query parameter "ip" is required.', 400, 'Example: /api/dns/reverse?ip=8.8.8.8');
   }
 
   try {
     const data = await lookupReverseDns(ip);
-    return c.json({ success: true, data });
+    return jsonSuccess(c, data);
   } catch (err) {
-    return c.json({
-      success: false,
-      error: err instanceof Error ? err.message : 'Reverse DNS lookup failed'
-    }, 500);
+    return jsonError(c, err instanceof Error ? err.message : 'Reverse DNS lookup failed', 500);
+  }
+});
+
+dnsRouter.get('/propagation', async (c) => {
+  const domain = c.req.query('domain') || c.req.query('name');
+  const type = c.req.query('type') || 'A';
+
+  if (!domain) {
+    return jsonError(c, 'Query parameter "domain" is required.', 400, 'Example: /api/dns/propagation?domain=google.com&type=A');
+  }
+
+  try {
+    const data = await checkDnsPropagation(domain, type);
+    return jsonSuccess(c, data);
+  } catch (err) {
+    return jsonError(c, err instanceof Error ? err.message : 'DNS propagation check failed', 500);
   }
 });

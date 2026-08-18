@@ -6,8 +6,17 @@ import { securityRouter } from './routes/security';
 import { networkRouter } from './routes/network';
 import { httpRouter } from './routes/http';
 import { emailRouter } from './routes/email';
+import { toolsRouter } from './routes/tools';
+import { openapiRouter } from './routes/openapi';
+import { jsonSuccess, jsonError } from './utils/response';
 
-const app = new Hono();
+export type AppEnv = {
+  Variables: {
+    startTime: number;
+  };
+};
+
+const app = new Hono<AppEnv>();
 
 // Global CORS Middleware - Enables direct frontend access without any CORS proxy
 app.use('*', cors({
@@ -18,63 +27,40 @@ app.use('*', cors({
   maxAge: 86400
 }));
 
-// Performance Timing Middleware
+// Performance Timing Middleware - Records start time for execution calculation
 app.use('*', async (c, next) => {
-  const start = performance.now();
+  c.set('startTime', performance.now());
   await next();
-  const duration = Math.round(performance.now() - start);
-  c.header('Server-Timing', `total;dur=${duration}`);
 });
 
-// Root & Health Status
+// Mount OpenAPI Spec & Docs
+app.route('/', openapiRouter);
+
+// Root Status & Index
 app.get('/', (c) => {
-  return c.json({
+  return jsonSuccess(c, {
     status: 'online',
     service: 'Noob31 MultiTools Cloudflare Worker API',
     version: '1.0.0',
-    documentation: '/docs',
-    endpoints: {
-      health: '/health',
-      dns: {
-        lookup: '/api/dns/lookup?name=example.com&type=A&provider=google',
-        dnssec: '/api/dns/dnssec?name=example.com',
-        reverse: '/api/dns/reverse?ip=8.8.8.8'
-      },
-      rdap: {
-        lookup: '/api/rdap/lookup?query=example.com',
-        company: '/api/rdap/company?query=Microsoft'
-      },
-      security: {
-        threatIntel: '/api/security/threat-intel?query=example.com',
-        cert: '/api/security/cert?domain=example.com',
-        blacklist: '/api/security/blacklist?target=1.1.1.1',
-        reputation: '/api/security/reputation?target=example.com',
-        cve: '/api/security/cve?cve=CVE-2024-1234'
-      },
-      network: {
-        subdomains: '/api/network/subdomains?domain=example.com',
-        myIp: '/api/network/my-ip',
-        geoip: '/api/network/geoip?ip=8.8.8.8',
-        asn: '/api/network/asn?asn=15169',
-        mac: '/api/network/mac?mac=00:11:22:33:44:55'
-      },
-      http: {
-        scan: '/api/http/scan?url=https://example.com',
-        headers: '/api/http/headers?url=https://example.com'
-      },
-      email: {
-        auth: '/api/email/auth?domain=example.com',
-        deliverability: '/api/email/deliverability?domain=example.com'
-      }
-    }
+    documentationUrl: '/docs',
+    openApiSpec: '/openapi.json',
+    endpointCategories: [
+      'DNS & DNSSEC (/api/dns/*)',
+      'RDAP & WHOIS (/api/rdap/*)',
+      'Security & Threats (/api/security/*)',
+      'Network & Hardware (/api/network/*)',
+      'Web & HTTP (/api/http/*)',
+      'Email Diagnostics (/api/email/*)',
+      'Utility Tools (/api/tools/*)'
+    ]
   });
 });
 
 app.get('/health', (c) => {
-  return c.json({
+  return jsonSuccess(c, {
     status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: performance.now()
+    uptimeMs: performance.now(),
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -86,22 +72,27 @@ app.route('/api/network', networkRouter);
 app.route('/api/http', httpRouter);
 app.route('/api/url', httpRouter);
 app.route('/api/email', emailRouter);
+app.route('/api/tools', toolsRouter);
 
-// 404 Handler
+// Standardized 404 Handler
 app.notFound((c) => {
-  return c.json({
-    success: false,
-    error: `Endpoint not found: ${c.req.method} ${c.req.path}. Visit / for the full API documentation.`
-  }, 404);
+  return jsonError(
+    c,
+    `Endpoint not found: ${c.req.method} ${c.req.path}`,
+    404,
+    'Visit /docs for the interactive API reference or /openapi.json for the full specification.'
+  );
 });
 
-// Global Error Handler
+// Standardized Global Error Handler
 app.onError((err, c) => {
   console.error('[Worker Error]', err);
-  return c.json({
-    success: false,
-    error: err.message || 'Internal Server Error'
-  }, 500);
+  return jsonError(
+    c,
+    err.message || 'Internal Server Error',
+    500,
+    'An unexpected error occurred while executing the diagnostic query.'
+  );
 });
 
 export default app;
