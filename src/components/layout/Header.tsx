@@ -6,7 +6,7 @@ import { SuperToolSearch } from "@/components/shared/SuperToolSearch"
 import { SidebarNav } from "./Sidebar"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Menu, Cookie } from "lucide-react"
+import { Menu, Cookie, Server } from "lucide-react"
 import { useSettings } from "@/lib/settings"
 import { Switch } from "@/components/ui/switch"
 import SiteLogo from "@/assets/sitelogo.png"
@@ -53,6 +53,15 @@ export function Header() {
         {!isLandingPage && <SuperToolSearch className="relative w-full" />}
       </div>
       <div className="flex items-center gap-1.5 sm:gap-3 justify-end md:w-auto min-w-fit">
+        {settings.serverMode === 'custom' && Boolean(settings.customServerUrl?.trim()) && (
+          <div
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-medium"
+            title={`Custom API Server: ${settings.customServerUrl}`}
+          >
+            <Server className="w-3 h-3 animate-pulse" />
+            <span>Custom Server</span>
+          </div>
+        )}
         <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50 border border-transparent hover:border-border transition-colors group">
           <Cookie className={`h-4 w-4 transition-colors ${settings.persistenceEnabled ? "text-primary" : "text-muted-foreground opacity-40"}`} />
           <Switch 

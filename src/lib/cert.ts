@@ -1,5 +1,6 @@
 import type { AppSettings } from "./settings"
 import { getProxiedUrl, authenticatedFetch } from "@/lib/cors"
+import { isCustomServerEnabled, queryCertServer } from "./apiServer"
 export interface NormalizedCert {
   not_before: string;
   not_after: string;
@@ -8,6 +9,13 @@ export interface NormalizedCert {
 }
 export async function queryCert(domain: string, settings: AppSettings): Promise<NormalizedCert[]> {
   domain = domain.trim().toLowerCase();
+
+  // If custom API server is enabled, fetch via edge cert endpoint
+  if (isCustomServerEnabled(settings)) {
+    const certs = (await queryCertServer(domain, settings)) as NormalizedCert[];
+    return deduplicateCerts(certs || []);
+  }
+
   const results = await Promise.allSettled([
     fetchCrtSh(domain, settings),
     fetchCertSpotter(domain, settings)

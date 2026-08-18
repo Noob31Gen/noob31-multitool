@@ -41,7 +41,7 @@ export async function checkBlacklist(ip: string, settings: AppSettings) {
   const promises = DNSBL_ZONES.map(async (zone) => {
     try {
       const target = getDnsblTarget(ip, zone);
-      const resA = await queryDNS(target, 'A', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
+      const resA = await queryDNS(target, 'A', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl, settings);
       if (resA.status === 3 || resA.records.length === 0) {
         return { zone, listed: false, records: [], details: null, classification: null, error: false };
       }
@@ -66,7 +66,7 @@ export async function checkBlacklist(ip: string, settings: AppSettings) {
       const classification = returnIps.join(', ');
       let txtDetails = null;
       try {
-        const resTxt = await queryDNS(target, 'TXT', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
+        const resTxt = await queryDNS(target, 'TXT', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl, settings);
         if (resTxt.records && resTxt.records.length > 0) {
           txtDetails = resTxt.records.map((r: { data: string }) => r.data.replace(/(^"|"$)/g, '')).join(' | ');
         }

@@ -276,10 +276,39 @@ export function parseUrl(input: string): ParsedUrl {
   };
 }
 import { getProxiedUrl, authenticatedFetch, extractTargetUrl } from "./cors"
+import { isCustomServerEnabled, queryHttpScanServer } from "./apiServer"
 export async function visitUrl(url: string, settings: AppSettings): Promise<VisitResult> {
   let targetUrl = url.trim();
   if (!targetUrl.match(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//)) {
     targetUrl = 'https://' + targetUrl;
+  }
+
+  // If custom server resolution is active, scan via edge worker
+  if (isCustomServerEnabled(settings)) {
+    const serverData = (await queryHttpScanServer(targetUrl, settings)) as {
+      url?: string;
+      finalUrl?: string;
+      status?: number;
+      statusText?: string;
+      redirected?: boolean;
+      redirectChain?: string[];
+      responseTimeMs?: number;
+      contentType?: string;
+      server?: string;
+      headers?: { key: string; value: string }[];
+    };
+
+    return {
+      status: serverData.status || 200,
+      statusText: serverData.statusText || 'OK',
+      headers: serverData.headers || [],
+      redirected: serverData.redirected || false,
+      finalUrl: serverData.finalUrl || targetUrl,
+      responseTime: serverData.responseTimeMs || 0,
+      contentType: serverData.contentType || '',
+      server: serverData.server || '',
+      redirectChain: serverData.redirectChain || [targetUrl],
+    };
   }
 
   let currentUrl = targetUrl;

@@ -1,6 +1,7 @@
 import { logger } from "./logger";
 import { type AppSettings } from "./settings";
 import { getProxiedUrl, authenticatedFetch } from "./cors";
+import { isCustomServerEnabled, queryCompanyServer } from "./apiServer";
 
 export interface LightEntity {
   id: number;
@@ -69,6 +70,11 @@ export async function searchEntities(settings: AppSettings): Promise<LightEntity
 
 export async function getEntityBySymbol(symbol: string, settings: AppSettings): Promise<EntityFullInfo | null> {
   try {
+    if (isCustomServerEnabled(settings)) {
+      const res = await queryCompanyServer(symbol, settings);
+      return (res as EntityFullInfo) || null;
+    }
+
     const url = `https://entitydb.shodan.io/api/entities/symbol/${encodeURIComponent(symbol)}`;
     const proxyUrl = getProxiedUrl(url, settings.corsProvider, settings.customCorsUrl);
     const response = await authenticatedFetch(proxyUrl);

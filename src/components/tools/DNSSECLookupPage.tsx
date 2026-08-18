@@ -206,8 +206,8 @@ export function DNSSECLookupPage() {
     setIsSigned(null)
     try {
       const target = targetDomain.trim();
-      const mainQuery = queryDNS(target, recordType, settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
-      const dnskeyQuery = recordType === 'DNSKEY' ? mainQuery : queryDNS(target, 'DNSKEY', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl);
+      const mainQuery = queryDNS(target, recordType, settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl, settings);
+      const dnskeyQuery = recordType === 'DNSKEY' ? mainQuery : queryDNS(target, 'DNSKEY', settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl, settings);
       const [res, dnskeyRes] = await Promise.all([mainQuery, dnskeyQuery]);
       setResult(res);
       setIsSigned(dnskeyRes.records && dnskeyRes.records.length > 0);

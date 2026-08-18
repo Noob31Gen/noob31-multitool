@@ -3,6 +3,9 @@ import { logger } from './logger';
 import { Buffer } from 'buffer';
 import type { CorsProvider } from './cors';
 import { getProxiedUrl, authenticatedFetch } from './cors';
+import type { AppSettings } from './settings';
+import { isCustomServerEnabled, queryDnsServer } from './apiServer';
+import { safeStorage } from './storage';
 
 // Polyfill Buffer on window for browser-compatibility with dns-packet
 if (typeof window !== 'undefined' && !(window as { Buffer?: typeof Buffer }).Buffer) {
@@ -247,8 +250,24 @@ export async function queryDNS(
   provider: 'auto' | 'google' | 'cloudflare' | 'alidns' | 'adguard' | 'quad9' | 'opendns' | 'custom' = 'auto',
   customUrl: string = '',
   corsProvider: CorsProvider = 'none',
-  customCorsUrl: string = ''
+  customCorsUrl: string = '',
+  settings?: AppSettings
 ): Promise<DNSResponse> {
+  // Check explicit settings or storage fallback for custom API server resolution
+  let activeSettings = settings;
+  if (!activeSettings) {
+    try {
+      const saved = safeStorage.getItem('url-scanner-settings');
+      if (saved) {
+        activeSettings = JSON.parse(saved);
+      }
+    } catch { /* ignore */ }
+  }
+
+  if (activeSettings && isCustomServerEnabled(activeSettings)) {
+    return queryDnsServer(domain, type, provider, activeSettings);
+  }
+
   if (provider === 'custom' && !customUrl.trim()) {
     throw new Error("Custom DNS URL is not configured in settings. Please open Settings and enter a valid URL.");
   }

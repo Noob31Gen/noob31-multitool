@@ -1,6 +1,7 @@
 import type { AppSettings } from "./settings"
 import { logger } from "./logger"
 import { getProxiedUrl, authenticatedFetch } from "./cors"
+import { isCustomServerEnabled, queryMyIpServer, queryGeoIpServer, queryAsnServer } from "./apiServer"
 export interface ParsedASN {
   org?: string;
   asn?: string;
@@ -156,6 +157,88 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
     query: query,
     isAsn: isAsn
   };
+
+  // If custom API server is active, route through backend worker
+  if (isCustomServerEnabled(settings)) {
+    try {
+      let serverData: {
+        ip?: string;
+        asn?: number;
+        asOrganization?: string;
+        name?: string;
+        description?: string;
+        country?: string;
+        countryCode?: string;
+        region?: string;
+        city?: string;
+        timezone?: string;
+        latitude?: number;
+        longitude?: number;
+        isDatacenter?: boolean;
+        isVpn?: boolean;
+        isProxy?: boolean;
+        isTor?: boolean;
+        abuseContacts?: string[];
+        peeringDb?: { org?: string; website?: string; ixCount?: number; facCount?: number };
+        origins?: number[];
+        prefixes?: string[];
+        colo?: string;
+      };
+
+      if (!query) {
+        serverData = (await queryMyIpServer(settings)) as typeof serverData;
+      } else if (isAsn) {
+        serverData = (await queryAsnServer(query, settings)) as typeof serverData;
+      } else {
+        serverData = (await queryGeoIpServer(query, settings)) as typeof serverData;
+      }
+
+      const asnVal = serverData.asn ? `AS${serverData.asn}` : (isAsn ? query : undefined);
+      resultData.parsed = {
+        asn: asnVal,
+        org: serverData.asOrganization || serverData.name || serverData.description || serverData.peeringDb?.org,
+        description: serverData.description || serverData.name,
+        country: serverData.country,
+        country_code: serverData.countryCode,
+        city: serverData.city,
+        state: serverData.region,
+        timezone: serverData.timezone,
+        lat: serverData.latitude,
+        lon: serverData.longitude,
+        is_datacenter: serverData.isDatacenter,
+        is_vpn: serverData.isVpn,
+        is_proxy: serverData.isProxy,
+        is_tor: serverData.isTor,
+        abuse_email: serverData.abuseContacts?.[0],
+        website: serverData.peeringDb?.website,
+        ix_count: serverData.peeringDb?.ixCount,
+        fac_count: serverData.peeringDb?.facCount,
+        prefixes_v4: serverData.prefixes || [],
+      };
+      resultData.ipapi = {
+        asn: serverData.asn ? {
+          asn: serverData.asn,
+          org: serverData.asOrganization,
+        } : undefined,
+        location: {
+          country: serverData.country,
+          country_code: serverData.countryCode,
+          city: serverData.city,
+          state: serverData.region,
+          timezone: serverData.timezone,
+          latitude: serverData.latitude,
+          longitude: serverData.longitude,
+        },
+        datacenter: {
+          datacenter: serverData.colo,
+        },
+      } as IPAPIResponse;
+
+      return resultData;
+    } catch (err) {
+      logger.warn("Custom server IP/ASN query failed, falling back to local client:", err);
+    }
+  }
   
   // 1. Try primary ipapi.is lookup
   try {

@@ -1,5 +1,6 @@
 import type { AppSettings } from "./settings"
 import { getProxiedUrl, authenticatedFetch } from "@/lib/cors"
+import { isCustomServerEnabled, querySubdomainsServer } from "./apiServer"
 
 export interface SubdomainResult {
   subdomain: string;
@@ -65,6 +66,18 @@ export async function querySubdomains(
   onProgress: (results: SubdomainResult[], errors: string[], sourceName: string) => void
 ): Promise<void> {
   domain = domain.trim().toLowerCase();
+
+  // If custom API server resolution is active, use edge worker discovery
+  if (isCustomServerEnabled(settings)) {
+    const serverRes = await querySubdomainsServer(domain, settings);
+    const results: SubdomainResult[] = (serverRes.subdomains || []).map((sub: string) => ({
+      subdomain: sub,
+      sources: serverRes.sourcesUsed || ['API Worker'],
+    }));
+    results.sort((a, b) => a.subdomain.localeCompare(b.subdomain));
+    onProgress(results, [], 'API Server Discovery');
+    return;
+  }
   
   const sources = [
     { name: 'HackerTarget', fn: fetchHackerTarget },

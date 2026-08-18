@@ -2,9 +2,16 @@ import type { AppSettings } from "./settings"
 import { getProxiedUrl, authenticatedFetch } from "./cors"
 import { safeStorage } from "./storage"
 import { logger } from "./logger"
+import { isCustomServerEnabled, queryRdapServer } from "./apiServer"
 
 export async function queryRDAP(query: string, settings: AppSettings) {
   query = query.trim();
+
+  // If custom API server resolution is active, route through backend worker
+  if (isCustomServerEnabled(settings)) {
+    return queryRdapServer(query, settings);
+  }
+
   const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(query) || (query.includes(':') && !query.includes('.'));
   const basePath = isIP ? `ip/${query}` : `domain/${query}`;
   const url = `https://rdap.org/${basePath}`;

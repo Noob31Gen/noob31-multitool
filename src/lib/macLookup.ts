@@ -1,5 +1,8 @@
 import { getProxiedUrl, authenticatedFetch, type CorsProvider } from "./cors";
 import { logger } from "./logger";
+import type { AppSettings } from "./settings";
+import { isCustomServerEnabled, queryMacServer } from "./apiServer";
+import { safeStorage } from "./storage";
 
 export interface MacLookupResponse {
   mac: string;
@@ -59,8 +62,49 @@ export function isValidMac(mac: string): boolean {
 export async function lookupMac(
   mac: string,
   corsProvider: CorsProvider = "corsproxy",
-  customCorsUrl: string = ""
+  customCorsUrl: string = "",
+  settings?: AppSettings
 ): Promise<MacLookupResponse> {
+  let activeSettings = settings;
+  if (!activeSettings) {
+    try {
+      const saved = safeStorage.getItem('url-scanner-settings');
+      if (saved) activeSettings = JSON.parse(saved);
+    } catch { /* ignore */ }
+  }
+
+  if (activeSettings && isCustomServerEnabled(activeSettings)) {
+    const serverData = (await queryMacServer(mac, activeSettings)) as {
+      mac: string;
+      oui: string;
+      vendor: string;
+      address?: string;
+      country?: string;
+      range?: { start: string; end: string };
+      blockType?: string;
+      category?: string;
+      isUnicast: boolean;
+      isUniversal: boolean;
+      queryTimeMs: number;
+    };
+
+    return {
+      mac: serverData.mac || mac,
+      vendor: serverData.vendor || "Unknown Vendor",
+      address: serverData.address,
+      country: serverData.country,
+      range: serverData.range,
+      blockType: serverData.blockType,
+      category: serverData.category || getVendorCategory(serverData.vendor || ""),
+      oui: serverData.oui || formatMac(mac).substring(0, 6),
+      success: true,
+      isUnicast: serverData.isUnicast ?? true,
+      isUniversal: serverData.isUniversal ?? true,
+      binary: "",
+      queryTime: serverData.queryTimeMs || 0,
+    };
+  }
+
   const startTime = Date.now();
   const cleanMac = formatMac(mac);
   

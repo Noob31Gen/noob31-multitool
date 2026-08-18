@@ -1,6 +1,7 @@
 import { queryDNS } from "./doh";
 import { queryASN } from "./asn";
 import type { AppSettings } from "./settings";
+import { isCustomServerEnabled, queryReverseDnsServer } from "./apiServer";
 
 export interface ReverseDnsResult {
   ip: string;
@@ -188,17 +189,24 @@ export async function lookupReverseDns(
     hostnames = ["localhost / private local hostname"];
   } else {
     try {
-      const dnsRes = await queryDNS(
-        reverseDomain,
-        "PTR",
-        settings.dohProvider,
-        settings.customDnsUrl,
-        settings.corsProvider,
-        settings.customCorsUrl
-      );
-      provider = dnsRes.provider;
-      if (dnsRes.records && dnsRes.records.length > 0) {
-        hostnames = dnsRes.records.map(r => r.data.replace(/\.$/, '')); // strip trailing dot if present
+      if (isCustomServerEnabled(settings)) {
+        const sRes = await queryReverseDnsServer(ip, settings);
+        provider = 'custom-server';
+        hostnames = sRes.hostnames || sRes.ptrRecords || [];
+      } else {
+        const dnsRes = await queryDNS(
+          reverseDomain,
+          "PTR",
+          settings.dohProvider,
+          settings.customDnsUrl,
+          settings.corsProvider,
+          settings.customCorsUrl,
+          settings
+        );
+        provider = dnsRes.provider;
+        if (dnsRes.records && dnsRes.records.length > 0) {
+          hostnames = dnsRes.records.map(r => r.data.replace(/\.$/, '')); // strip trailing dot if present
+        }
       }
     } catch (err: unknown) {
       error = err instanceof Error ? err.message : String(err);

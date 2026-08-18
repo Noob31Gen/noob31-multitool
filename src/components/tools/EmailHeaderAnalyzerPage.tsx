@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { Mail, ShieldCheck, Clock, Server, ArrowDown, User, Hash } from "lucide-react"
 import { useUrlQuery } from "@/lib/useUrlQuery"
 import { JsonResultView } from "@/components/shared/JsonResultView"
+import { useSettings } from "@/lib/settings"
+import { isCustomServerEnabled, queryEmailParseHeadersServer } from "@/lib/apiServer"
 
 interface EmailHeaderResult {
   from: string;
@@ -21,14 +23,24 @@ interface EmailHeaderResult {
   hops: string[];
 }
 export function EmailHeaderAnalyzerPage() {
+  const { settings } = useSettings()
   const [input, setInput] = useState("")
   const [result, setResult] = useState<EmailHeaderResult | null>(null)
 
-  const performAnalyze = useCallback((rawHeaders: string) => {
+  const performAnalyze = useCallback(async (rawHeaders: string) => {
     if (!rawHeaders.trim()) return;
+    if (isCustomServerEnabled(settings)) {
+      try {
+        const serverRes = (await queryEmailParseHeadersServer(rawHeaders, settings)) as EmailHeaderResult;
+        setResult(serverRes);
+        return;
+      } catch {
+        // Fallback to local parser
+      }
+    }
     const res = parseEmailHeaders(rawHeaders);
     setResult(res);
-  }, []);
+  }, [settings]);
 
   const { target: urlTarget, isJsonMode } = useUrlQuery()
   const lastHandledTarget = useRef<string | null>(null);

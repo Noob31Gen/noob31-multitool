@@ -2,6 +2,7 @@ import { getProxiedUrl, authenticatedFetch } from "./cors";
 import type { AppSettings } from "./settings";
 import { logger } from "./logger";
 import { queryInternetDb, type InternetDbHost } from "./internetdb";
+import { isCustomServerEnabled, queryThreatIntelServer } from "./apiServer";
 
 export type ThreatInputType = "ip" | "domain" | "url" | "hash" | "keyword";
 
@@ -265,10 +266,35 @@ export async function searchThreatIntel(
   query: string,
   settings: AppSettings
 ): Promise<AggregatedThreatIntel> {
+  const clean = query.trim();
+
+  // If custom server resolution is enabled, query the API Worker
+  if (isCustomServerEnabled(settings)) {
+    const serverData = (await queryThreatIntelServer(clean, settings)) as {
+      query: string;
+      detectedType: ThreatInputType;
+      otxPulses: ThreatPulse[];
+      otxMetadata?: { reputation?: number };
+      urlScanHistory: UrlScanRecord[];
+      internetDb?: InternetDbHost;
+      queryTimeMs: number;
+      sourceErrors?: Record<string, string>;
+    };
+
+    return {
+      query: serverData.query || clean,
+      detectedType: serverData.detectedType || detectInputType(clean),
+      otxPulses: serverData.otxPulses || [],
+      otxMetadata: serverData.otxMetadata,
+      urlScanHistory: serverData.urlScanHistory || [],
+      internetDb: serverData.internetDb || undefined,
+      queryTime: serverData.queryTimeMs || 0,
+      sourceErrors: serverData.sourceErrors || {},
+    };
+  }
+
   const startTime = Date.now();
   const detectedType = detectInputType(query);
-
-  const clean = query.trim();
 
   // Run fetches in parallel
   const otxPromise = fetchOtxPulses(clean, detectedType, settings);

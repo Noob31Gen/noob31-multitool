@@ -70,7 +70,7 @@ export function DNSLookupPage() {
       if (recordType === 'PTR') {
         queryTarget = formatPtrQuery(queryTarget)
       }
-      const res = await queryDNS(queryTarget, recordType, settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl)
+      const res = await queryDNS(queryTarget, recordType, settings.dohProvider, settings.customDnsUrl, settings.corsProvider, settings.customCorsUrl, settings)
       setResult(res)
       setStatus('success')
     } catch (err: unknown) {
