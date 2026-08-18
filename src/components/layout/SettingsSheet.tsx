@@ -9,10 +9,9 @@ import {
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Settings, AlertCircle, ExternalLink, Server, CheckCircle2, XCircle, Loader2 } from "lucide-react"
+import { Settings, AlertCircle, ExternalLink } from "lucide-react"
 import { useSettings, defaultSettings, type AppSettings } from "@/lib/settings"
 import { safeStorage } from "@/lib/storage"
-import { testServerConnection, type ServerConnectionTestResult } from "@/lib/apiServer"
 import {
   Select,
   SelectContent,
@@ -24,15 +23,11 @@ export function SettingsSheet() {
   const { settings, setSettings } = useSettings();
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [isOpen, setIsOpen] = useState(false);
-  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
-  const [testResult, setTestResult] = useState<ServerConnectionTestResult | null>(null);
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
     if (open) {
       setLocalSettings(settings);
-      setTestStatus('idle');
-      setTestResult(null);
     }
   };
   const handleApply = () => {
@@ -43,29 +38,7 @@ export function SettingsSheet() {
   const handleReset = () => {
     setSettings(defaultSettings);
     safeStorage.setItem('url-scanner-settings', JSON.stringify(defaultSettings));
-    setTestStatus('idle');
-    setTestResult(null);
     setIsOpen(false);
-  };
-
-  const handleTestConnection = async () => {
-    setTestStatus('testing');
-    setTestResult(null);
-    try {
-      const res = await testServerConnection(localSettings);
-      setTestResult(res);
-      setTestStatus(res.ok ? 'success' : 'error');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setTestResult({
-        ok: false,
-        status: 500,
-        statusText: 'Failed',
-        latencyMs: 0,
-        errorMessage: msg,
-      });
-      setTestStatus('error');
-    }
   };
 
   return (
@@ -80,7 +53,7 @@ export function SettingsSheet() {
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 shrink-0">
           <SheetTitle className="text-lg font-bold">Settings</SheetTitle>
           <SheetDescription className="text-xs text-muted-foreground/80 leading-normal mt-1 pr-4">
-            Configure query resolution server, secure DNS, and CORS proxy preferences.
+            Configure secure DNS lookup, CORS proxy, and custom query resolution server preferences.
           </SheetDescription>
         </SheetHeader>
 
@@ -91,115 +64,6 @@ export function SettingsSheet() {
               <p>For settings to persist on reload, cookies must be enabled.</p>
             </div>
           )}
-
-          {/* Custom API Server Settings */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-1.5 px-0.5">
-              <Server className="w-3.5 h-3.5 text-primary" />
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70">Query Resolution Engine</h4>
-            </div>
-
-            <div className="space-y-4 pl-0.5">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">Resolution Mode</label>
-                <Select
-                  value={localSettings.serverMode || 'browser'}
-                  onValueChange={(val: string) => setLocalSettings({ ...localSettings, serverMode: val as AppSettings['serverMode'] })}
-                >
-                  <SelectTrigger className="h-9 text-sm bg-background border-border/60">
-                    <SelectValue placeholder="Select resolution mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="browser">Browser Direct (Client-Side / Local)</SelectItem>
-                    <SelectItem value="custom">Custom API Server (Edge / Worker Relay)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-[11px] text-muted-foreground leading-normal mt-1">
-                  {localSettings.serverMode === 'custom'
-                    ? 'All network queries, DNS lookups, and threat intel are resolved via your custom server endpoint.'
-                    : 'All diagnostics run 100% locally in your browser with zero data retention.'}
-                </p>
-              </div>
-
-              {localSettings.serverMode === 'custom' && (
-                <div className="space-y-3.5 p-3.5 rounded-xl border border-primary/20 bg-primary/5">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground">Custom Server URL</label>
-                    <Input
-                      placeholder="https://api.yourdomain.com"
-                      value={localSettings.customServerUrl || ''}
-                      onChange={(e) => setLocalSettings({ ...localSettings, customServerUrl: e.target.value })}
-                      className="h-9 text-sm bg-background"
-                    />
-                    <span className="text-[10px] text-muted-foreground">
-                      Base URL of your Cloudflare Worker or backend API instance.
-                    </span>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground">Authentication Token / API Key</label>
-                    <Input
-                      type="password"
-                      placeholder="Bearer Token (Optional)"
-                      value={localSettings.customServerToken || ''}
-                      onChange={(e) => setLocalSettings({ ...localSettings, customServerToken: e.target.value })}
-                      className="h-9 text-sm bg-background"
-                    />
-                    <span className="text-[10px] text-muted-foreground">
-                      Sent as Authorization: Bearer &lt;token&gt;. Basic auth in URL (https://user:pass@host) is also supported.
-                    </span>
-                  </div>
-
-                  <div className="pt-1">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleTestConnection}
-                      disabled={testStatus === 'testing' || !localSettings.customServerUrl?.trim()}
-                      className="w-full text-xs h-8 gap-2 bg-background"
-                    >
-                      {testStatus === 'testing' ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          Testing Connection...
-                        </>
-                      ) : (
-                        <>
-                          <Server className="w-3.5 h-3.5" />
-                          Test Server Connection
-                        </>
-                      )}
-                    </Button>
-
-                    {testResult && (
-                      <div className={`mt-2.5 p-2.5 rounded-lg text-xs flex items-start gap-2 border ${
-                        testResult.ok
-                          ? 'bg-green-500/10 border-green-500/30 text-green-700 dark:text-green-400'
-                          : 'bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-400'
-                      }`}>
-                        {testResult.ok ? (
-                          <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" />
-                        ) : (
-                          <XCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                        )}
-                        <div className="space-y-0.5">
-                          <p className="font-semibold">
-                            {testResult.ok ? `Connected (${testResult.latencyMs}ms)` : 'Connection Failed'}
-                          </p>
-                          <p className="text-[11px] opacity-90">
-                            {testResult.ok
-                              ? `${testResult.service || 'API Server'}${testResult.version ? ` v${testResult.version}` : ''} responded successfully.`
-                              : testResult.errorMessage || 'Unable to connect to the custom server.'}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
 
           {/* DNS Settings */}
           <div className="space-y-4">
@@ -293,6 +157,64 @@ export function SettingsSheet() {
                   value={localSettings.customCorsToken || ''}
                   onChange={(e) => setLocalSettings({ ...localSettings, customCorsToken: e.target.value })}
                   disabled={localSettings.corsProvider !== 'custom'}
+                  className="h-9 text-sm bg-background disabled:opacity-50 disabled:bg-muted/30"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Query Resolution Settings */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70 px-0.5">Query Resolution Settings</h4>
+            
+            <div className="space-y-4 pl-0.5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Resolution Mode</label>
+                <Select
+                  value={localSettings.serverMode || 'browser'}
+                  onValueChange={(val: string) => setLocalSettings({ ...localSettings, serverMode: val as AppSettings['serverMode'] })}
+                >
+                  <SelectTrigger className="h-9 text-sm bg-background border-border/60">
+                    <SelectValue placeholder="Select resolution mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="browser">Browser Direct (Local)</SelectItem>
+                    <SelectItem value="custom">Custom API Server</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <div className="flex items-center gap-1.5 px-0.5 mt-1">
+                  <span className="text-[10px] text-muted-foreground">Want custom hosting?</span>
+                  <a
+                    href="https://github.com/Noob31Gen/noob31-multitool/tree/main/api-worker"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] text-primary hover:underline inline-flex items-center gap-0.5"
+                  >
+                    Deploy your own API worker <ExternalLink className="h-2.5 w-2.5" />
+                  </a>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Custom Server URL</label>
+                <Input
+                  placeholder="https://api.yourdomain.com"
+                  value={localSettings.customServerUrl || ''}
+                  onChange={(e) => setLocalSettings({ ...localSettings, customServerUrl: e.target.value })}
+                  disabled={localSettings.serverMode !== 'custom'}
+                  className="h-9 text-sm bg-background disabled:opacity-50 disabled:bg-muted/30"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Custom Server Token</label>
+                <Input
+                  type="password"
+                  placeholder="Bearer Token (Optional)"
+                  value={localSettings.customServerToken || ''}
+                  onChange={(e) => setLocalSettings({ ...localSettings, customServerToken: e.target.value })}
+                  disabled={localSettings.serverMode !== 'custom'}
                   className="h-9 text-sm bg-background disabled:opacity-50 disabled:bg-muted/30"
                 />
               </div>

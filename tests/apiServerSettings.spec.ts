@@ -9,31 +9,29 @@ test.describe("Custom API Server Settings & Resolution Mode", () => {
     await expect(settingsBtn).toBeVisible();
     await settingsBtn.click();
 
-    // 2. Verify Settings Header and Query Resolution Engine section
+    // 2. Verify Settings Header and Query Resolution Settings section
     await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
-    await expect(page.locator("text=Query Resolution Engine")).toBeVisible();
+    await expect(page.locator("text=Query Resolution Settings")).toBeVisible();
 
     // 3. Select 'Custom API Server' mode
     const modeSelect = page.locator("text=Resolution Mode").locator("..").locator("button");
     await modeSelect.click();
     await page.getByRole("option", { name: /Custom API Server/i }).click();
 
-    // 4. Verify input fields for URL and Token appear
+    // 4. Verify input fields for URL and Token are enabled
     const urlInput = page.locator("input[placeholder*='https://api.yourdomain.com']");
     await expect(urlInput).toBeVisible();
+    await expect(urlInput).toBeEnabled();
 
     const tokenInput = page.locator("input[placeholder*='Bearer Token']");
     await expect(tokenInput).toBeVisible();
+    await expect(tokenInput).toBeEnabled();
 
     // 5. Fill in test custom server details
     await urlInput.fill("https://api.test-server.example.com");
     await tokenInput.fill("secret-bearer-token-123");
 
-    // 6. Verify 'Test Server Connection' button is present
-    const testConnBtn = page.getByRole("button", { name: /Test Server Connection/i });
-    await expect(testConnBtn).toBeVisible();
-
-    // 7. Apply Settings
+    // 6. Apply Settings
     const applyBtn = page.getByRole("button", { name: "Apply" });
     await applyBtn.click();
 
