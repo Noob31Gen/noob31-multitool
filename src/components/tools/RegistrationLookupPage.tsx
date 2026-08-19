@@ -381,8 +381,8 @@ export function RegistrationLookupPage() {
                         <span>{parsed.domain || "N/A"}</span>
                       </div>
                       <div className="flex justify-between border-b border-border/50 pb-1">
-                        <span className="text-muted-foreground">Route</span>
-                        <span className="font-mono">{parsed.route || "N/A"}</span>
+                        <span className="text-muted-foreground">Route / Status</span>
+                        <span className="font-mono">{parsed.route || (parsed.type ? `Announced (${parsed.type})` : "Active")}</span>
                       </div>
                       <div className="flex justify-between border-b border-border/50 pb-1">
                         <span className="text-muted-foreground">Created</span>
@@ -402,7 +402,7 @@ export function RegistrationLookupPage() {
                       <div className="flex justify-between border-b border-border/50 pb-1">
                         <span className="text-muted-foreground">Abuser Score</span>
                         <span className={`font-bold ${parsed.is_abuser ? 'text-destructive' : 'text-green-600'}`}>
-                          {parsed.abuser_score || "N/A"} {parsed.is_abuser && "(Flagged as Abuser)"}
+                          {parsed.abuser_score ? `${parsed.abuser_score} ${parsed.is_abuser ? "(Flagged as Abuser)" : "(Low)"}` : (parsed.is_abuser ? "Flagged as Abuser" : "Clean / Not Flagged")}
                         </span>
                       </div>
                       {(parsed.dc_name || parsed.dc_network) && (
@@ -432,15 +432,15 @@ export function RegistrationLookupPage() {
                     </h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between border-b border-border/50 pb-1">
-                        <span className="text-muted-foreground">Country / Continent</span>
+                        <span className="text-muted-foreground">Country / Scope</span>
                         <span className="uppercase font-bold tracking-wider">
-                          {parsed.country || "N/A"} {parsed.continent ? `(${parsed.continent})` : ''}
+                          {parsed.country ? `${parsed.country} ${parsed.continent ? `(${parsed.continent})` : ''}` : (parsed.rir ? `Global (${parsed.rir})` : "Global Routing")}
                         </span>
                       </div>
                       <div className="flex justify-between border-b border-border/50 pb-1">
                         <span className="text-muted-foreground">City / State</span>
                         <span>
-                          {parsed.city ? `${parsed.city}, ` : ''}{parsed.state || "Global"}
+                          {parsed.city ? `${parsed.city}, ` : ''}{parsed.state || (parsed.country ? "Global" : "Global Network")}
                         </span>
                       </div>
                       <div className="flex justify-between border-b border-border/50 pb-1">
@@ -453,7 +453,7 @@ export function RegistrationLookupPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Timezone</span>
-                        <span className="text-xs">{parsed.timezone || "N/A"}</span>
+                        <span className="text-xs">{parsed.timezone || (parsed.country ? "N/A" : "UTC / Regional")}</span>
                       </div>
                     </div>
                   </Card>
@@ -465,7 +465,7 @@ export function RegistrationLookupPage() {
                       <div className="flex justify-between border-b border-border/50 pb-1">
                         <span className="text-muted-foreground">Website</span>
                         {parsed.website ? (
-                          <a href={parsed.website} target="_blank" className="text-primary hover:underline truncate max-w-[180px]">{parsed.website}</a>
+                          <a href={parsed.website} target="_blank" rel="noreferrer" className="text-primary hover:underline truncate max-w-[180px]">{parsed.website}</a>
                         ) : <span>N/A</span>}
                       </div>
                       <div className="flex justify-between border-b border-border/50 pb-1">

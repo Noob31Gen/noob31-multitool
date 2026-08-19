@@ -2,6 +2,7 @@ import type { AppSettings } from "./settings"
 import { logger } from "./logger"
 import { getProxiedUrl, authenticatedFetch } from "./cors"
 import { isCustomServerEnabled, queryMyIpServer, queryGeoIpServer, queryAsnServer } from "./apiServer"
+
 export interface ParsedASN {
   org?: string;
   asn?: string;
@@ -49,7 +50,14 @@ export interface ParsedASN {
   fac_count?: number;
 }
 
-interface IPAPIResponse {
+export interface IPAPIResponse {
+  ip?: string;
+  asn_num?: number;
+  asn_org?: string;
+  company_name?: string;
+  cc?: string;
+  lat?: number;
+  lon?: number;
   asn?: number | {
     asn: number;
     org?: string;
@@ -114,18 +122,38 @@ interface IPAPIResponse {
   prefixesIPv6?: string[];
 }
 
-interface RIPEData {
+export interface RIPEData {
   holder?: string;
   block?: {
     desc?: string;
+    name?: string;
+    resource?: string;
   };
+  announced?: boolean;
 }
 
-interface RIPEstatResponse {
+export interface RIPEstatResponse {
   data?: RIPEData;
 }
 
-interface PeeringDBItem {
+export interface RIPEPrefixesResponse {
+  data?: {
+    prefixes?: Array<{
+      prefix: string;
+      timelines?: Array<{ starttime?: string; endtime?: string }>;
+    }>;
+  };
+}
+
+export interface RIPEAbuseResponse {
+  data?: {
+    abuse_contacts?: string[];
+    authorities?: string[];
+    resource?: string;
+  };
+}
+
+export interface PeeringDBItem {
   asn?: number;
   name?: string;
   aka?: string;
@@ -139,6 +167,7 @@ interface PeeringDBItem {
   ix_count?: number;
   fac_count?: number;
   policy_general?: string;
+  policy_url?: string;
   notes?: string;
 }
 
@@ -150,6 +179,17 @@ export interface ASNResult {
   peeringdb?: PeeringDBItem;
   parsed?: ParsedASN;
 }
+
+function getCountryName(countryCode?: string): string | undefined {
+  if (!countryCode || countryCode.length !== 2) return undefined;
+  try {
+    const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+    return regionNames.of(countryCode.toUpperCase());
+  } catch {
+    return countryCode;
+  }
+}
+
 export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<ASNResult> {
   const query = ipOrAsn.trim();
   const isAsn = /^AS\d+$/i.test(query);
@@ -198,7 +238,7 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
         asn: asnVal,
         org: serverData.asOrganization || serverData.name || serverData.description || serverData.peeringDb?.org,
         description: serverData.description || serverData.name,
-        country: serverData.country,
+        country: serverData.country || getCountryName(serverData.countryCode),
         country_code: serverData.countryCode,
         city: serverData.city,
         state: serverData.region,
@@ -216,6 +256,12 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
         prefixes_v4: serverData.prefixes || [],
       };
       resultData.ipapi = {
+        ip: serverData.ip,
+        asn_num: serverData.asn,
+        asn_org: serverData.asOrganization,
+        cc: serverData.countryCode,
+        lat: serverData.latitude,
+        lon: serverData.longitude,
         asn: serverData.asn ? {
           asn: serverData.asn,
           org: serverData.asOrganization,
@@ -239,19 +285,148 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
       logger.warn("Custom server IP/ASN query failed, falling back to local client:", err);
     }
   }
-  
+
+  // ==========================================
+  // PURE ASN QUERY FLOW
+  // ==========================================
+  if (isAsn) {
+    const cleanAsnNum = query.replace(/^AS/i, '');
+    let ripeOverview: RIPEstatResponse | undefined;
+    let ripePrefixes: RIPEPrefixesResponse | undefined;
+    let ripeAbuse: RIPEAbuseResponse | undefined;
+    let peeringDbItem: PeeringDBItem | undefined;
+
+    // Run RIPE and PeeringDB requests in parallel
+    await Promise.allSettled([
+      // 1. RIPE AS Overview
+      (async () => {
+        try {
+          const targetUrl = `https://stat.ripe.net/data/as-overview/data.json?resource=AS${cleanAsnNum}`;
+          const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+          const res = await fetchWithTimeout(proxyUrl, 10000);
+          if (res.ok) {
+            ripeOverview = await res.json();
+            resultData.ripe = ripeOverview;
+          }
+        } catch { logger.warn("RIPEstat AS overview fetch failed."); }
+      })(),
+
+      // 2. RIPE Announced Prefixes
+      (async () => {
+        try {
+          const targetUrl = `https://stat.ripe.net/data/announced-prefixes/data.json?resource=AS${cleanAsnNum}`;
+          const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+          const res = await fetchWithTimeout(proxyUrl, 10000);
+          if (res.ok) {
+            ripePrefixes = await res.json();
+          }
+        } catch { logger.warn("RIPEstat announced prefixes fetch failed."); }
+      })(),
+
+      // 3. RIPE Abuse Contact Finder
+      (async () => {
+        try {
+          const targetUrl = `https://stat.ripe.net/data/abuse-contact-finder/data.json?resource=AS${cleanAsnNum}`;
+          const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+          const res = await fetchWithTimeout(proxyUrl, 10000);
+          if (res.ok) {
+            ripeAbuse = await res.json();
+          }
+        } catch { logger.warn("RIPEstat abuse contact fetch failed."); }
+      })(),
+
+      // 4. PeeringDB
+      (async () => {
+        try {
+          const targetUrl = `https://www.peeringdb.com/api/net?asn=${cleanAsnNum}`;
+          const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+          const res = await fetchWithTimeout(proxyUrl, 10000);
+          if (res.ok) {
+            const pdb = await res.json();
+            if (pdb.data && pdb.data.length > 0) {
+              peeringDbItem = pdb.data[0];
+              resultData.peeringdb = peeringDbItem;
+            }
+          }
+        } catch { logger.warn("PeeringDB fetch failed."); }
+      })()
+    ]);
+
+    if (!ripeOverview && !peeringDbItem && !ripePrefixes) {
+      throw new Error("Could not retrieve ASN data from RIPE Stat or PeeringDB.");
+    }
+
+    // Partition prefixes into IPv4 and IPv6
+    const allPrefixes = ripePrefixes?.data?.prefixes || [];
+    const prefixesV4: string[] = [];
+    const prefixesV6: string[] = [];
+
+    for (const item of allPrefixes) {
+      if (item.prefix) {
+        if (item.prefix.includes(':')) {
+          prefixesV6.push(item.prefix);
+        } else {
+          prefixesV4.push(item.prefix);
+        }
+      }
+    }
+
+    const ripeData = ripeOverview?.data;
+    const abuseEmails = ripeAbuse?.data?.abuse_contacts || [];
+
+    // Extract RIR name from block desc if available (e.g. "Assigned by ARIN" -> "ARIN")
+    let rirName = ripeData?.block?.desc;
+    if (rirName) {
+      const match = rirName.match(/Assigned by\s+([A-Z\s]+)/i);
+      if (match) rirName = match[1].trim();
+    }
+
+    resultData.parsed = {
+      asn: `AS${cleanAsnNum}`,
+      org: peeringDbItem?.name || ripeData?.holder || `AS${cleanAsnNum}`,
+      description: peeringDbItem?.aka || ripeData?.holder || peeringDbItem?.name,
+      domain: peeringDbItem?.website,
+      type: peeringDbItem?.info_type || (ripeData?.announced ? "Transit / ISP" : "Allocated"),
+      rir: rirName || ripeData?.block?.name || "Global Registry",
+      created: peeringDbItem?.created,
+      updated: peeringDbItem?.updated,
+      website: peeringDbItem?.website,
+      irr_as_set: peeringDbItem?.irr_as_set,
+      traffic_ratio: peeringDbItem?.info_ratio,
+      scope: peeringDbItem?.info_scope,
+      ix_count: peeringDbItem?.ix_count,
+      fac_count: peeringDbItem?.fac_count,
+      notes: peeringDbItem?.notes,
+      abuse_email: abuseEmails.length > 0 ? abuseEmails.join(", ") : undefined,
+      prefixes_v4: prefixesV4,
+      prefixes_v6: prefixesV6,
+      country: undefined,
+      country_code: undefined,
+      city: undefined,
+      state: undefined,
+    };
+
+    return resultData;
+  }
+
+  // ==========================================
+  // IP / MY-IP QUERY FLOW
+  // ==========================================
   // 1. Try primary ipapi.is lookup
   try {
     const targetUrl = `https://api.ipapi.is/?q=${query}`;
     const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
     const res = await fetchWithTimeout(proxyUrl, 8000);
     if (res.ok) {
-      resultData.ipapi = await res.json();
+      const json = await res.json();
+      if (json && !json.error) {
+        resultData.ipapi = json;
+      }
     }
   } catch { logger.warn("IPAPI fetch failed."); }
 
-  // 2. IP Queries fallback cascade: ipwhois.app -> ip-api.com
-  if (!isAsn && (!resultData.ipapi || resultData.ipapi.is_bogon === undefined)) {
+  // 2. IP Queries fallback cascade: ipwhois.app -> ip-api.com -> freeipapi.com
+  if (!resultData.ipapi || (!resultData.ipapi.ip && resultData.ipapi.asn_num === undefined && resultData.ipapi.asn === undefined)) {
     // Try ipwhois.app
     try {
       const targetUrl = `https://ipwhois.app/json/${query}`;
@@ -260,14 +435,15 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
       if (res.ok) {
         const ipw = await res.json();
         if (ipw && ipw.success !== false) {
-          const cleanAsnNum = ipw.asn ? parseInt(ipw.asn.replace(/as/i, ''), 10) : undefined;
+          const cleanAsnNum = ipw.asn ? parseInt(String(ipw.asn).replace(/as/i, ''), 10) : undefined;
           resultData.ipapi = {
-            asn: cleanAsnNum ? {
-              asn: cleanAsnNum,
-              org: ipw.org || ipw.isp,
-              descr: ipw.org || ipw.isp,
-              country: ipw.country_code
-            } : undefined,
+            ip: ipw.ip || query,
+            asn_num: cleanAsnNum,
+            asn_org: ipw.org || ipw.isp,
+            company_name: ipw.org || ipw.isp,
+            cc: ipw.country_code,
+            lat: ipw.latitude,
+            lon: ipw.longitude,
             org: ipw.org || ipw.isp,
             descr: ipw.org || ipw.isp,
             country: ipw.country,
@@ -294,18 +470,18 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
         const res = await fetchWithTimeout(proxyUrl, 8000);
         if (res.ok) {
           const ipa = await res.json();
-          const statusSuccess = ipa && ipa.status === 'success';
-          if (statusSuccess) {
+          if (ipa && ipa.status === 'success') {
             const org = ipa.org || ipa.isp;
             const asnStr = ipa.as ? ipa.as.split(' ')[0] : undefined;
             const cleanAsnNum = asnStr ? parseInt(String(asnStr).replace(/as/i, ''), 10) : undefined;
             resultData.ipapi = {
-              asn: cleanAsnNum ? {
-                asn: cleanAsnNum,
-                org: org,
-                descr: ipa.as || org,
-                country: ipa.countryCode
-              } : undefined,
+              ip: ipa.query || query,
+              asn_num: cleanAsnNum,
+              asn_org: org,
+              company_name: org,
+              cc: ipa.countryCode,
+              lat: ipa.lat,
+              lon: ipa.lon,
               org: org,
               descr: ipa.as || org,
               country: ipa.country,
@@ -322,59 +498,64 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
             };
           }
         }
-      } catch { logger.warn("Fallback Geo-IP fetch failed."); }
+      } catch { logger.warn("Fallback ip-api fetch failed."); }
+    }
+
+    // Try freeipapi.com if still empty
+    if (!resultData.ipapi) {
+      try {
+        const targetUrl = `https://freeipapi.com/api/json/${query}`;
+        const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+        const res = await fetchWithTimeout(proxyUrl, 8000);
+        if (res.ok) {
+          const fip = await res.json();
+          if (fip && fip.ipAddress) {
+            resultData.ipapi = {
+              ip: fip.ipAddress || query,
+              cc: fip.countryCode,
+              lat: fip.latitude,
+              lon: fip.longitude,
+              country: fip.countryName,
+              location: {
+                country: fip.countryName,
+                country_code: fip.countryCode,
+                city: fip.cityName,
+                state: fip.regionName,
+                zip: fip.zipCode,
+                timezone: fip.timeZone,
+                latitude: fip.latitude,
+                longitude: fip.longitude
+              }
+            };
+          }
+        }
+      } catch { logger.warn("Fallback freeipapi fetch failed."); }
     }
   }
 
-  // 3. ASN queries ripeoverview fetch
-  if (isAsn && !resultData.ipapi) {
-    try {
-      const targetUrl = `https://stat.ripe.net/data/as-overview/data.json?resource=${query}`;
-      const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-      const res = await fetchWithTimeout(proxyUrl, 10000);
-      if (res.ok) {
-        resultData.ripe = await res.json();
-      }
-    } catch { logger.warn("RIPEstat fetch failed."); }
+  if (!resultData.ipapi) {
+    throw new Error("Could not retrieve data from any IP geolocation provider.");
   }
 
-  // 4. ASN queries peeringdb fetch
-  if (isAsn) {
-    try {
-      const cleanAsn = query.replace(/AS/i, '');
-      const targetUrl = `https://www.peeringdb.com/api/net?asn=${cleanAsn}`;
-      const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
-      const res = await fetchWithTimeout(proxyUrl, 10000);
-      if (res.ok) {
-        const pdb = await res.json();
-        if (pdb.data && pdb.data.length > 0) {
-          resultData.peeringdb = pdb.data[0];
-        }
-      }
-    } catch { logger.warn("PeeringDB fetch failed."); }
-  }
+  const ipapi = resultData.ipapi;
+  const legacyAsnObj = typeof ipapi.asn === 'object' ? ipapi.asn : null;
+  const asnNum = ipapi.asn_num ?? (typeof ipapi.asn === 'number' ? ipapi.asn : legacyAsnObj?.asn);
+  const asnFormatted = asnNum ? `AS${asnNum}` : undefined;
+  const orgName = ipapi.asn_org || ipapi.company_name || ipapi.company?.name || legacyAsnObj?.org || ipapi.org || ipapi.descr;
+  const countryCode = ipapi.cc || ipapi.location?.country_code || legacyAsnObj?.country;
+  const countryName = ipapi.country || ipapi.location?.country || getCountryName(countryCode);
 
-  if (!resultData.ipapi && !resultData.ripe && !resultData.peeringdb) {
-    throw new Error("Could not retrieve data from any IP/ASN provider.");
-  }
-
-  const ipapi: IPAPIResponse = resultData.ipapi || {};
-  const isDirectAsn = typeof ipapi.asn === 'number';
-  const ipapiAsn = typeof ipapi.asn === 'object' ? ipapi.asn : null;
-  const pdb = resultData.peeringdb || {};
-  const ripe = resultData.ripe?.data || {};
-  
   resultData.parsed = {
-    asn: isDirectAsn ? `AS${ipapi.asn}` : (ipapiAsn?.asn ? `AS${ipapiAsn.asn}` : (pdb.asn ? `AS${pdb.asn}` : query)),
-    org: isDirectAsn ? (ipapi.org || ipapi.descr) : (ipapi.company?.name || ipapiAsn?.org || ipapiAsn?.descr || pdb.name || ripe.holder),
-    description: isDirectAsn ? ipapi.descr : (ipapiAsn?.descr || pdb.aka),
-    domain: isDirectAsn ? ipapi.domain : (ipapi.company?.domain || ipapiAsn?.domain || pdb.website),
-    type: isDirectAsn ? ipapi.type : (ipapi.company?.type || ipapiAsn?.type || pdb.info_type),
-    rir: isDirectAsn ? ipapi.rir : (ipapi.rir || ipapiAsn?.rir || ripe.block?.desc),
-    route: !isDirectAsn ? ipapiAsn?.route : undefined,
-    created: isDirectAsn ? ipapi.created : (ipapiAsn?.created || pdb.created),
-    updated: isDirectAsn ? ipapi.updated : (ipapiAsn?.updated || pdb.updated),
-    abuser_score: isDirectAsn ? ipapi.abuser_score : (ipapi.company?.abuser_score || ipapiAsn?.abuser_score),
+    asn: asnFormatted || "N/A",
+    org: orgName || "Unknown Organization",
+    description: ipapi.descr || legacyAsnObj?.descr || orgName,
+    domain: ipapi.domain || ipapi.company?.domain || legacyAsnObj?.domain,
+    type: ipapi.type || ipapi.company?.type || legacyAsnObj?.type,
+    rir: ipapi.rir || legacyAsnObj?.rir,
+    route: legacyAsnObj?.route,
+    created: ipapi.created || legacyAsnObj?.created,
+    updated: ipapi.updated || legacyAsnObj?.updated,
+    abuser_score: ipapi.abuser_score || ipapi.company?.abuser_score || legacyAsnObj?.abuser_score,
     is_bogon: ipapi.is_bogon || false,
     is_mobile: ipapi.is_mobile || false,
     is_satellite: ipapi.is_satellite || false,
@@ -386,36 +567,31 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
     is_abuser: ipapi.is_abuser || false,
     dc_name: ipapi.datacenter?.datacenter,
     dc_network: ipapi.datacenter?.network,
-    abuse_email: isDirectAsn ? (typeof ipapi.asn === 'object' ? ipapi.asn?.abuse : undefined) : (ipapi.abuse?.email || ipapiAsn?.abuse),
-    abuse_name: !isDirectAsn ? ipapi.abuse?.name : undefined,
-    abuse_phone: !isDirectAsn ? ipapi.abuse?.phone : undefined,
-    abuse_address: !isDirectAsn ? ipapi.abuse?.address : undefined,
-    country: isDirectAsn ? ipapi.country : (ipapi.location?.country || ipapiAsn?.country),
-    country_code: !isDirectAsn ? ipapi.location?.country_code : (isDirectAsn ? ipapi.country : undefined),
-    city: !isDirectAsn ? ipapi.location?.city : undefined,
-    state: !isDirectAsn ? ipapi.location?.state : undefined,
-    continent: !isDirectAsn ? ipapi.location?.continent : undefined,
-    lat: !isDirectAsn ? ipapi.location?.latitude : undefined,
-    lon: !isDirectAsn ? ipapi.location?.longitude : undefined,
-    timezone: !isDirectAsn ? ipapi.location?.timezone : undefined,
-    zip: !isDirectAsn ? ipapi.location?.zip : undefined,
-    local_time: !isDirectAsn ? ipapi.location?.local_time : undefined,
-    website: pdb.website,
-    irr_as_set: pdb.irr_as_set,
-    traffic_ratio: pdb.info_ratio,
-    scope: pdb.info_scope,
-    ix_count: pdb.ix_count,
-    fac_count: pdb.fac_count,
-    notes: pdb.notes,
+    abuse_email: ipapi.abuse?.email || legacyAsnObj?.abuse,
+    abuse_name: ipapi.abuse?.name,
+    abuse_phone: ipapi.abuse?.phone,
+    abuse_address: ipapi.abuse?.address,
+    country: countryName,
+    country_code: countryCode,
+    city: ipapi.location?.city,
+    state: ipapi.location?.state,
+    continent: ipapi.location?.continent,
+    lat: ipapi.lat ?? ipapi.location?.latitude,
+    lon: ipapi.lon ?? ipapi.location?.longitude,
+    timezone: ipapi.location?.timezone,
+    zip: ipapi.location?.zip,
+    local_time: ipapi.location?.local_time,
     prefixes_v4: ipapi.prefixes || [],
     prefixes_v6: ipapi.prefixesIPv6 || []
   };
+
   return resultData;
 }
+
 async function fetchWithTimeout(url: string, timeout = 10000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
   const response = await authenticatedFetch(url, { signal: controller.signal });
   clearTimeout(id);
   return response;
-}
+}

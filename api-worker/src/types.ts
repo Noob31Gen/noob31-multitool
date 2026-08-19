@@ -121,6 +121,7 @@ export interface AsnInfo {
   allocated?: string;
   prefixes?: string[];
   origins?: number[];
+  abuseContacts?: string[];
   peeringDb?: {
     org?: string;
     website?: string;

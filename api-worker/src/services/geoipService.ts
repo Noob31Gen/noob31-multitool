@@ -1,5 +1,15 @@
 import type { GeoIpResult, AsnInfo } from '../types';
 
+function getCountryName(countryCode?: string): string | undefined {
+  if (!countryCode || countryCode.length !== 2) return undefined;
+  try {
+    const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+    return regionNames.of(countryCode.toUpperCase());
+  } catch {
+    return countryCode;
+  }
+}
+
 export async function lookupGeoIp(ip: string): Promise<GeoIpResult> {
   const cleanIp = ip.trim();
   const isIpv6 = cleanIp.includes(':');
@@ -38,23 +48,37 @@ export async function lookupGeoIp(ip: string): Promise<GeoIpResult> {
           is_vpn?: boolean;
           is_proxy?: boolean;
           is_tor?: boolean;
+          company_name?: string;
           company?: { name?: string };
-          asn?: { asn?: number; org?: string };
+          asn_num?: number;
+          asn_org?: string;
+          asn?: { asn?: number; org?: string } | number;
+          cc?: string;
+          lat?: number;
+          lon?: number;
+          country?: string;
           location?: { country?: string; country_code?: string; state?: string; city?: string; postal?: string; latitude?: number; longitude?: number; timezone?: string };
         };
         isDatacenter = data.is_datacenter;
         isVpn = data.is_vpn;
         isProxy = data.is_proxy;
         isTor = data.is_tor;
-        if (data.asn?.asn && !asn) asn = data.asn.asn;
-        if (data.asn?.org && !asOrganization) asOrganization = data.asn.org;
-        if (data.company?.name && !isp) isp = data.company.name;
+        const asnVal = data.asn_num ?? (typeof data.asn === 'number' ? data.asn : data.asn?.asn);
+        if (asnVal && !asn) asn = asnVal;
+        const orgVal = data.asn_org ?? (typeof data.asn === 'object' ? data.asn?.org : undefined);
+        if (orgVal && !asOrganization) asOrganization = orgVal;
+        const compVal = data.company_name || data.company?.name;
+        if (compVal && !isp) isp = compVal;
+        if (data.country && !country) country = data.country;
         if (data.location?.country && !country) country = data.location.country;
-        if (data.location?.country_code && !countryCode) countryCode = data.location.country_code;
+        const ccVal = data.cc || data.location?.country_code;
+        if (ccVal && !countryCode) countryCode = ccVal;
         if (data.location?.city && !city) city = data.location.city;
         if (data.location?.state && !region) region = data.location.state;
-        if (data.location?.latitude && !latitude) latitude = data.location.latitude;
-        if (data.location?.longitude && !longitude) longitude = data.location.longitude;
+        const latVal = data.lat ?? data.location?.latitude;
+        if (latVal !== undefined && latitude === undefined) latitude = latVal;
+        const lonVal = data.lon ?? data.location?.longitude;
+        if (lonVal !== undefined && longitude === undefined) longitude = lonVal;
         if (data.location?.timezone && !timezone) timezone = data.location.timezone;
         sourcesUsed.push('ipapi.is');
       }
@@ -182,6 +206,10 @@ export async function lookupGeoIp(ip: string): Promise<GeoIpResult> {
     fetchStopForumSpam()
   ]);
 
+  if (!country && countryCode) {
+    country = getCountryName(countryCode);
+  }
+
   return {
     ip: cleanIp,
     ipVersion: isIpv6 ? 6 : 4,
@@ -221,6 +249,8 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
   let country = '';
   let allocated = '';
   const origins: number[] = [num];
+  let prefixes: string[] = [];
+  let abuseContacts: string[] = [];
   let peeringDbData: AsnInfo['peeringDb'] = undefined;
 
   // 1. Query RIPE Stat AS overview
@@ -236,12 +266,13 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
             block?: {
               desc?: string;
               resource?: string;
+              name?: string;
             };
           };
         };
         if (ripeJson.data) {
           asnName = ripeJson.data.holder || '';
-          description = ripeJson.data.block?.desc || '';
+          description = ripeJson.data.block?.desc || ripeJson.data.block?.name || '';
         }
       }
     } catch {
@@ -258,6 +289,7 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
         const pdbJson = await pdbRes.json() as {
           data?: {
             name?: string;
+            aka?: string;
             website?: string;
             ix_count?: number;
             fac_count?: number;
@@ -272,6 +304,7 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
             facCount: net.fac_count
           };
           if (!asnName && net.name) asnName = net.name;
+          if (!description && net.aka) description = net.aka;
         }
       }
     } catch {
@@ -299,10 +332,52 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
     }
   };
 
+  // 4. Query RIPE Stat Announced Prefixes
+  const fetchRipePrefixes = async () => {
+    try {
+      const prefUrl = `https://stat.ripe.net/data/announced-prefixes/data.json?resource=AS${num}`;
+      const prefRes = await fetch(prefUrl, { signal: AbortSignal.timeout(3500) });
+      if (prefRes.ok) {
+        const prefJson = await prefRes.json() as {
+          data?: {
+            prefixes?: Array<{ prefix: string }>;
+          };
+        };
+        if (prefJson.data?.prefixes) {
+          prefixes = prefJson.data.prefixes.map(p => p.prefix).filter(Boolean);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  // 5. Query RIPE Stat Abuse Contacts
+  const fetchRipeAbuse = async () => {
+    try {
+      const abuseUrl = `https://stat.ripe.net/data/abuse-contact-finder/data.json?resource=AS${num}`;
+      const abuseRes = await fetch(abuseUrl, { signal: AbortSignal.timeout(3500) });
+      if (abuseRes.ok) {
+        const abuseJson = await abuseRes.json() as {
+          data?: {
+            abuse_contacts?: string[];
+          };
+        };
+        if (abuseJson.data?.abuse_contacts) {
+          abuseContacts = abuseJson.data.abuse_contacts;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   await Promise.allSettled([
     fetchRipeOverview(),
     fetchPeeringDb(),
-    fetchRipeRouting()
+    fetchRipeRouting(),
+    fetchRipePrefixes(),
+    fetchRipeAbuse()
   ]);
 
   return {
@@ -312,6 +387,9 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
     country,
     allocated,
     origins,
+    prefixes: prefixes.length > 0 ? prefixes : undefined,
+    abuseContacts: abuseContacts.length > 0 ? abuseContacts : undefined,
     peeringDb: peeringDbData
   };
 }
+

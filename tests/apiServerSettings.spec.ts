@@ -10,7 +10,7 @@ test.describe("Custom API Server Settings & Resolution Mode", () => {
     await settingsBtn.click();
 
     // 2. Verify Settings Header and Query Resolution Settings section
-    await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
     await expect(page.locator("text=Query Resolution Settings")).toBeVisible();
 
     // 3. Select 'Custom API Server' mode
@@ -23,7 +23,7 @@ test.describe("Custom API Server Settings & Resolution Mode", () => {
     await expect(urlInput).toBeVisible();
     await expect(urlInput).toBeEnabled();
 
-    const tokenInput = page.locator("input[placeholder*='Bearer Token']");
+    const tokenInput = page.locator("text=Query Resolution Settings").locator("xpath=ancestor::div[contains(@class, 'space-y-4')]").locator("input[placeholder*='Bearer Token']");
     await expect(tokenInput).toBeVisible();
     await expect(tokenInput).toBeEnabled();
 
@@ -36,7 +36,7 @@ test.describe("Custom API Server Settings & Resolution Mode", () => {
     await applyBtn.click();
 
     // 8. Confirm Sheet closes and Custom Server badge appears in Header
-    await expect(page.locator("text=Custom Server")).toBeVisible();
+    await expect(page.locator("header").getByText("Custom Server", { exact: true })).toBeVisible();
 
     // 9. Re-open Settings and verify values persisted
     await settingsBtn.click();
@@ -47,6 +47,6 @@ test.describe("Custom API Server Settings & Resolution Mode", () => {
     await resetBtn.click();
 
     // 11. Verify Custom Server badge disappears from Header
-    await expect(page.locator("text=Custom Server")).not.toBeVisible();
+    await expect(page.locator("header").getByText("Custom Server", { exact: true })).not.toBeVisible();
   });
 });
