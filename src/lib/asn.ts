@@ -747,21 +747,189 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
   const legacyAsnObj = typeof ipapi.asn === 'object' ? ipapi.asn : null;
   const asnNum = ipapi.asn_num ?? (typeof ipapi.asn === 'number' ? ipapi.asn : legacyAsnObj?.asn);
   const asnFormatted = asnNum ? `AS${asnNum}` : undefined;
-  const orgName = ipapi.asn_org || ipapi.company_name || ipapi.company?.name || legacyAsnObj?.org || ipapi.org || ipapi.descr;
-  const countryCode = ipapi.cc || ipapi.location?.country_code || legacyAsnObj?.country;
-  const countryName = ipapi.country || ipapi.location?.country || getCountryName(countryCode);
-  const abuseEmail = ipapi.abuse?.email || legacyAsnObj?.abuse || ripeAbuseContact;
+
+  // 3. Enrich IP query with ASN intelligence (PeeringDB, RDAP autnum, RIPE WHOIS & announced prefixes)
+  let pdbNet: PeeringDBItem | undefined;
+  let rdapAutnumData: unknown | undefined;
+  let ripeWhoisData: Array<Array<{ key: string; value: string }>> | undefined;
+  let ripeRoutingTime: string | undefined;
+  const ripePrefixesList: string[] = [];
+  const ripePrefixesV6List: string[] = [];
+  let fallbackGeo: { city?: string; state?: string; zip?: string; timezone?: string; country?: string } = {};
+
+  const enrichmentPromises: Promise<void>[] = [];
+
+  // 3a. Secondary GeoIP fallback to fill gaps (city, state, zip, timezone)
+  if (!ipapi.location?.city || !ipapi.location?.state || !ipapi.location?.timezone || !ipapi.location?.zip) {
+    enrichmentPromises.push((async () => {
+      try {
+        const targetUrl = `https://freeipapi.com/api/json/${encodeURIComponent(query)}`;
+        const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+        const res = await fetchWithTimeout(proxyUrl, 5000);
+        if (res.ok) {
+          const fip = await res.json();
+          if (fip) {
+            fallbackGeo = {
+              city: fip.cityName,
+              state: fip.regionName,
+              zip: fip.zipCode,
+              timezone: fip.timeZone,
+              country: fip.countryName
+            };
+          }
+        }
+      } catch { /* ignore */ }
+    })());
+  }
+
+  // 3b. Parallel ASN registry lookups if ASN is known
+  if (asnNum) {
+    // PeeringDB
+    enrichmentPromises.push((async () => {
+      try {
+        const targetUrl = `https://www.peeringdb.com/api/net?asn=${asnNum}`;
+        const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+        const res = await fetchWithTimeout(proxyUrl, 6000);
+        if (res.ok) {
+          const pdbJson = await res.json();
+          if (pdbJson?.data?.[0]) pdbNet = pdbJson.data[0];
+        }
+      } catch { /* ignore */ }
+    })());
+
+    // RDAP autnum
+    enrichmentPromises.push((async () => {
+      try {
+        const targetUrl = `https://rdap.org/autnum/${asnNum}`;
+        const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+        const res = await fetchWithTimeout(proxyUrl, 6000);
+        if (res.ok) {
+          rdapAutnumData = await res.json();
+        }
+      } catch { /* ignore */ }
+    })());
+
+    // RIPE WHOIS records
+    enrichmentPromises.push((async () => {
+      try {
+        const targetUrl = `https://stat.ripe.net/data/whois/data.json?resource=AS${asnNum}`;
+        const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+        const res = await fetchWithTimeout(proxyUrl, 6000);
+        if (res.ok) {
+          const whoisJson = await res.json();
+          if (whoisJson?.data?.records) ripeWhoisData = whoisJson.data.records;
+        }
+      } catch { /* ignore */ }
+    })());
+
+    // RIPE Routing Status (first_seen / created)
+    enrichmentPromises.push((async () => {
+      try {
+        const targetUrl = `https://stat.ripe.net/data/routing-status/data.json?resource=AS${asnNum}`;
+        const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+        const res = await fetchWithTimeout(proxyUrl, 6000);
+        if (res.ok) {
+          const routeJson = await res.json();
+          if (routeJson?.data?.first_seen?.time) ripeRoutingTime = routeJson.data.first_seen.time;
+        }
+      } catch { /* ignore */ }
+    })());
+
+    // RIPE Announced Prefixes
+    enrichmentPromises.push((async () => {
+      try {
+        const targetUrl = `https://stat.ripe.net/data/announced-prefixes/data.json?resource=AS${asnNum}`;
+        const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+        const res = await fetchWithTimeout(proxyUrl, 6000);
+        if (res.ok) {
+          const prefJson = await res.json();
+          if (prefJson?.data?.prefixes) {
+            for (const p of prefJson.data.prefixes) {
+              if (p.prefix) {
+                if (p.prefix.includes(':')) ripePrefixesV6List.push(p.prefix);
+                else ripePrefixesList.push(p.prefix);
+              }
+            }
+          }
+        }
+      } catch { /* ignore */ }
+    })());
+  }
+
+  await Promise.allSettled(enrichmentPromises);
+
+  // Parse ASN RDAP data if available
+  const rdapParsed = rdapAutnumData ? parseRDAP(rdapAutnumData as Parameters<typeof parseRDAP>[0]) : undefined;
+
+  // Parse RIPE WHOIS fields if available
+  let whoisCreated: string | undefined;
+  let whoisUpdated: string | undefined;
+  let whoisSource: string | undefined;
+  let whoisAbuseMail: string | undefined;
+
+  if (ripeWhoisData) {
+    for (const group of ripeWhoisData) {
+      if (!Array.isArray(group)) continue;
+      for (const item of group) {
+        const k = (item.key || '').toLowerCase().trim();
+        const v = (item.value || '').trim();
+        if (k === 'created' && !whoisCreated) whoisCreated = v;
+        if (k === 'last-modified' && !whoisUpdated) whoisUpdated = v;
+        if (k === 'source' && !whoisSource) whoisSource = v.toUpperCase();
+        if ((k === 'abuse-mailbox' || k === 'abuse-email') && !whoisAbuseMail) whoisAbuseMail = v;
+      }
+    }
+  }
+
+  const abuseEmail = ipapi.abuse?.email || legacyAsnObj?.abuse || ripeAbuseContact || whoisAbuseMail || rdapParsed?.abuseContact;
+
+  // Extract domain from email helper
+  const extractDomain = (email?: string): string | undefined => {
+    if (!email) return undefined;
+    const match = email.match(/@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+    return match ? match[1].toLowerCase() : undefined;
+  };
+
+  const domainInferred = ipapi.domain ||
+    ipapi.company?.domain ||
+    legacyAsnObj?.domain ||
+    (pdbNet?.website ? pdbNet.website.replace(/^https?:\/\//i, '').replace(/\/.*$/, '') : undefined) ||
+    extractDomain(abuseEmail);
+
+  const orgName = pdbNet?.name || ipapi.asn_org || ipapi.company_name || ipapi.company?.name || legacyAsnObj?.org || ipapi.org || ipapi.descr;
+  const countryCode = ipapi.cc || ipapi.location?.country_code || legacyAsnObj?.country || pdbNet?.country || rdapParsed?.country;
+  const countryName = ipapi.country || ipapi.location?.country || fallbackGeo.country || getCountryName(countryCode);
+  const cityVal = ipapi.location?.city || fallbackGeo.city || pdbNet?.city;
+  const stateVal = ipapi.location?.state || fallbackGeo.state;
+  const zipVal = ipapi.location?.zip || fallbackGeo.zip;
+  const timezoneVal = ipapi.location?.timezone || fallbackGeo.timezone;
+
+  const resolvedCreated = pdbNet?.created || rdapParsed?.creationDate || whoisCreated || ripeRoutingTime || ipapi.created || legacyAsnObj?.created;
+  const resolvedUpdated = pdbNet?.updated || rdapParsed?.updatedDate || whoisUpdated || ipapi.updated || legacyAsnObj?.updated;
+  const resolvedType = pdbNet?.info_type || ipapi.type || ipapi.company?.type || legacyAsnObj?.type || "Transit / ISP";
+  const resolvedRir = rdapParsed?.rir || ipapi.rir || legacyAsnObj?.rir || determineRir(undefined, undefined, whoisSource, undefined, asnNum);
+
+  // Merge prefixes
+  const finalPrefixesV4 = (ipapi.prefixes && ipapi.prefixes.length > 0) ? ipapi.prefixes : ripePrefixesList;
+  const finalPrefixesV6 = (ipapi.prefixesIPv6 && ipapi.prefixesIPv6.length > 0) ? ipapi.prefixesIPv6 : ripePrefixesV6List;
 
   resultData.parsed = {
     asn: asnFormatted || "N/A",
     org: orgName || "Unknown Organization",
-    description: ipapi.descr || legacyAsnObj?.descr || orgName,
-    domain: ipapi.domain || ipapi.company?.domain || legacyAsnObj?.domain,
-    type: ipapi.type || ipapi.company?.type || legacyAsnObj?.type,
-    rir: ipapi.rir || legacyAsnObj?.rir || determineRir(undefined, undefined, undefined, undefined, asnNum),
+    description: pdbNet?.aka || ipapi.descr || legacyAsnObj?.descr || orgName,
+    domain: domainInferred,
+    type: resolvedType,
+    rir: resolvedRir,
     route: legacyAsnObj?.route,
-    created: ipapi.created || legacyAsnObj?.created,
-    updated: ipapi.updated || legacyAsnObj?.updated,
+    created: resolvedCreated,
+    updated: resolvedUpdated,
+    website: pdbNet?.website,
+    irr_as_set: pdbNet?.irr_as_set,
+    traffic_ratio: pdbNet?.info_ratio,
+    scope: pdbNet?.info_scope,
+    ix_count: pdbNet?.ix_count,
+    fac_count: pdbNet?.fac_count,
+    notes: pdbNet?.notes,
     abuser_score: ipapi.abuser_score || ipapi.company?.abuser_score || legacyAsnObj?.abuser_score,
     is_bogon: ipapi.is_bogon || false,
     is_mobile: ipapi.is_mobile || false,
@@ -776,20 +944,20 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
     dc_network: ipapi.datacenter?.network,
     abuse_email: abuseEmail,
     abuse_name: ipapi.abuse?.name,
-    abuse_phone: ipapi.abuse?.phone,
-    abuse_address: ipapi.abuse?.address,
+    abuse_phone: ipapi.abuse?.phone || rdapParsed?.abusePhone,
+    abuse_address: ipapi.abuse?.address || rdapParsed?.abuseAddress,
     country: countryName,
     country_code: countryCode,
-    city: ipapi.location?.city,
-    state: ipapi.location?.state,
+    city: cityVal,
+    state: stateVal,
     continent: ipapi.location?.continent,
     lat: ipapi.lat ?? ipapi.location?.latitude,
     lon: ipapi.lon ?? ipapi.location?.longitude,
-    timezone: ipapi.location?.timezone,
-    zip: ipapi.location?.zip,
+    timezone: timezoneVal,
+    zip: zipVal,
     local_time: ipapi.location?.local_time,
-    prefixes_v4: ipapi.prefixes || [],
-    prefixes_v6: ipapi.prefixesIPv6 || []
+    prefixes_v4: finalPrefixesV4,
+    prefixes_v6: finalPrefixesV6
   };
 
   return resultData;

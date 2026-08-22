@@ -440,7 +440,9 @@ export function RegistrationLookupPage() {
                       <div className="flex justify-between border-b border-border/50 pb-1">
                         <span className="text-muted-foreground">City / State</span>
                         <span>
-                          {parsed.city ? `${parsed.city}, ` : ''}{parsed.state || (parsed.country ? "Global" : "Global Network")}
+                          {parsed.city && parsed.state
+                            ? `${parsed.city}, ${parsed.state}`
+                            : (parsed.city || parsed.state || (parsed.country ? "Regional / Countrywide" : "Global Network"))}
                         </span>
                       </div>
                       <div className="flex justify-between border-b border-border/50 pb-1">
@@ -453,7 +455,7 @@ export function RegistrationLookupPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Timezone</span>
-                        <span className="text-xs">{parsed.timezone || (parsed.country ? "N/A" : "UTC / Regional")}</span>
+                        <span className="text-xs">{parsed.timezone || (parsed.country ? "UTC / Standard" : "UTC / Regional")}</span>
                       </div>
                     </div>
                   </Card>
