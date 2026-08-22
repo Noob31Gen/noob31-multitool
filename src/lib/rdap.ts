@@ -13,7 +13,13 @@ export async function queryRDAP(query: string, settings: AppSettings) {
   }
 
   const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(query) || (query.includes(':') && !query.includes('.'));
-  const basePath = isIP ? `ip/${query}` : `domain/${query}`;
+  const isASN = /^AS\d+$/i.test(query) || (/^\d+$/.test(query) && parseInt(query, 10) <= 4200000000 && !isIP);
+  const cleanAsn = query.replace(/^AS/i, '');
+
+  let basePath = isIP ? `ip/${query}` : `domain/${query}`;
+  if (isASN) {
+    basePath = `autnum/${cleanAsn}`;
+  }
   const url = `https://rdap.org/${basePath}`;
   
   // 1. Consult safeStorage cache first (1-hour cache TTL)
@@ -32,7 +38,7 @@ export async function queryRDAP(query: string, settings: AppSettings) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
     try {
-      const res = await fetch(targetUrl, { signal: controller.signal, headers: { 'Accept': 'application/rdap+json' } });
+      const res = await fetch(targetUrl, { signal: controller.signal, headers: { 'Accept': 'application/rdap+json, application/json' } });
       clearTimeout(timeoutId);
       if (res.ok) return await res.json();
       throw new Error(`HTTP error ${res.status}`);
@@ -47,7 +53,7 @@ export async function queryRDAP(query: string, settings: AppSettings) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
     try {
-      const res = await authenticatedFetch(proxyUrl, { signal: controller.signal, headers: { 'Accept': 'application/rdap+json' } });
+      const res = await authenticatedFetch(proxyUrl, { signal: controller.signal, headers: { 'Accept': 'application/rdap+json, application/json' } });
       clearTimeout(timeoutId);
       if (res.ok) return await res.json();
       throw new Error(`HTTP error via proxy ${res.status}`);
@@ -75,7 +81,27 @@ export async function queryRDAP(query: string, settings: AppSettings) {
     } catch { /* ignore */ }
     return data;
   } catch (err: unknown) {
-    // Fallback: If rdap.org fails and it's an IP address, query regional registries directly
+    // 2a. Fallback: If rdap.org fails and it's an ASN, query regional registries directly
+    if (isASN) {
+      const autnumEndpoints = [
+        `https://rdap.arin.net/registry/autnum/${cleanAsn}`,
+        `https://rdap.db.ripe.net/autnum/AS${cleanAsn}`,
+        `https://rdap.apnic.net/autnum/${cleanAsn}`,
+        `https://rdap.lacnic.net/rdap/autnum/${cleanAsn}`,
+        `https://rdap.afrinic.net/rdap/autnum/${cleanAsn}`
+      ];
+      for (const endpoint of autnumEndpoints) {
+        try {
+          const data = await tryQuery(endpoint);
+          try {
+            safeStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data }));
+          } catch { /* ignore */ }
+          return data;
+        } catch { /* ignore and try next */ }
+      }
+    }
+
+    // 2b. Fallback: If rdap.org fails and it's an IP address, query regional registries directly
     if (isIP) {
       const rirEndpoints = [
         `https://rdap.arin.net/registry/ip/${query}`,
@@ -93,8 +119,10 @@ export async function queryRDAP(query: string, settings: AppSettings) {
           return data;
         } catch { /* ignore and try next */ }
       }
-    } else {
-      // Fallback for domains: query who-dat API
+    }
+
+    // 2c. Fallback for domains: query who-dat API
+    if (!isIP && !isASN) {
       try {
         const whoDatUrl = `https://who-dat.as93.net/${query.toLowerCase()}`;
         const whoDatRes = await tryQuery(whoDatUrl);
@@ -109,6 +137,24 @@ export async function queryRDAP(query: string, settings: AppSettings) {
         logger.warn("who-dat WHOIS fallback failed:", whoDatErr);
       }
     }
+
+    // 2d. Global RIPE stat WHOIS fallback
+    try {
+      const ripeWhoisUrl = `https://stat.ripe.net/data/whois/data.json?resource=${encodeURIComponent(query)}`;
+      const ripeRes = await tryQuery(ripeWhoisUrl);
+      if (ripeRes?.data?.records && Array.isArray(ripeRes.data.records) && ripeRes.data.records.length > 0) {
+        const mapped = mapRipeWhoisToRDAP(query, ripeRes.data.records);
+        if (mapped) {
+          try {
+            safeStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: mapped }));
+          } catch { /* ignore */ }
+          return mapped;
+        }
+      }
+    } catch (ripeErr) {
+      logger.warn("RIPE Stat WHOIS fallback failed:", ripeErr);
+    }
+
     throw err;
   }
 }
@@ -207,6 +253,117 @@ function mapWhoDatToRDAP(w: WhoDatResponse) {
     objectClassName: "domain",
     status: w.status || [],
     nameservers: Array.isArray(w.nameservers) ? w.nameservers.map((ns) => ({ ldhName: ns.name })) : [],
+    events,
+    entities
+  };
+}
+
+interface RipeWhoisField {
+  key: string;
+  value: string;
+}
+
+function mapRipeWhoisToRDAP(query: string, recordGroups: RipeWhoisField[][]) {
+  if (!Array.isArray(recordGroups) || recordGroups.length === 0) return null;
+
+  let name = query;
+  let handle = query;
+  let country: string | undefined;
+  let rir: string | undefined;
+  let startAddress: string | undefined;
+  let endAddress: string | undefined;
+  const statuses: string[] = [];
+  const events: RDAPEvent[] = [];
+  const entities: RDAPEntity[] = [];
+
+  for (const group of recordGroups) {
+    if (!Array.isArray(group)) continue;
+    let groupType = '';
+    let groupName = '';
+    let groupOrg = '';
+    let groupEmail = '';
+    let groupPhone = '';
+    let isAbuse = false;
+
+    for (const item of group) {
+      const k = (item.key || '').toLowerCase().trim();
+      const v = (item.value || '').trim();
+      if (!v) continue;
+
+      if (k === 'aut-num' || k === 'inetnum' || k === 'inet6num' || k === 'domain') {
+        groupType = k;
+        handle = v;
+        if (k === 'inetnum' && v.includes('-')) {
+          const parts = v.split('-').map(p => p.trim());
+          startAddress = parts[0];
+          endAddress = parts[1];
+        }
+      }
+      if (k === 'as-name' || k === 'netname') {
+        name = v;
+      }
+      if (k === 'descr' || k === 'org-name' || k === 'person' || k === 'role') {
+        if (!groupName) groupName = v;
+        if (!name && (k === 'descr' || k === 'org-name')) name = v;
+      }
+      if (k === 'org') {
+        groupOrg = v;
+      }
+      if (k === 'country' && !country) {
+        country = v.toUpperCase();
+      }
+      if (k === 'source' && !rir) {
+        rir = v.toUpperCase();
+      }
+      if (k === 'status') {
+        statuses.push(v);
+      }
+      if (k === 'abuse-mailbox' || k === 'abuse-email') {
+        groupEmail = v;
+        isAbuse = true;
+      } else if (k === 'e-mail' && !groupEmail) {
+        groupEmail = v;
+      }
+      if (k === 'phone' && !groupPhone) {
+        groupPhone = v;
+      }
+      if (k === 'created') {
+        events.push({ eventAction: 'registration', eventDate: v });
+      }
+      if (k === 'last-modified') {
+        events.push({ eventAction: 'last changed', eventDate: v });
+      }
+    }
+
+    if (groupName || groupOrg || groupEmail || groupPhone) {
+      const fn = groupOrg || groupName || '';
+      const vcardProperties: VCardProperty[] = [
+        ["fn", {}, "text", fn],
+        ["email", {}, "text", groupEmail],
+        ["tel", {}, "text", groupPhone]
+      ].filter((item): item is VCardProperty => !!item[3]);
+
+      const roles: string[] = [];
+      if (isAbuse) roles.push('abuse');
+      if (groupType === 'aut-num' || groupType === 'inetnum' || groupType === 'inet6num') roles.push('registrant');
+      if (roles.length === 0) roles.push('technical');
+
+      entities.push({
+        roles,
+        vcardArray: ["vcard", vcardProperties]
+      });
+    }
+  }
+
+  return {
+    ldhName: name,
+    handle,
+    objectClassName: handle.toUpperCase().startsWith('AS') ? 'autnum' : (startAddress ? 'ip network' : 'domain'),
+    startAddress,
+    endAddress,
+    country,
+    port43: rir,
+    status: statuses,
     events,
     entities
   };

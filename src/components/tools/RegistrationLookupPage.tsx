@@ -170,7 +170,7 @@ export function RegistrationLookupPage() {
   const getPlaceholder = () => {
     switch (tool) {
       case 'ARIN': return "1.1.1.1";
-      case 'ASN': return "AS13335 or 1.1.1.1";
+      case 'ASN': return "AS15169, 15169, or 1.1.1.1";
       default: return "example.com";
     }
   };
@@ -204,10 +204,10 @@ export function RegistrationLookupPage() {
       return;
     }
     if (tool === 'ASN') {
-      const isASNFormat = /^AS\d+$/i.test(q);
+      const isASNFormat = /^AS\d+$/i.test(q) || (/^\d+$/.test(q) && parseInt(q, 10) <= 4200000000 && !isIP);
       if (!isASNFormat) {
         if (!isIP) {
-          setErrorMsg("Input must be a valid IP address or ASN (e.g., AS15169).");
+          setErrorMsg("Input must be a valid IP address or ASN (e.g., AS15169 or 15169).");
           setStatus('error');
           return;
         }

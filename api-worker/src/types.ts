@@ -117,16 +117,42 @@ export interface AsnInfo {
   asn: number;
   name?: string;
   description?: string;
+  domain?: string;
   country?: string;
+  countryCode?: string;
+  city?: string;
+  region?: string;
+  rir?: string;
+  type?: string;
   allocated?: string;
+  created?: string;
+  updated?: string;
   prefixes?: string[];
+  prefixesIPv6?: string[];
   origins?: number[];
   abuseContacts?: string[];
+  abusePhone?: string;
+  abuseAddress?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+  trafficRatio?: string;
+  scope?: string;
+  irrAsSet?: string;
+  notes?: string;
   peeringDb?: {
     org?: string;
+    aka?: string;
     website?: string;
     ixCount?: number;
     facCount?: number;
+    infoType?: string;
+    infoRatio?: string;
+    infoScope?: string;
+    irrAsSet?: string;
+    created?: string;
+    updated?: string;
+    notes?: string;
   };
 }
 

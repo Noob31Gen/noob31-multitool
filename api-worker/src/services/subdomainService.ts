@@ -180,7 +180,36 @@ export async function enumerateSubdomains(domain: string): Promise<SubdomainResu
     }
   };
 
+  // 7. crt.name CT Search
+  const fetchCrtName = async () => {
+    const url = `https://crt.name/v1/search?apex=${encodeURIComponent(cleanDomain)}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (!res.ok) return;
+      const text = await res.text();
+      if (text && !text.trim().startsWith('<')) {
+        let count = 0;
+        text.split('\n').forEach(line => {
+          const sub = line.trim().toLowerCase().replace(/^\*\./, '');
+          if (sub && (sub.endsWith(`.${cleanDomain}`) || sub === cleanDomain)) {
+            subdomainsSet.add(sub);
+            count++;
+          }
+        });
+        if (count > 0) {
+          sourcesUsed.push('crt.name');
+        }
+      }
+    } catch {
+      clearTimeout(timeoutId);
+    }
+  };
+
   await Promise.allSettled([
+    fetchCrtName(),
     fetchCrtSh(),
     fetchCertSpotter(),
     fetchMnemonic(),

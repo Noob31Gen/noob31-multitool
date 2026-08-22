@@ -237,6 +237,28 @@ export async function lookupGeoIp(ip: string): Promise<GeoIpResult> {
   };
 }
 
+function determineRir(
+  ripeDesc?: string,
+  rdapRir?: string,
+  whoisSource?: string,
+  asnNum?: number
+): string {
+  if (rdapRir) return rdapRir;
+  const combined = `${ripeDesc || ''} ${whoisSource || ''}`.toUpperCase();
+  if (combined.includes('ARIN')) return 'ARIN';
+  if (combined.includes('RIPE')) return 'RIPE NCC';
+  if (combined.includes('APNIC')) return 'APNIC';
+  if (combined.includes('LACNIC')) return 'LACNIC';
+  if (combined.includes('AFRINIC')) return 'AFRINIC';
+
+  if (asnNum !== undefined) {
+    if ((asnNum >= 1 && asnNum <= 1876) || (asnNum >= 204 && asnNum <= 255)) return 'ARIN';
+    if (asnNum >= 61440 && asnNum <= 65534) return 'Private / Reserved';
+    if (asnNum >= 65536 && asnNum <= 65551) return 'Private / Reserved';
+  }
+  return 'Global Registry';
+}
+
 export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
   const cleanAsn = String(asnNumber).replace(/^AS/i, '').trim();
   const num = parseInt(cleanAsn, 10);
@@ -246,12 +268,29 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
 
   let asnName = '';
   let description = '';
+  let domain = '';
   let country = '';
+  let countryCode = '';
+  let city = '';
+  let region = '';
+  let rir = '';
+  let type = '';
   let allocated = '';
+  let created = '';
+  let updated = '';
   const origins: number[] = [num];
   let prefixes: string[] = [];
+  let prefixesIPv6: string[] = [];
   let abuseContacts: string[] = [];
+  let abusePhone: string | undefined;
+  let abuseAddress: string | undefined;
+  let trafficRatio: string | undefined;
+  let scope: string | undefined;
+  let irrAsSet: string | undefined;
+  let notes: string | undefined;
   let peeringDbData: AsnInfo['peeringDb'] = undefined;
+  let ripeBlockDesc: string | undefined;
+  let whoisSource: string | undefined;
 
   // 1. Query RIPE Stat AS overview
   const fetchRipeOverview = async () => {
@@ -271,8 +310,12 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
           };
         };
         if (ripeJson.data) {
-          asnName = ripeJson.data.holder || '';
-          description = ripeJson.data.block?.desc || ripeJson.data.block?.name || '';
+          if (!asnName && ripeJson.data.holder) asnName = ripeJson.data.holder;
+          ripeBlockDesc = ripeJson.data.block?.desc || ripeJson.data.block?.name || '';
+          if (!description && ripeBlockDesc) description = ripeBlockDesc;
+          if (ripeJson.data.announced) {
+            type = 'Transit / ISP';
+          }
         }
       }
     } catch {
@@ -291,6 +334,15 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
             name?: string;
             aka?: string;
             website?: string;
+            info_type?: string;
+            info_ratio?: string;
+            info_scope?: string;
+            irr_as_set?: string;
+            created?: string;
+            updated?: string;
+            notes?: string;
+            city?: string;
+            country?: string;
             ix_count?: number;
             fac_count?: number;
           }[];
@@ -299,12 +351,32 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
           const net = pdbJson.data[0];
           peeringDbData = {
             org: net.name,
+            aka: net.aka,
             website: net.website,
+            infoType: net.info_type,
+            infoRatio: net.info_ratio,
+            infoScope: net.info_scope,
+            irrAsSet: net.irr_as_set,
+            created: net.created,
+            updated: net.updated,
+            notes: net.notes,
             ixCount: net.ix_count,
             facCount: net.fac_count
           };
-          if (!asnName && net.name) asnName = net.name;
-          if (!description && net.aka) description = net.aka;
+          if (net.name) asnName = net.name;
+          if (net.aka && !description) description = net.aka;
+          if (net.website) {
+            domain = net.website.replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
+          }
+          if (net.info_type) type = net.info_type;
+          if (net.info_ratio) trafficRatio = net.info_ratio;
+          if (net.info_scope) scope = net.info_scope;
+          if (net.irr_as_set) irrAsSet = net.irr_as_set;
+          if (net.created && !created) created = net.created;
+          if (net.updated && !updated) updated = net.updated;
+          if (net.notes && !notes) notes = net.notes;
+          if (net.country && !countryCode) countryCode = net.country;
+          if (net.city && !city) city = net.city;
         }
       }
     } catch {
@@ -325,6 +397,7 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
         };
         if (routeJson.data?.first_seen?.time) {
           allocated = routeJson.data.first_seen.time;
+          if (!created) created = routeJson.data.first_seen.time;
         }
       }
     } catch {
@@ -344,7 +417,15 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
           };
         };
         if (prefJson.data?.prefixes) {
-          prefixes = prefJson.data.prefixes.map(p => p.prefix).filter(Boolean);
+          for (const item of prefJson.data.prefixes) {
+            if (item.prefix) {
+              if (item.prefix.includes(':')) {
+                prefixesIPv6.push(item.prefix);
+              } else {
+                prefixes.push(item.prefix);
+              }
+            }
+          }
         }
       }
     } catch {
@@ -363,9 +444,113 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
             abuse_contacts?: string[];
           };
         };
-        if (abuseJson.data?.abuse_contacts) {
-          abuseContacts = abuseJson.data.abuse_contacts;
+        if (abuseJson.data?.abuse_contacts && abuseJson.data.abuse_contacts.length > 0) {
+          abuseContacts.push(...abuseJson.data.abuse_contacts);
         }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  // 6. Query RDAP autnum
+  const fetchRdapAutnum = async () => {
+    try {
+      const rdapUrl = `https://rdap.org/autnum/${num}`;
+      const res = await fetch(rdapUrl, {
+        headers: { 'Accept': 'application/rdap+json, application/json' },
+        signal: AbortSignal.timeout(3500)
+      });
+      if (res.ok) {
+        const rdap = await res.json() as {
+          name?: string;
+          country?: string;
+          port43?: string;
+          events?: Array<{ eventAction?: string; eventDate?: string }>;
+          entities?: Array<{
+            roles?: string[];
+            vcardArray?: unknown[];
+          }>;
+        };
+        if (rdap.name && !asnName) asnName = rdap.name;
+        if (rdap.country && !countryCode) countryCode = rdap.country;
+        if (rdap.port43) {
+          const p = rdap.port43.toLowerCase();
+          if (p.includes('arin')) rir = 'ARIN';
+          else if (p.includes('ripe')) rir = 'RIPE NCC';
+          else if (p.includes('apnic')) rir = 'APNIC';
+          else if (p.includes('lacnic')) rir = 'LACNIC';
+          else if (p.includes('afrinic')) rir = 'AFRINIC';
+        }
+        if (rdap.events) {
+          for (const ev of rdap.events) {
+            const action = (ev.eventAction || '').toLowerCase();
+            if ((action === 'registration' || action === 'registered' || action === 'allocated' || action === 'assigned') && !created) {
+              created = ev.eventDate || '';
+            }
+            if ((action === 'last changed' || action === 'updated' || action === 'last modified') && !updated) {
+              updated = ev.eventDate || '';
+            }
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  // 7. Query RIPE WHOIS records
+  const fetchRipeWhois = async () => {
+    try {
+      const whoisUrl = `https://stat.ripe.net/data/whois/data.json?resource=AS${num}`;
+      const whoisRes = await fetch(whoisUrl, { signal: AbortSignal.timeout(3500) });
+      if (whoisRes.ok) {
+        const whoisJson = await whoisRes.json() as {
+          data?: {
+            records?: Array<Array<{ key: string; value: string }>>;
+          };
+        };
+        if (whoisJson.data?.records) {
+          for (const group of whoisJson.data.records) {
+            if (!Array.isArray(group)) continue;
+            for (const item of group) {
+              const k = (item.key || '').toLowerCase().trim();
+              const v = (item.value || '').trim();
+              if ((k === 'as-name' || k === 'org-name') && !asnName) asnName = v;
+              if (k === 'descr' && !description) description = v;
+              if (k === 'country' && !countryCode) countryCode = v.toUpperCase();
+              if (k === 'created' && !created) created = v;
+              if (k === 'last-modified' && !updated) updated = v;
+              if ((k === 'abuse-mailbox' || k === 'abuse-email') && !abuseContacts.includes(v)) {
+                abuseContacts.push(v);
+              }
+              if (k === 'source' && !whoisSource) whoisSource = v.toUpperCase();
+            }
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  // 8. Query IP.guide AS endpoint
+  const fetchIpGuide = async () => {
+    try {
+      const ipgUrl = `https://ip.guide/as${num}`;
+      const ipgRes = await fetch(ipgUrl, { signal: AbortSignal.timeout(3000) });
+      if (ipgRes.ok) {
+        const ipgJson = await ipgRes.json() as {
+          name?: string;
+          country?: string;
+          city?: string;
+          routes?: { v4?: string[]; v6?: string[] };
+        };
+        if (ipgJson.name && !asnName) asnName = ipgJson.name;
+        if (ipgJson.country && !countryCode) countryCode = ipgJson.country;
+        if (ipgJson.city && !city) city = ipgJson.city;
+        if (prefixes.length === 0 && ipgJson.routes?.v4) prefixes.push(...ipgJson.routes.v4);
+        if (prefixesIPv6.length === 0 && ipgJson.routes?.v6) prefixesIPv6.push(...ipgJson.routes.v6);
       }
     } catch {
       // ignore
@@ -377,18 +562,46 @@ export async function lookupAsn(asnNumber: number | string): Promise<AsnInfo> {
     fetchPeeringDb(),
     fetchRipeRouting(),
     fetchRipePrefixes(),
-    fetchRipeAbuse()
+    fetchRipeAbuse(),
+    fetchRdapAutnum(),
+    fetchRipeWhois(),
+    fetchIpGuide()
   ]);
+
+  if (!country && countryCode) {
+    country = getCountryName(countryCode) || countryCode;
+  }
+  if (!rir) {
+    rir = determineRir(ripeBlockDesc, undefined, whoisSource, num);
+  }
+  if (!type) {
+    type = 'Transit / ISP';
+  }
 
   return {
     asn: num,
     name: asnName || `AS${num}`,
-    description,
-    country,
-    allocated,
+    description: description || asnName || `AS${num}`,
+    domain: domain || undefined,
+    country: country || undefined,
+    countryCode: countryCode || undefined,
+    city: city || undefined,
+    region: region || undefined,
+    rir: rir || undefined,
+    type: type || undefined,
+    allocated: allocated || created || undefined,
+    created: created || undefined,
+    updated: updated || undefined,
     origins,
     prefixes: prefixes.length > 0 ? prefixes : undefined,
-    abuseContacts: abuseContacts.length > 0 ? abuseContacts : undefined,
+    prefixesIPv6: prefixesIPv6.length > 0 ? prefixesIPv6 : undefined,
+    abuseContacts: abuseContacts.length > 0 ? Array.from(new Set(abuseContacts)) : undefined,
+    abusePhone,
+    abuseAddress,
+    trafficRatio,
+    scope,
+    irrAsSet,
+    notes,
     peeringDb: peeringDbData
   };
 }

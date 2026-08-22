@@ -2,6 +2,8 @@ import type { AppSettings } from "./settings"
 import { logger } from "./logger"
 import { getProxiedUrl, authenticatedFetch } from "./cors"
 import { isCustomServerEnabled, queryMyIpServer, queryGeoIpServer, queryAsnServer } from "./apiServer"
+import { queryRDAP } from "./rdap"
+import { parseRDAP } from "./rdapParser"
 
 export interface ParsedASN {
   org?: string;
@@ -169,6 +171,8 @@ export interface PeeringDBItem {
   policy_general?: string;
   policy_url?: string;
   notes?: string;
+  city?: string;
+  country?: string;
 }
 
 export interface ASNResult {
@@ -190,11 +194,38 @@ function getCountryName(countryCode?: string): string | undefined {
   }
 }
 
+function determineRir(
+  ripeDesc?: string,
+  rdapRir?: string,
+  whoisSource?: string,
+  port43?: string,
+  asnNum?: number
+): string {
+  if (rdapRir) return rdapRir;
+  const combined = `${ripeDesc || ''} ${whoisSource || ''} ${port43 || ''}`.toUpperCase();
+  if (combined.includes('ARIN')) return 'ARIN';
+  if (combined.includes('RIPE')) return 'RIPE NCC';
+  if (combined.includes('APNIC')) return 'APNIC';
+  if (combined.includes('LACNIC')) return 'LACNIC';
+  if (combined.includes('AFRINIC')) return 'AFRINIC';
+
+  if (asnNum !== undefined) {
+    if ((asnNum >= 1 && asnNum <= 1876) || (asnNum >= 204 && asnNum <= 255)) return 'ARIN';
+    if (asnNum >= 61440 && asnNum <= 65534) return 'Private / Reserved';
+    if (asnNum >= 65536 && asnNum <= 65551) return 'Private / Reserved';
+  }
+  return 'Global Registry';
+}
+
 export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<ASNResult> {
-  const query = ipOrAsn.trim();
-  const isAsn = /^AS\d+$/i.test(query);
+  const query = (ipOrAsn || '').trim();
+  const isIpQuery = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(query) || (query.includes(':') && !query.includes('.'));
+  const isAsn = !isIpQuery && (/^AS\d+$/i.test(query) || (/^\d+$/.test(query) && parseInt(query, 10) <= 4200000000));
+  const cleanAsnNum = isAsn ? query.replace(/^AS/i, '') : '';
+  const normalizedQuery = isAsn ? `AS${cleanAsnNum}` : query;
+
   const resultData: ASNResult = {
-    query: query,
+    query: normalizedQuery || query,
     isAsn: isAsn
   };
 
@@ -207,6 +238,7 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
         asOrganization?: string;
         name?: string;
         description?: string;
+        domain?: string;
         country?: string;
         countryCode?: string;
         region?: string;
@@ -214,47 +246,87 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
         timezone?: string;
         latitude?: number;
         longitude?: number;
+        rir?: string;
+        type?: string;
+        created?: string;
+        updated?: string;
+        trafficRatio?: string;
+        scope?: string;
+        irrAsSet?: string;
         isDatacenter?: boolean;
         isVpn?: boolean;
         isProxy?: boolean;
         isTor?: boolean;
         abuseContacts?: string[];
-        peeringDb?: { org?: string; website?: string; ixCount?: number; facCount?: number };
+        abusePhone?: string;
+        abuseAddress?: string;
+        peeringDb?: {
+          org?: string;
+          aka?: string;
+          website?: string;
+          ixCount?: number;
+          facCount?: number;
+          infoType?: string;
+          infoRatio?: string;
+          infoScope?: string;
+          irrAsSet?: string;
+          created?: string;
+          updated?: string;
+          notes?: string;
+        };
         origins?: number[];
         prefixes?: string[];
+        prefixesIPv6?: string[];
         colo?: string;
+        notes?: string;
       };
 
       if (!query) {
         serverData = (await queryMyIpServer(settings)) as typeof serverData;
       } else if (isAsn) {
-        serverData = (await queryAsnServer(query, settings)) as typeof serverData;
+        serverData = (await queryAsnServer(normalizedQuery, settings)) as typeof serverData;
       } else {
         serverData = (await queryGeoIpServer(query, settings)) as typeof serverData;
       }
 
-      const asnVal = serverData.asn ? `AS${serverData.asn}` : (isAsn ? query : undefined);
+      const asnVal = serverData.asn ? `AS${serverData.asn}` : (isAsn ? normalizedQuery : undefined);
+      const cCode = serverData.countryCode;
+      const cName = serverData.country || getCountryName(cCode);
+
       resultData.parsed = {
         asn: asnVal,
         org: serverData.asOrganization || serverData.name || serverData.description || serverData.peeringDb?.org,
-        description: serverData.description || serverData.name,
-        country: serverData.country || getCountryName(serverData.countryCode),
-        country_code: serverData.countryCode,
+        description: serverData.description || serverData.peeringDb?.aka || serverData.name,
+        domain: serverData.domain || serverData.peeringDb?.website?.replace(/^https?:\/\//i, '').replace(/\/.*$/, ''),
+        country: cName,
+        country_code: cCode,
         city: serverData.city,
         state: serverData.region,
         timezone: serverData.timezone,
         lat: serverData.latitude,
         lon: serverData.longitude,
+        rir: serverData.rir || determineRir(undefined, undefined, undefined, undefined, serverData.asn),
+        type: serverData.type || serverData.peeringDb?.infoType || "Transit / ISP",
+        created: serverData.created || serverData.peeringDb?.created,
+        updated: serverData.updated || serverData.peeringDb?.updated,
         is_datacenter: serverData.isDatacenter,
         is_vpn: serverData.isVpn,
         is_proxy: serverData.isProxy,
         is_tor: serverData.isTor,
         abuse_email: serverData.abuseContacts?.[0],
+        abuse_phone: serverData.abusePhone,
+        abuse_address: serverData.abuseAddress,
         website: serverData.peeringDb?.website,
+        traffic_ratio: serverData.trafficRatio || serverData.peeringDb?.infoRatio,
+        scope: serverData.scope || serverData.peeringDb?.infoScope,
+        irr_as_set: serverData.irrAsSet || serverData.peeringDb?.irrAsSet,
         ix_count: serverData.peeringDb?.ixCount,
         fac_count: serverData.peeringDb?.facCount,
+        notes: serverData.notes || serverData.peeringDb?.notes,
         prefixes_v4: serverData.prefixes || [],
+        prefixes_v6: serverData.prefixesIPv6 || [],
       };
+
       resultData.ipapi = {
         ip: serverData.ip,
         asn_num: serverData.asn,
@@ -267,7 +339,7 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
           org: serverData.asOrganization,
         } : undefined,
         location: {
-          country: serverData.country,
+          country: cName,
           country_code: serverData.countryCode,
           city: serverData.city,
           state: serverData.region,
@@ -290,13 +362,15 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
   // PURE ASN QUERY FLOW
   // ==========================================
   if (isAsn) {
-    const cleanAsnNum = query.replace(/^AS/i, '');
     let ripeOverview: RIPEstatResponse | undefined;
     let ripePrefixes: RIPEPrefixesResponse | undefined;
     let ripeAbuse: RIPEAbuseResponse | undefined;
     let peeringDbItem: PeeringDBItem | undefined;
+    let rdapRaw: unknown | undefined;
+    let ripeWhoisRecords: Array<Array<{ key: string; value: string }>> | undefined;
+    let ipGuideData: { name?: string; country?: string; city?: string; routes?: { v4?: string[]; v6?: string[] } } | undefined;
 
-    // Run RIPE and PeeringDB requests in parallel
+    // Run parallel multi-source requests
     await Promise.allSettled([
       // 1. RIPE AS Overview
       (async () => {
@@ -349,11 +423,45 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
             }
           }
         } catch { logger.warn("PeeringDB fetch failed."); }
+      })(),
+
+      // 5. RDAP autnum
+      (async () => {
+        try {
+          rdapRaw = await queryRDAP(`AS${cleanAsnNum}`, settings);
+        } catch { logger.warn("RDAP autnum fetch failed."); }
+      })(),
+
+      // 6. RIPE WHOIS records
+      (async () => {
+        try {
+          const targetUrl = `https://stat.ripe.net/data/whois/data.json?resource=AS${cleanAsnNum}`;
+          const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+          const res = await fetchWithTimeout(proxyUrl, 10000);
+          if (res.ok) {
+            const json = await res.json();
+            if (json?.data?.records) {
+              ripeWhoisRecords = json.data.records;
+            }
+          }
+        } catch { logger.warn("RIPE WHOIS fetch failed."); }
+      })(),
+
+      // 7. IP.guide AS endpoint
+      (async () => {
+        try {
+          const targetUrl = `https://ip.guide/as${cleanAsnNum}`;
+          const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+          const res = await fetchWithTimeout(proxyUrl, 8000);
+          if (res.ok) {
+            ipGuideData = await res.json();
+          }
+        } catch { /* ignore */ }
       })()
     ]);
 
-    if (!ripeOverview && !peeringDbItem && !ripePrefixes) {
-      throw new Error("Could not retrieve ASN data from RIPE Stat or PeeringDB.");
+    if (!ripeOverview && !peeringDbItem && !ripePrefixes && !rdapRaw && !ripeWhoisRecords) {
+      throw new Error("Could not retrieve ASN data from any available registries or PeeringDB.");
     }
 
     // Partition prefixes into IPv4 and IPv6
@@ -371,38 +479,88 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
       }
     }
 
+    if (prefixesV4.length === 0 && ipGuideData?.routes?.v4) {
+      prefixesV4.push(...ipGuideData.routes.v4);
+    }
+    if (prefixesV6.length === 0 && ipGuideData?.routes?.v6) {
+      prefixesV6.push(...ipGuideData.routes.v6);
+    }
+
     const ripeData = ripeOverview?.data;
     const abuseEmails = ripeAbuse?.data?.abuse_contacts || [];
 
-    // Extract RIR name from block desc if available (e.g. "Assigned by ARIN" -> "ARIN")
-    let rirName = ripeData?.block?.desc;
-    if (rirName) {
-      const match = rirName.match(/Assigned by\s+([A-Z\s]+)/i);
-      if (match) rirName = match[1].trim();
+    // Parse RDAP data if available
+    const rdapParsed = rdapRaw ? parseRDAP(rdapRaw as Parameters<typeof parseRDAP>[0]) : undefined;
+
+    // Parse RIPE WHOIS fields if available
+    let whoisOrg: string | undefined;
+    let whoisDescr: string | undefined;
+    let whoisCountry: string | undefined;
+    let whoisCreated: string | undefined;
+    let whoisUpdated: string | undefined;
+    let whoisAbuse: string | undefined;
+    let whoisSource: string | undefined;
+
+    if (ripeWhoisRecords) {
+      for (const group of ripeWhoisRecords) {
+        if (!Array.isArray(group)) continue;
+        for (const item of group) {
+          const k = (item.key || '').toLowerCase().trim();
+          const v = (item.value || '').trim();
+          if (k === 'as-name' || k === 'org-name') if (!whoisOrg) whoisOrg = v;
+          if (k === 'descr') if (!whoisDescr) whoisDescr = v;
+          if (k === 'country') if (!whoisCountry) whoisCountry = v.toUpperCase();
+          if (k === 'created') if (!whoisCreated) whoisCreated = v;
+          if (k === 'last-modified') if (!whoisUpdated) whoisUpdated = v;
+          if (k === 'abuse-mailbox' || k === 'abuse-email') if (!whoisAbuse) whoisAbuse = v;
+          if (k === 'source') if (!whoisSource) whoisSource = v.toUpperCase();
+        }
+      }
     }
+
+    const asnNumberInt = parseInt(cleanAsnNum, 10);
+    const resolvedRir = determineRir(
+      ripeData?.block?.desc || ripeData?.block?.name,
+      rdapParsed?.rir,
+      whoisSource,
+      undefined,
+      asnNumberInt
+    );
+
+    const countryCode = rdapParsed?.country || whoisCountry || ipGuideData?.country || peeringDbItem?.country;
+    const countryName = getCountryName(countryCode) || (countryCode && countryCode.length > 2 ? countryCode : undefined);
+    const orgName = peeringDbItem?.name || rdapParsed?.registrant || rdapParsed?.name || whoisOrg || ripeData?.holder || ipGuideData?.name || `AS${cleanAsnNum}`;
+    const desc = peeringDbItem?.aka || whoisDescr || ripeData?.holder || rdapParsed?.name || peeringDbItem?.name;
+    const website = peeringDbItem?.website;
+    const domain = website ? website.replace(/^https?:\/\//i, '').replace(/\/.*$/, '') : undefined;
+    const netType = peeringDbItem?.info_type || (ripeData?.announced ? "Transit / ISP" : "Enterprise / Allocated");
+    const createdDate = peeringDbItem?.created || rdapParsed?.creationDate || whoisCreated;
+    const updatedDate = peeringDbItem?.updated || rdapParsed?.updatedDate || whoisUpdated;
+    const finalAbuseEmail = abuseEmails.length > 0 ? abuseEmails.join(", ") : (rdapParsed?.abuseContact || whoisAbuse);
 
     resultData.parsed = {
       asn: `AS${cleanAsnNum}`,
-      org: peeringDbItem?.name || ripeData?.holder || `AS${cleanAsnNum}`,
-      description: peeringDbItem?.aka || ripeData?.holder || peeringDbItem?.name,
-      domain: peeringDbItem?.website,
-      type: peeringDbItem?.info_type || (ripeData?.announced ? "Transit / ISP" : "Allocated"),
-      rir: rirName || ripeData?.block?.name || "Global Registry",
-      created: peeringDbItem?.created,
-      updated: peeringDbItem?.updated,
-      website: peeringDbItem?.website,
+      org: orgName,
+      description: desc,
+      domain: domain,
+      type: netType,
+      rir: resolvedRir,
+      created: createdDate,
+      updated: updatedDate,
+      website: website,
       irr_as_set: peeringDbItem?.irr_as_set,
       traffic_ratio: peeringDbItem?.info_ratio,
       scope: peeringDbItem?.info_scope,
       ix_count: peeringDbItem?.ix_count,
       fac_count: peeringDbItem?.fac_count,
       notes: peeringDbItem?.notes,
-      abuse_email: abuseEmails.length > 0 ? abuseEmails.join(", ") : undefined,
+      abuse_email: finalAbuseEmail,
+      abuse_phone: rdapParsed?.abusePhone,
       prefixes_v4: prefixesV4,
       prefixes_v6: prefixesV6,
-      country: undefined,
-      country_code: undefined,
-      city: undefined,
+      country: countryName,
+      country_code: countryCode,
+      city: ipGuideData?.city || peeringDbItem?.city,
       state: undefined,
     };
 
@@ -412,9 +570,24 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
   // ==========================================
   // IP / MY-IP QUERY FLOW
   // ==========================================
-  // 1. Try primary ipapi.is lookup
+  // 1. Parallel query: primary ipapi.is and RIPE abuse contact finder
+  let ripeAbuseContact: string | undefined;
+  const fetchAbuseContactPromise = (async () => {
+    try {
+      const targetUrl = `https://stat.ripe.net/data/abuse-contact-finder/data.json?resource=${encodeURIComponent(query)}`;
+      const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+      const res = await fetchWithTimeout(proxyUrl, 6000);
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data?.abuse_contacts && json.data.abuse_contacts.length > 0) {
+          ripeAbuseContact = json.data.abuse_contacts.join(', ');
+        }
+      }
+    } catch { /* ignore */ }
+  })();
+
   try {
-    const targetUrl = `https://api.ipapi.is/?q=${query}`;
+    const targetUrl = `https://api.ipapi.is/?q=${encodeURIComponent(query)}`;
     const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
     const res = await fetchWithTimeout(proxyUrl, 8000);
     if (res.ok) {
@@ -425,20 +598,20 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
     }
   } catch { logger.warn("IPAPI fetch failed."); }
 
-  // 2. IP Queries fallback cascade: ipwhois.app -> ip-api.com -> freeipapi.com
+  // 2. IP Queries fallback cascade: ipwhois.app -> ip-api.com -> freeipapi.com -> ip.guide
   if (!resultData.ipapi || (!resultData.ipapi.ip && resultData.ipapi.asn_num === undefined && resultData.ipapi.asn === undefined)) {
     // Try ipwhois.app
     try {
-      const targetUrl = `https://ipwhois.app/json/${query}`;
+      const targetUrl = `https://ipwhois.app/json/${encodeURIComponent(query)}`;
       const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
       const res = await fetchWithTimeout(proxyUrl, 8000);
       if (res.ok) {
         const ipw = await res.json();
         if (ipw && ipw.success !== false) {
-          const cleanAsnNum = ipw.asn ? parseInt(String(ipw.asn).replace(/as/i, ''), 10) : undefined;
+          const cleanAsn = ipw.asn ? parseInt(String(ipw.asn).replace(/as/i, ''), 10) : undefined;
           resultData.ipapi = {
             ip: ipw.ip || query,
-            asn_num: cleanAsnNum,
+            asn_num: cleanAsn,
             asn_org: ipw.org || ipw.isp,
             company_name: ipw.org || ipw.isp,
             cc: ipw.country_code,
@@ -465,7 +638,7 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
     // Try ip-api.com if ipwhois failed
     if (!resultData.ipapi) {
       try {
-        const targetUrl = `http://ip-api.com/json/${query}`;
+        const targetUrl = `http://ip-api.com/json/${encodeURIComponent(query)}`;
         const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
         const res = await fetchWithTimeout(proxyUrl, 8000);
         if (res.ok) {
@@ -473,10 +646,10 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
           if (ipa && ipa.status === 'success') {
             const org = ipa.org || ipa.isp;
             const asnStr = ipa.as ? ipa.as.split(' ')[0] : undefined;
-            const cleanAsnNum = asnStr ? parseInt(String(asnStr).replace(/as/i, ''), 10) : undefined;
+            const cleanAsn = asnStr ? parseInt(String(asnStr).replace(/as/i, ''), 10) : undefined;
             resultData.ipapi = {
               ip: ipa.query || query,
-              asn_num: cleanAsnNum,
+              asn_num: cleanAsn,
               asn_org: org,
               company_name: org,
               cc: ipa.countryCode,
@@ -504,7 +677,7 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
     // Try freeipapi.com if still empty
     if (!resultData.ipapi) {
       try {
-        const targetUrl = `https://freeipapi.com/api/json/${query}`;
+        const targetUrl = `https://freeipapi.com/api/json/${encodeURIComponent(query)}`;
         const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
         const res = await fetchWithTimeout(proxyUrl, 8000);
         if (res.ok) {
@@ -512,6 +685,7 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
           if (fip && fip.ipAddress) {
             resultData.ipapi = {
               ip: fip.ipAddress || query,
+              asn_num: fip.asn,
               cc: fip.countryCode,
               lat: fip.latitude,
               lon: fip.longitude,
@@ -531,7 +705,39 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
         }
       } catch { logger.warn("Fallback freeipapi fetch failed."); }
     }
+
+    // Try ip.guide if still empty
+    if (!resultData.ipapi) {
+      try {
+        const targetUrl = `https://ip.guide/${encodeURIComponent(query)}`;
+        const proxyUrl = getProxiedUrl(targetUrl, settings.corsProvider, settings.customCorsUrl);
+        const res = await fetchWithTimeout(proxyUrl, 8000);
+        if (res.ok) {
+          const ipg = await res.json();
+          if (ipg && ipg.ip) {
+            resultData.ipapi = {
+              ip: ipg.ip,
+              asn_num: ipg.network?.autonomous_system?.asn,
+              asn_org: ipg.network?.autonomous_system?.name || ipg.network?.autonomous_system?.organization,
+              cc: ipg.location?.country,
+              lat: ipg.location?.latitude,
+              lon: ipg.location?.longitude,
+              location: {
+                country: ipg.location?.country,
+                country_code: ipg.location?.country,
+                city: ipg.location?.city,
+                timezone: ipg.location?.timezone,
+                latitude: ipg.location?.latitude,
+                longitude: ipg.location?.longitude
+              }
+            };
+          }
+        }
+      } catch { logger.warn("Fallback ip.guide fetch failed."); }
+    }
   }
+
+  await fetchAbuseContactPromise;
 
   if (!resultData.ipapi) {
     throw new Error("Could not retrieve data from any IP geolocation provider.");
@@ -544,6 +750,7 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
   const orgName = ipapi.asn_org || ipapi.company_name || ipapi.company?.name || legacyAsnObj?.org || ipapi.org || ipapi.descr;
   const countryCode = ipapi.cc || ipapi.location?.country_code || legacyAsnObj?.country;
   const countryName = ipapi.country || ipapi.location?.country || getCountryName(countryCode);
+  const abuseEmail = ipapi.abuse?.email || legacyAsnObj?.abuse || ripeAbuseContact;
 
   resultData.parsed = {
     asn: asnFormatted || "N/A",
@@ -551,7 +758,7 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
     description: ipapi.descr || legacyAsnObj?.descr || orgName,
     domain: ipapi.domain || ipapi.company?.domain || legacyAsnObj?.domain,
     type: ipapi.type || ipapi.company?.type || legacyAsnObj?.type,
-    rir: ipapi.rir || legacyAsnObj?.rir,
+    rir: ipapi.rir || legacyAsnObj?.rir || determineRir(undefined, undefined, undefined, undefined, asnNum),
     route: legacyAsnObj?.route,
     created: ipapi.created || legacyAsnObj?.created,
     updated: ipapi.updated || legacyAsnObj?.updated,
@@ -567,7 +774,7 @@ export async function queryASN(ipOrAsn: string, settings: AppSettings): Promise<
     is_abuser: ipapi.is_abuser || false,
     dc_name: ipapi.datacenter?.datacenter,
     dc_network: ipapi.datacenter?.network,
-    abuse_email: ipapi.abuse?.email || legacyAsnObj?.abuse,
+    abuse_email: abuseEmail,
     abuse_name: ipapi.abuse?.name,
     abuse_phone: ipapi.abuse?.phone,
     abuse_address: ipapi.abuse?.address,

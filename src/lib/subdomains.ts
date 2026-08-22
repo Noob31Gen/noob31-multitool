@@ -80,6 +80,7 @@ export async function querySubdomains(
   }
   
   const sources = [
+    { name: 'crt.name', fn: fetchCrtName },
     { name: 'HackerTarget', fn: fetchHackerTarget },
     { name: 'URLScan.io', fn: fetchUrlScan },
     { name: 'crt.sh', fn: fetchCrtSh },
@@ -121,6 +122,51 @@ export async function querySubdomains(
 
   if (successCount === 0) {
     throw new Error(`All subdomain sources failed. Details: ${errors.join(" | ")}`);
+  }
+}
+
+async function fetchCrtName(domain: string, settings: AppSettings): Promise<{ subdomain: string, source: string }[]> {
+  const targetUrl = `https://crt.name/v1/search?apex=${encodeURIComponent(domain)}`;
+  let res: Response | null = null;
+
+  // 1. Try Direct fetch first (crt.name supports direct CORS and avoids proxy 413 payload limits)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const directRes = await authenticatedFetch(targetUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (directRes.ok) {
+      res = directRes;
+    }
+  } catch {
+    // direct fetch failed (e.g. network restriction), proceed to proxy fallback
+  }
+
+  // 2. Fallback to configured proxy if direct fetch was unsuccessful
+  if (!res) {
+    res = await fetchWithProxyFallback(targetUrl, settings, {}, 6000);
+  }
+
+  try {
+    const text = await res.text();
+    if (!text || text.trim().startsWith('<')) {
+      throw new Error('API returned HTML or empty response');
+    }
+    const lines = text.split('\n');
+    const results: { subdomain: string, source: string }[] = [];
+    const seen = new Set<string>();
+
+    for (const line of lines) {
+      const validSub = extractValidSubdomain(line, domain);
+      if (validSub && !seen.has(validSub)) {
+        seen.add(validSub);
+        results.push({ subdomain: validSub, source: 'crt.name' });
+      }
+    }
+    return results;
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`${message}`);
   }
 }
 

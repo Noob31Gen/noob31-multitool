@@ -158,6 +158,11 @@ async function run() {
       validator: (t) => Array.isArray(JSON.parse(t))
     },
     {
+      name: 'crt.name CT Search',
+      url: 'https://crt.name/v1/search?apex=google.com',
+      validator: (t) => t.includes('google.com') && t.includes('.')
+    },
+    {
       name: 'CertSpotter issuances',
       url: 'https://api.certspotter.com/v1/issuances?domain=google.com&include_subdomains=true&expand=dns_names&limit=2',
       validator: (t) => Array.isArray(JSON.parse(t))

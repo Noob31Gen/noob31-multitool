@@ -38,6 +38,13 @@ export function CreditsPage() {
           how: "Searches their public website scan catalog using lightweight search queries."
         },
         {
+          name: "crt.name",
+          url: "https://crt.name/",
+          badge: "Direct API",
+          why: "To scan Certificate Transparency logs for full apex and subdomain issuances.",
+          how: "Streams newline-delimited certificate domain records directly via their keyless search API."
+        },
+        {
           name: "crt.sh",
           url: "https://crt.sh/",
           badge: "Direct API",
