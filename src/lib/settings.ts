@@ -11,6 +11,7 @@ export interface AppSettings {
   corsProvider: CorsProvider;
   customCorsUrl: string;
   customCorsToken: string;
+  extensionPassword?: string;
   serverMode: ServerMode;
   customServerUrl: string;
   customServerToken: string;
@@ -23,6 +24,7 @@ export const defaultSettings: AppSettings = {
   corsProvider: 'auto',
   customCorsUrl: '',
   customCorsToken: '',
+  extensionPassword: '',
   serverMode: 'browser',
   customServerUrl: '',
   customServerToken: '',

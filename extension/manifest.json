@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Noob31's MultiTools Helper",
+  "version": "1.0.0",
+  "description": "Companion browser extension enabling direct zero-proxy cross-origin requests for Noob31's MultiTools with domain whitelist filtering.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_title": "MultiTools Security & Filter Settings",
+    "default_popup": "options.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://tools.noob31.com/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "externally_connectable": {
+    "matches": [
+      "https://tools.noob31.com/*",
+      "http://localhost/*",
+      "http://127.0.0.1/*"
+    ]
+  }
+}

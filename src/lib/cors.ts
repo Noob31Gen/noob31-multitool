@@ -1,6 +1,8 @@
-export type CorsProvider = 'auto' | 'none' | 'corsproxy' | 'custom';
+import { extensionFetch, isExtensionAvailable } from './extensionBridge';
+
+export type CorsProvider = 'auto' | 'none' | 'corsproxy' | 'custom' | 'extension';
 export function getProxiedUrl(targetUrl: string, provider: CorsProvider, customProxyUrl: string = ''): string {
-    if (provider === 'none' || provider === 'auto') return targetUrl;
+    if (provider === 'none' || provider === 'auto' || provider === 'extension') return targetUrl;
     let proxyBase = '';
     switch (provider) {
         case 'corsproxy':
@@ -17,28 +19,49 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
     const finalOptions: RequestInit = { ...options };
     const headers = new Headers(finalOptions.headers || {});
 
-    // Inject Bearer token or credentials mode for Custom CORS Proxy if configured
+    let settings: {
+        corsProvider?: CorsProvider;
+        customCorsUrl?: string;
+        customCorsToken?: string;
+        extensionPassword?: string;
+    } | null = null;
+
     try {
         const saved = localStorage.getItem('url-scanner-settings');
         if (saved) {
-            const settings = JSON.parse(saved);
-            if (
-                settings.corsProvider === 'custom' &&
-                settings.customCorsUrl &&
-                url.startsWith(settings.customCorsUrl)
-            ) {
-                // 1. API Channel (Manual Token)
-                if (settings.customCorsToken) {
-                    headers.set("Authorization", `Bearer ${settings.customCorsToken}`);
-                }
-
-                // 2. Browser Channel (Automatic Cookie transmission)
-                if (!options.credentials) {
-                    finalOptions.credentials = 'include';
-                }
-            }
+            settings = JSON.parse(saved);
         }
     } catch { /* ignore */ }
+
+    // 1. Extension Channel (Direct browser extension fetch with domain filtering & SHA-256 auth)
+    if (settings?.corsProvider === 'extension' || (settings?.corsProvider === 'auto' && isExtensionAvailable())) {
+        try {
+            return await extensionFetch(url, options, settings?.extensionPassword);
+        } catch (err) {
+            // If explicitly configured to 'extension', rethrow error
+            if (settings?.corsProvider === 'extension') {
+                throw err;
+            }
+            // Otherwise in 'auto' mode, fall through to native / proxy channels
+        }
+    }
+
+    // Inject Bearer token or credentials mode for Custom CORS Proxy if configured
+    if (
+        settings?.corsProvider === 'custom' &&
+        settings.customCorsUrl &&
+        url.startsWith(settings.customCorsUrl)
+    ) {
+        // 1. API Channel (Manual Token)
+        if (settings.customCorsToken) {
+            headers.set("Authorization", `Bearer ${settings.customCorsToken}`);
+        }
+
+        // 2. Browser Channel (Automatic Cookie transmission)
+        if (!options.credentials) {
+            finalOptions.credentials = 'include';
+        }
+    }
 
     try {
         const u = new URL(url);

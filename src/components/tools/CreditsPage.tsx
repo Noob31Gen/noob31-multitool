@@ -6,7 +6,7 @@ import { ExternalLink } from "lucide-react"
 interface SourceItem {
   name: string;
   url: string;
-  badge: "DNS Query" | "Direct API" | "Proxy Fallback" | "Data Fetch";
+  badge: "DNS Query" | "Direct API" | "Proxy Fallback" | "Data Fetch" | "Extension Helper";
   why: string;
   how: string;
 }
@@ -57,6 +57,13 @@ export function CreditsPage() {
           badge: "Direct API",
           why: "To identify TLS/SSL certificate issuances for target subdomains.",
           how: "Queries SSLMate's keyless CertSpotter v1 API logs."
+        },
+        {
+          name: "RapidDNS",
+          url: "https://rapiddns.io/",
+          badge: "Direct API",
+          why: "To discover public subdomains via fast DNS indexing.",
+          how: "Extracts subdomain records from RapidDNS query tables."
         },
         {
           name: "Mnemonic",
@@ -175,6 +182,41 @@ export function CreditsPage() {
           how: "Queried as the primary fallback for IP address geolocation."
         },
         {
+          name: "FreeIPAPI",
+          url: "https://freeipapi.com/",
+          badge: "Direct API",
+          why: "To provide keyless city, timezone, and ASN lookup for IP addresses.",
+          how: "Queries FreeIPAPI's fast REST JSON endpoint."
+        },
+        {
+          name: "IP.guide",
+          url: "https://ip.guide/",
+          badge: "Direct API",
+          why: "To look up network CIDR boundaries, routing ASNs, and host ranges.",
+          how: "Queries IP.guide's lightweight JSON endpoint."
+        },
+        {
+          name: "IPLocation.net",
+          url: "https://api.iplocation.net/",
+          badge: "Direct API",
+          why: "To provide secondary country and ISP verification.",
+          how: "Queries IPLocation's keyless JSON API."
+        },
+        {
+          name: "IP2C",
+          url: "https://ip2c.org/",
+          badge: "Direct API",
+          why: "To rapidly resolve two-letter and three-letter country codes.",
+          how: "Queries IP2C's high-speed plain text responder."
+        },
+        {
+          name: "WTFismyIP",
+          url: "https://wtfismyip.com/",
+          badge: "Direct API",
+          why: "To provide client public IP resolution and location checks.",
+          how: "Fetches JSON IP details directly from WTFismyIP."
+        },
+        {
           name: "ip-api.com",
           url: "http://ip-api.com/",
           badge: "Proxy Fallback",
@@ -198,8 +240,8 @@ export function CreditsPage() {
       ]
     },
     {
-      title: "Domain Blocklists & Reputation",
-      description: "Databases queried via DNS or API to detect active malicious domains.",
+      title: "Threat Intelligence, Reputation & Vulnerabilities",
+      description: "Feeds, blocklists, and vulnerability databases queried to detect malicious indicators, spam, and CVEs.",
       sources: [
         {
           name: "SURBL",
@@ -214,19 +256,55 @@ export function CreditsPage() {
           badge: "Direct API",
           why: "To check if domains match open-source community intelligence indicators.",
           how: "Fetches recent threat reports using OTX's general domain endpoint."
-        }
-      ]
-    },
-    {
-      title: "Threat Intelligence Aggregation",
-      description: "Feeds and databases queried dynamically in the Threat Intelligence Explorer to trace Indicators of Compromise (IOCs).",
-      sources: [
+        },
         {
           name: "urlscan.io (Scan Search)",
           url: "https://urlscan.io/",
           badge: "Direct API",
           why: "To list recent public crawler runs, screenshots, and security classifications.",
           how: "Queries urlscan.io search endpoint for matching scan IDs and assets."
+        },
+        {
+          name: "CIRCL CVE-Search",
+          url: "https://cve.circl.lu/",
+          badge: "Direct API",
+          why: "To lookup full CVE vulnerability records, CWE classifications, and advisories.",
+          how: "Queries CIRCL's open-source CVE search API."
+        },
+        {
+          name: "OSV API",
+          url: "https://api.osv.dev/",
+          badge: "Direct API",
+          why: "To lookup open-source vulnerability records across package ecosystems.",
+          how: "Queries Open Source Vulnerabilities database by vulnerability ID."
+        },
+        {
+          name: "CISA KEV Catalog",
+          url: "https://www.cisa.gov/",
+          badge: "Data Fetch",
+          why: "To verify whether a vulnerability is listed in the Known Exploited Vulnerabilities catalog.",
+          how: "Directly queries CISA's official JSON feed."
+        },
+        {
+          name: "Blocklist.de",
+          url: "https://api.blocklist.de/",
+          badge: "Direct API",
+          why: "To check IP abuse reports from Fail2ban attack sensors.",
+          how: "Queries Blocklist.de's reporting API."
+        },
+        {
+          name: "StopForumSpam",
+          url: "https://www.stopforumspam.com/",
+          badge: "Direct API",
+          why: "To check if IP addresses or domains are associated with spam forum activity.",
+          how: "Queries StopForumSpam's API."
+        },
+        {
+          name: "Sucuri SiteCheck",
+          url: "https://sitecheck.sucuri.net/",
+          badge: "Direct API",
+          why: "To check website blacklists, malware classifications, and defacements.",
+          how: "Queries Sucuri's public scan endpoint."
         }
       ]
     },
@@ -268,13 +346,33 @@ export function CreditsPage() {
           badge: "Data Fetch",
           why: "A fast, external way to check your own IP address and its exposure.",
           how: "Users can visit the URL directly in their browser for quick diagnostics."
+        }
+      ]
+    },
+    {
+      title: "Corporate & Entity Intelligence",
+      description: "Public company registries, financial metrics, and corporate logos.",
+      sources: [
+        {
+          name: "Clearbit Company Autocomplete",
+          url: "https://clearbit.com/",
+          badge: "Direct API",
+          why: "To suggest company domains, legal names, and logos in real-time.",
+          how: "Queries Clearbit's keyless company suggest API."
         },
         {
-          name: "Shodan Browser Plugins",
-          url: "https://help.shodan.io/mastery/browser-plugins",
-          badge: "Data Fetch",
-          why: "To see open ports and details of websites directly in your browser.",
-          how: "Available for Chrome and Firefox."
+          name: "Yahoo Finance Search",
+          url: "https://finance.yahoo.com/",
+          badge: "Direct API",
+          why: "To map public entities to stock tickers and market exchanges.",
+          how: "Queries Yahoo Finance's search endpoint."
+        },
+        {
+          name: "SEC EDGAR Submissions",
+          url: "https://www.sec.gov/edgar",
+          badge: "Direct API",
+          why: "To retrieve official US SEC corporate CIK filings and metadata.",
+          how: "Queries the SEC EDGAR company submission API."
         }
       ]
     },
@@ -282,6 +380,13 @@ export function CreditsPage() {
       title: "MAC Address Databases (OUI)",
       description: "Directories queried to parse network card manufacturers and OUI blocks.",
       sources: [
+        {
+          name: "Troubleshooting.tools",
+          url: "https://api.troubleshooting.tools/",
+          badge: "Direct API",
+          why: "To resolve hardware manufacturer names with high accuracy.",
+          how: "Queries their keyless MAC lookup API endpoint."
+        },
         {
           name: "MACVendorLookup.com",
           url: "https://www.macvendorlookup.com/",
@@ -306,14 +411,21 @@ export function CreditsPage() {
       ]
     },
     {
-      title: "CORS Proxies",
-      description: "Intermediate proxy engines used to bypass browser Cross-Origin Resource Sharing restrictions.",
+      title: "Connectivity Channels & Browser Extension",
+      description: "Engines and extensions used to bypass browser Cross-Origin Resource Sharing restrictions securely.",
       sources: [
+        {
+          name: "Noob31's MultiTools Helper (Browser Extension)",
+          url: "https://github.com/Noob31Gen/noob31-multitool/tree/main/extension",
+          badge: "Extension Helper",
+          why: "To execute cross-origin requests with native browser speed and zero external proxy dependency.",
+          how: "Communicates via secure window.postMessage bridge with domain-salted SHA-256 auth and domain whitelist filtering."
+        },
         {
           name: "Corsproxy.io",
           url: "https://corsproxy.io/",
           badge: "Proxy Fallback",
-          why: "To act as a primary proxy resolver for high-availability lookup queries.",
+          why: "To act as a fallback proxy resolver when direct browser fetching is blocked by CORS.",
           how: "Injects CORS headers dynamically onto target HTTP queries."
         }
       ]
@@ -324,6 +436,7 @@ export function CreditsPage() {
     switch (type) {
       case "DNS Query": return "default";
       case "Direct API": return "secondary";
+      case "Extension Helper": return "default";
       case "Proxy Fallback": return "outline";
       default: return "secondary";
     }
@@ -339,7 +452,7 @@ export function CreditsPage() {
       <div>
         <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight">Credits & Data Sources</h1>
         <p className="text-muted-foreground mt-2">
-          To maintain maximum privacy, performance, and accessibility, this application utilizes keyless queries, cascading CORS proxies, and secure DoH resolvers. Below is the full directory of all data sources used.
+          To maintain maximum privacy, performance, and accessibility, this application utilizes keyless queries, a companion browser extension with domain filtering, cascading CORS proxies, and secure DoH resolvers. Below is the full directory of all data sources used.
         </p>
       </div>
 
